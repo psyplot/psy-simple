@@ -1,0 +1,14 @@
+name: psyplot_py2.7_mpl1.5
+channels:
+    - conda-forge
+dependencies:
+    - python=2.7
+    - matplotlib=1.5
+    - dask
+    - xarray
+    - netCDF4
+    - scipy  # necessary for scipy engine test
+    - seaborn
+    - gdal  # for psyplot.gdal_store
+    - pip:
+        - pytest

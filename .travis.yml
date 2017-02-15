@@ -1,0 +1,69 @@
+language: python
+python:
+  # We don't actually use the Travis Python, but this keeps it organized.
+  - "2.7"
+  - "3.5"
+env:
+  - MPL_VERSION=2.0
+  - MPL_VERSION=1.5
+  - MPL_VERSION=1.4
+install:
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - git config --global user.name Travis && git config user.email "philipp.sommer@unil.ch"
+  # decrypt psy-sim key
+  - openssl aes-256-cbc -K "$encrypted_7fd3f220e342_key" -iv "$encrypted_7fd3f220e342_iv" -in psy-simple-key.enc -out psy-simple-key -d
+  - 'chmod 600 psy-simple-key && eval `ssh-agent -s` && ssh-add psy-simple-key'
+  # checkout references
+  - bash ci/checkout_references.sh
+  # decrypt reference figures key
+  - openssl aes-256-cbc -K "$encrypted_7fd3f220e342_key" -iv "$encrypted_7fd3f220e342_iv" -in psy-simple-references-key.enc -out psy-simple-references-key -d
+  - 'export WORK=`pwd`'
+  - 'export REFDIR=`python tests/get_ref_dir.py`'
+  - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
+  - cd "$REFDIR"
+  - 'chmod 600 psy-simple-references-key && eval `ssh-agent -s` && ssh-add psy-simple-references-key'
+  - cd "$WORK"
+  # make sure we use an 'innocent' default matplotlib environment
+  - touch matplotlibrc
+  # setup conda environment
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - pip install pyyaml  # is somehow not included in the current conda installation
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+  - 'ENVKEY=py"${TRAVIS_PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
+  - conda env create -f tests/envs/environment_$ENVKEY.yml
+  - source activate psyplot_$ENVKEY
+  # use latest development version
+  # NOTE: Remove this when psyplot is stable enough
+  - git clone "https://github.com/Chilipp/psyplot.git" -b v1.0.0.dev0
+  - cd psyplot && python setup.py install && cd .. && rm -rf psyplot
+  # install coveralls
+  - pip install coveralls
+  # install psyplot
+  - python setup.py install
+  # export the environment for debugging
+  - conda env export -n psyplot_$ENVKEY
+
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+
+script:
+  # create the necessary references
+  - 'bash ci/create_references.sh && cd "$REFDIR" && git push origin "$REFBRANCH" && cd $WORK'
+  # run the tests
+  - cd $WORK && coverage run --source=psy_sim setup.py pytest
+
+after_success:
+  coveralls
