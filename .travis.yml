@@ -63,7 +63,7 @@ before_script:
 
 script:
   # create the necessary references
-  - 'bash ci/create_references.sh && cd "$REFDIR" && git push origin "$REFBRANCH" && cd $WORK'
+  - 'bash ci/create_references.sh && cd "$REFDIR" && git push origin "$REFBRANCH" && cd $WORK && git push origin $TRAVIS_BRANCH'
   # run the tests
   - cd $WORK && coverage run --source=psy_sim setup.py pytest
 
