@@ -7,6 +7,11 @@ env:
   - MPL_VERSION=2.0
   - MPL_VERSION=1.5
   - MPL_VERSION=1.4
+before_install:
+  # decrypt psy-sim key
+  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in psy-simple-key.enc -out psy-simple-key -d
+  # decrypt reference figures key
+  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in psy-simple-references-key.enc -out psy-simple-references-key -d
 install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
@@ -15,14 +20,12 @@ install:
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
-  - git config --global user.name Travis && git config user.email "philipp.sommer@unil.ch"
-  # decrypt psy-sim key
-  - openssl aes-256-cbc -K "$encrypted_7fd3f220e342_key" -iv "$encrypted_7fd3f220e342_iv" -in psy-simple-key.enc -out psy-simple-key -d
+  - git config --global user.name Travis && git config --global user.email "philipp.sommer@unil.ch"
+  # add psy-sim key
   - 'chmod 600 psy-simple-key && eval `ssh-agent -s` && ssh-add psy-simple-key'
   # checkout references
   - bash ci/checkout_references.sh
-  # decrypt reference figures key
-  - openssl aes-256-cbc -K "$encrypted_7fd3f220e342_key" -iv "$encrypted_7fd3f220e342_iv" -in psy-simple-references-key.enc -out psy-simple-references-key -d
+  # add references key
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
   - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
