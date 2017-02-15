@@ -1,5 +1,7 @@
 import os
+import sys
 import shutil
+import subprocess as spr
 import tempfile
 from unittest import TestCase
 from get_ref_dir import get_ref_dir
@@ -10,6 +12,17 @@ ref_dir = get_ref_dir()
 test_dir = os.path.dirname(__file__)
 
 remove_temp_files = True
+
+# check if the seaborn version is smaller than 0.8 (without actually importing
+# it), due to https://github.com/mwaskom/seaborn/issues/966
+# If so, disable the import of it when import psyplot.project
+try:
+    sns_version = spr.check_output(
+        [sys.executable, '-c', 'import seaborn; print(seaborn.__version__)'])
+except spr.CalledProcessError:  # seaborn is not installed
+    sns_version = None
+else:
+    sns_version = sns_version.decode('utf-8')
 
 
 class PsyPlotTestCase(TestCase):

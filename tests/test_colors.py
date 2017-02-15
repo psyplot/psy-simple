@@ -1,6 +1,7 @@
 """Test the :mod:`psy_simple.colors` module"""
 import six
 import unittest
+import _base_testing as bt
 import matplotlib.pyplot as plt
 import psy_simple.colors as psyc
 
@@ -27,7 +28,9 @@ class TestShowColormaps(unittest.TestCase):
         self.assertEqual(plt.get_fignums(), [1])
         self.assertEqual(len(plt.gcf().axes), 3)
 
-    @unittest.skipIf(six.PY2, 'Not implemented TestCase method')
+    @unittest.skipIf(
+        six.PY2 or (bt.sns_version is not None and bt.sns_version < '0.8'),
+        'Not implemented TestCase method' if six.PY2 else "Crashed by seaborn")
     def test_warning_similar(self):
         """Test the display of a warning of a slightly misspelled cmap"""
         with self.assertWarnsRegex(UserWarning, 'Similar colormaps'):
@@ -35,7 +38,9 @@ class TestShowColormaps(unittest.TestCase):
         self.assertEqual(plt.get_fignums(), [1])
         self.assertEqual(len(plt.gcf().axes), 0)
 
-    @unittest.skipIf(six.PY2, 'Not implemented TestCase method')
+    @unittest.skipIf(
+        six.PY2 or (bt.sns_version is not None and bt.sns_version < '0.8'),
+        'Not implemented TestCase method' if six.PY2 else "Crashed by seaborn")
     def test_warning_unknown(self):
         """Test the display of a warning of a completely unknown cmap"""
         with self.assertWarnsRegex(UserWarning,
