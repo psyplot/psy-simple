@@ -19,18 +19,6 @@ install:
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
     fi
-  - git config --global user.name Travis && git config --global user.email "philipp.sommer@unil.ch"
-  # add psy-sim key
-  - 'chmod 600 psy-simple-key && eval `ssh-agent -s` && ssh-add psy-simple-key'
-  # checkout references
-  - bash ci/checkout_references.sh
-  # add references key
-  - 'export WORK=`pwd`'
-  - 'export REFDIR=`python tests/get_ref_dir.py`'
-  - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
-  - cd "$REFDIR"
-  - 'chmod 600 psy-simple-references-key && eval `ssh-agent -s` && ssh-add psy-simple-references-key'
-  - cd "$WORK"
   # make sure we use an 'innocent' default matplotlib environment
   - touch matplotlibrc
   # setup conda environment
@@ -45,6 +33,18 @@ install:
   - 'ENVKEY=py"${TRAVIS_PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
   - conda env create -f tests/envs/environment_$ENVKEY.yml
   - source activate psyplot_$ENVKEY
+  - git config --global user.name Travis && git config --global user.email "philipp.sommer@unil.ch"
+  # add psy-sim key
+  - 'chmod 600 psy-simple-key && eval `ssh-agent -s` && ssh-add psy-simple-key'
+  # checkout references
+  - bash ci/checkout_references.sh
+  # add references key
+  - 'export WORK=`pwd`'
+  - 'export REFDIR=`python tests/get_ref_dir.py`'
+  - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
+  - cd "$REFDIR"
+  - 'chmod 600 psy-simple-references-key && eval `ssh-agent -s` && ssh-add psy-simple-references-key'
+  - cd "$WORK"
   # use latest development version
   # NOTE: Remove this when psyplot is stable enough
   - git clone "https://github.com/Chilipp/psyplot.git" -b v1.0.0.dev0
