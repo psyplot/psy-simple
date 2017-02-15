@@ -36,15 +36,13 @@ install:
   - git config --global user.name Travis && git config --global user.email "philipp.sommer@unil.ch"
   # add psy-sim key
   - 'chmod 600 psy-simple-key && eval `ssh-agent -s` && ssh-add psy-simple-key'
+  # add references key
+  - 'chmod 600 psy-simple-references-key && ssh-add psy-simple-references-key'
   # checkout references
   - bash ci/checkout_references.sh
-  # add references key
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
   - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
-  - cd "$REFDIR"
-  - 'chmod 600 psy-simple-references-key && eval `ssh-agent -s` && ssh-add psy-simple-references-key'
-  - cd "$WORK"
   # use latest development version
   # NOTE: Remove this when psyplot is stable enough
   - git clone "https://github.com/Chilipp/psyplot.git" -b v1.0.0.dev0
