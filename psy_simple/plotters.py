@@ -166,8 +166,8 @@ class AlternativeXCoord(Formatoption):
         coord = xr.Variable((coord_da.name, ), coord_da, coord_da.attrs)
         other_coords = {key: da.coords[key]
                         for key in set(da.coords).difference(da.dims)}
-        ret = da.rename({da.dims[-1]: coord.name}).assign_coords(
-            **{coord.name: coord}).assign_coords(**other_coords)
+        ret = da.rename({da.dims[-1]: coord_da.name}).assign_coords(
+            **{coord_da.name: coord}).assign_coords(**other_coords)
         return ret
 
 
@@ -2944,22 +2944,22 @@ class Cbar(Formatoption):
                 fig.subplots_adjust(bottom=0.2)
                 kwargs['cax'] = fig.add_axes(
                     [0.125, 0.135, 0.775, 0.05],
-                    label=self.raw_data.arr_name + '_fb')
+                    label=self.raw_data.psy.arr_name + '_fb')
             elif pos == 'fr':
                 fig.subplots_adjust(right=0.8)
                 kwargs['cax'] = fig.add_axes(
                     [0.825, 0.25, 0.035, 0.6],
-                    label=self.raw_data.arr_name + '_fr')
+                    label=self.raw_data.psy.arr_name + '_fr')
             elif pos == 'fl':
                 fig.subplots_adjust(left=0.225)
                 kwargs['cax'] = fig.add_axes(
                     [0.075, 0.25, 0.035, 0.6],
-                    label=self.raw_data.arr_name + '_fl')
+                    label=self.raw_data.psy.arr_name + '_fl')
             elif pos == 'ft':
                 fig.subplots_adjust(top=0.75)
                 kwargs['cax'] = fig.add_axes(
                     [0.125, 0.825, 0.775, 0.05],
-                    label=self.raw_data.arr_name + '_ft')
+                    label=self.raw_data.psy.arr_name + '_ft')
         kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
@@ -4097,11 +4097,14 @@ class PointDensity(Formatoption):
             grid[0], grid[1], xyranges)
         xcent = xr.Variable((xname, ), x, attrs=coord.attrs.copy())
         ycent = xr.Variable((yname, ), y, attrs=raw_da.attrs.copy())
-        var = xr.Variable((yname, xname), z, attrs=raw_da.base.attrs.copy())
+        var = xr.Variable((yname, xname), z,
+                          attrs=raw_da.psy.base.attrs.copy())
         ds = xr.Dataset({'counts': var}, {xname: xcent, yname: ycent})
         ds = ds.assign_coords(**self._get_other_coords(raw_da))
         self.decoder = CFDecoder(ds)
-        self.data = InteractiveArray(ds.counts, base=ds, decoder=self.decoder)
+        arr = ds.counts
+        arr.psy.init_accessor(base=ds, decoder=self.decoder)
+        self.data = arr
 
     def _statsmodels_bivariate_kde(self, x, y, bws, xsize, ysize, xyranges):
         """Compute a bivariate kde using statsmodels.
@@ -4139,14 +4142,17 @@ class PointDensity(Formatoption):
         ybounds = xr.Variable((yname, 'bnds'), np.c_[[y[:-1], y[1:]]].T)
         xcent.attrs['bounds'] = xname + '_bnds'
         ycent.attrs['bounds'] = yname + '_bnds'
-        var = xr.Variable((yname, xname), z.T, attrs=raw_da.base.attrs.copy())
+        var = xr.Variable((yname, xname), z.T,
+                          attrs=raw_da.psy.base.attrs.copy())
         variables = {'counts': var}
-        coords = {xcent.name: xcent, ycent.name: ycent,
+        coords = {xname: xcent, yname: ycent,
                   xname + '_bnds': xbounds, yname + '_bnds': ybounds}
         ds = xr.Dataset(variables, coords)
         ds = ds.assign_coords(**self._get_other_coords(raw_da))
         self.decoder = CFDecoder(ds)
-        self.data = InteractiveArray(ds.counts, base=ds, decoder=self.decoder)
+        arr = ds.counts
+        arr.psy.init_accessor(base=ds, decoder=self.decoder)
+        self.data = arr
 
     def _get_other_coords(self, raw_da):
         return {key: raw_da.coords[key]
@@ -4385,7 +4391,7 @@ class Simple2DBase(Base2D):
         else:
             data = self.data
         ndims = self.allowed_dims
-        if data.decoder.is_unstructured(data):
+        if data.psy.decoder.is_unstructured(data):
             ndims -= 1
         if data.ndim != ndims:
             raise ValueError("Can only plot 2-dimensional data!")
@@ -4506,7 +4512,7 @@ class BaseVectorPlotter(Base2D):
             data = self.data[0]
         else:
             data = self.data
-        if not ((data.decoder.is_unstructured(data) and data.ndim == 2) or
+        if not ((data.psy.decoder.is_unstructured(data) and data.ndim == 2) or
                 data.ndim == 3):
             raise ValueError("Can only plot 3-dimensional data!")
 

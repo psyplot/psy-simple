@@ -10,7 +10,7 @@ from matplotlib.cm import get_cmap as mpl_get_cmap
 import numpy as np
 from difflib import get_close_matches
 from itertools import chain
-from psyplot.warning import warn
+from warnings import warn
 from psyplot.docstring import docstrings
 from psyplot import rcParams
 
