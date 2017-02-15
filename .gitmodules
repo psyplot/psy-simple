@@ -2,3 +2,7 @@
 	path = tests/reference_figures/darwin/py3.5/mpl2.0
 	url = https://github.com/Chilipp/psy-simple-references.git
 	branch = darwin_py3.5_mpl2.0
+[submodule "tests/reference_figures/darwin/py3.5/mpl1.5"]
+	path = tests/reference_figures/darwin/py3.5/mpl1.5
+	url = https://github.com/Chilipp/psy-simple-references.git
+	branch = darwin_py3.5_mpl1.5

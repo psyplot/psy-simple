@@ -10,5 +10,15 @@ def get_ref_dir():
                     'mpl' + mpl.__version__.rsplit('.', 1)[0])
 
 
+def get_ref_branch():
+    import matplotlib as mpl
+    return '_'.join([sys.platform,
+                     'py' + '.'.join(map(str, sys.version_info[:2])),
+                     'mpl' + mpl.__version__.rsplit('.', 1)[0]])
+
+
 if __name__ == '__main__':
-    print(get_ref_dir())
+    if '-b' in sys.argv:
+        print(get_ref_branch())
+    else:
+        print(get_ref_dir())
