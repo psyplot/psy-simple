@@ -8,10 +8,9 @@ env:
   - MPL_VERSION=1.5
   - MPL_VERSION=1.4
 before_install:
-  # decrypt psy-sim key
-  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in psy-simple-key.enc -out psy-simple-key -d
-  # decrypt reference figures key
-  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in psy-simple-references-key.enc -out psy-simple-references-key -d
+  # decrypt keys
+  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in keys.tar.enc -out keys.tar -d
+  - tar xvf keys.tar
 install:
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
