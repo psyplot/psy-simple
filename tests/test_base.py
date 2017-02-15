@@ -24,7 +24,6 @@ class BasePlotterTest(bt.PsyPlotTestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.odir = tempfile.mkdtemp()
         cls.ds = open_dataset(cls.ncfile)
         cls.data = InteractiveList.from_dataset(
             cls.ds, y=[0, 1], z=0, t=0, name=cls.var, auto_update=True)
@@ -37,7 +36,7 @@ class BasePlotterTest(bt.PsyPlotTestCase):
         plt.close(cls.plotter.ax.get_figure().number)
 
     def tearDown(self):
-        self.data.update(t=0, todefault=True, replot=True)
+        self.data.psy.update(t=0, todefault=True, replot=True)
 
     def update(self, *args, **kwargs):
         """Update the plotter of this instance"""
@@ -52,13 +51,13 @@ class BasePlotterTest(bt.PsyPlotTestCase):
             u"Test plot at %s o'clock of %s" % (
                 t_str, self.data.attrs.get('long_name', 'Temperature')),
             label_func().get_text())
-        self.data.update(t=1)
+        self.data.psy.update(t=1)
         t_str = '1979-02-28, 18:00' if has_time else '%Y-%m-%d, %H:%M'
         self.assertEqual(
             u"Test plot at %s o'clock of %s" % (
                 t_str, self.data.attrs.get('long_name', 'Temperature')),
             label_func().get_text())
-        self.data.update(t=0)
+        self.data.psy.update(t=0)
 
     def test_title(self):
         """Test title, titlesize, titleweight, titleprops formatoptions"""

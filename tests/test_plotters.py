@@ -256,7 +256,7 @@ class LinePlotterTest(tb.BasePlotterTest):
         # testing of psyplot.plotter.simple.DtTicksBase
         args = iter(args)
         data = InteractiveList.from_dataset(
-            self.data[0].base, y=[0, 1], z=0, x=0, name=self.var,
+            self.data[0].psy.base, y=[0, 1], z=0, x=0, name=self.var,
             auto_update=True)
         plotter = self.plotter.__class__(data)
         ax = plotter.ax
@@ -362,14 +362,14 @@ class SingleLinePlotterTest(LinePlotterTest):
         cls.ds = open_dataset(cls.ncfile)
         cls.data = InteractiveList.from_dataset(
             cls.ds, y=0, z=0, t=0, name=cls.var, auto_update=True)
-        cls.data[0].arr_name = 'arr0'
-        cls.data.arr_name = 'arr0'
+        cls.data[0].psy.arr_name = 'arr0'
+        cls.data.psy.arr_name = 'arr0'
         cls.plotter = LinePlotter(cls.data[0])
         cls.create_dirs()
 
     @classmethod
     def tearDown(cls):
-        cls.data[0].update(t=0, todefault=True, replot=True)
+        cls.data[0].psy.update(t=0, todefault=True, replot=True)
 
     def plot(self, **kwargs):
         name = kwargs.pop('name', self.var)
@@ -427,14 +427,14 @@ class SingleViolinPlotterTest(ViolinPlotterTest):
         cls.ds = open_dataset(cls.ncfile)
         cls.data = InteractiveList.from_dataset(
             cls.ds, y=0, z=0, t=0, name=cls.var, auto_update=True)
-        cls.data[0].arr_name = 'arr0'
-        cls.data.arr_name = 'arr0'
+        cls.data[0].psy.arr_name = 'arr0'
+        cls.data.psy.arr_name = 'arr0'
         cls.plotter = ViolinPlotter(cls.data[0])
         cls.create_dirs()
 
     @classmethod
     def tearDown(cls):
-        cls.data[0].update(t=0, todefault=True, replot=True)
+        cls.data[0].psy.update(t=0, todefault=True, replot=True)
 
     def plot(self, **kwargs):
         name = kwargs.pop('name', self.var)
@@ -469,7 +469,7 @@ class BarPlotterTest(LinePlotterTest):
 
     def _test_DtTicksBase(self, *args):
         data = InteractiveList.from_dataset(
-            self.data[0].base, y=[0, 1], z=0, x=0, name=self.var,
+            self.data[0].psy.base, y=[0, 1], z=0, x=0, name=self.var,
             auto_update=True)
         plotter = self.plotter.__class__(data)
         ax = plotter.ax
@@ -516,14 +516,14 @@ class SingleBarPlotterTest(BarPlotterTest):
         cls.ds = open_dataset(cls.ncfile)
         cls.data = InteractiveList.from_dataset(
             cls.ds, y=0, z=0, t=0, name=cls.var, auto_update=True)
-        cls.data[0].arr_name = 'arr0'
-        cls.data.arr_name = 'arr0'
+        cls.data[0].psy.arr_name = 'arr0'
+        cls.data.psy.arr_name = 'arr0'
         cls.plotter = BarPlotter(cls.data[0])
         cls.create_dirs()
 
     @classmethod
     def tearDown(cls):
-        cls.data[0].update(t=0, todefault=True, replot=True)
+        cls.data[0].psy.update(t=0, todefault=True, replot=True)
 
     def plot(self, **kwargs):
         name = kwargs.pop('name', self.var)
@@ -792,7 +792,7 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
     var = ['u', 'v']
 
     def plot(self, **kwargs):
-        color_fmts = psy.plot.mapvector.plotter_cls().fmt_groups['colors']
+        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
         fix_colorbar = not color_fmts.intersection(kwargs)
         kwargs.setdefault('color', 'absolute')
         ds = psy.open_dataset(self.ncfile)
@@ -846,7 +846,7 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
         cls.ds = open_dataset(cls.ncfile)
         cls.data = ArrayList.from_dataset(
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True)[0]
-        cls.data = cls.data.sel(lon=slice(0, 69.0), lat=slice(81.0, 34.0))
+        cls.data = cls.data.psy.sel(lon=slice(0, 69.0), lat=slice(81.0, 34.0))
         cls.data.attrs['long_name'] = 'absolute wind speed'
         cls.data.name = 'wind'
         cls.plotter = SimpleVectorPlotter(cls.data)
@@ -1017,8 +1017,8 @@ class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True,
             prefer_list=True)[0]
         for i in range(len(cls.data)):
-            cls._data[i] = cls._data[i].sel(lon=slice(0, 69.0),
-                                            lat=slice(81.0, 34.0))
+            cls._data[i] = cls._data[i].psy.sel(lon=slice(0, 69.0),
+                                                lat=slice(81.0, 34.0))
         cls._data.attrs['long_name'] = 'Temperature'
         cls._data.attrs['name'] = 't2m'
         cls.plotter = CombinedSimplePlotter(cls.data)
@@ -1031,10 +1031,10 @@ class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
         cls.plotter.update(todefault=True, replot=True)
 
     def tearDown(self):
-        self._data.update(t=0, todefault=True, replot=True)
+        self._data.psy.update(t=0, todefault=True, replot=True)
 
     def plot(self, **kwargs):
-        color_fmts = psy.plot.mapvector.plotter_cls().fmt_groups['colors']
+        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
         fix_colorbar = not color_fmts.intersection(kwargs)
         ds = psy.open_dataset(self.ncfile)
         kwargs.setdefault('t', ds.time.values[0])
@@ -1128,13 +1128,13 @@ class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
             u"Test plot at %s o'clock of %s" % (
                 t_str, self.data.attrs.get('long_name', 'Temperature')),
             label_func().get_text())
-        self._data.update(t=1)
+        self._data.psy.update(t=1)
         t_str = '1979-02-28, 18:00' if has_time else '%Y-%m-%d, %H:%M'
         self.assertEqual(
             u"Test plot at %s o'clock of %s" % (
                 t_str, self.data.attrs.get('long_name', 'Temperature')),
             label_func().get_text())
-        self._data.update(t=0)
+        self._data.psy.update(t=0)
 
     def test_miss_color(self, *args, **kwargs):
         Simple2DPlotterTest.test_miss_color(self, *args, **kwargs)
@@ -1252,15 +1252,16 @@ class DensityPlotterTest(bt.PsyPlotTestCase):
 
     @classmethod
     def define_data(cls, mean=[0, 0], cov=[[10, 0], [0, 10]]):
-        import psyplot.data as psyd
         import numpy as np
         import pandas as pd
-        import xarray
+        import xarray as xr
         x, y = np.random.multivariate_normal(mean, cov, 5000).T
         df = pd.DataFrame(y, columns=['y'], index=pd.Index(x, name='x'))
-        ds = xarray.Dataset.from_dataframe(df)
-        ds['v'] = xarray.Variable(('x', ), x)
-        return psyd.InteractiveArray(ds.y, base=ds)
+        ds = xr.Dataset.from_dataframe(df)
+        ds['v'] = xr.Variable(('x', ), x)
+        ret = xr.DataArray(ds.y)
+        ret.psy.init_accessor(base=ds)
+        return ret
 
     def test_bins(self):
         '''Test the bins formatoption'''

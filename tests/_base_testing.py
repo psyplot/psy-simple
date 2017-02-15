@@ -2,9 +2,10 @@ import os
 import shutil
 import tempfile
 from unittest import TestCase
+from get_ref_dir import get_ref_dir
 import numpy as np
 
-ref_dir = os.path.join(os.path.dirname(__file__), 'reference_figures')
+ref_dir = get_ref_dir()
 
 test_dir = os.path.dirname(__file__)
 
@@ -24,16 +25,12 @@ class PsyPlotTestCase(TestCase):
     ncfile = os.path.join(test_dir, 'test-t2m-u-v.nc')
 
     @classmethod
-    def setUpClass(cls):
-        cls.odir = tempfile.mkdtemp()
-
-    @classmethod
     def tearDownClass(cls):
         import psyplot
         from psyplot.config.rcsetup import defaultParams
         psyplot.rcParams.update(
             **{key: val[0] for key, val in defaultParams.items()})
-        if remove_temp_files:
+        if remove_temp_files and hasattr(cls, 'odir'):
             shutil.rmtree(cls.odir)
 
     @classmethod
