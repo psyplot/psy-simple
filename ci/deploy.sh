@@ -18,16 +18,17 @@ SHA=`git rev-parse --verify HEAD`
 git config user.name "Travis"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
+git add -N $WHAT
+
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
-if [ -z `git diff --exit-code` ]; then
+if [[ -z `git diff --exit-code` ]]; then
     echo "No changes to the output on this push; exiting."
     exit 0
 fi
 
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
-git add $WHAT
-git commit -m "Deploy from Travis: ${SHA} [skip ci]"
+git commit -am "Deploy from Travis: ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
 git push $SSH_REPO $TARGET_BRANCH
