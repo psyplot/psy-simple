@@ -12,8 +12,7 @@ SHA=`git rev-parse --verify HEAD`
 
 cd $SRC_DIR
 
-REPO="$(git config remote.origin.url)"
-SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
+REPO_NAME=$(basename `git rev-parse --show-toplevel`)
 
 # Now let's go have some fun with the cloned repo
 git config user.name "Travis"
@@ -32,4 +31,4 @@ fi
 git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
-git push $SSH_REPO $TARGET_BRANCH
+git push "https://${GH_REPO_TOKEN}@${REPO_NAME} $TARGET_BRANCH
