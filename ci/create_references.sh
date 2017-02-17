@@ -1,1 +1,1 @@
-py.test -xv --ref
+py.test -xv --ref -k ref_xticks
