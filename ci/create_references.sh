@@ -1,1 +1,1 @@
-py.test -xv --ref tests/test_plotters.py::CombinedSimplePlotterTest::ref_arrowsize
+py.test -xv --ref tests/test_plotters.py::CombinedSimplePlotterTest::ref_cbar
