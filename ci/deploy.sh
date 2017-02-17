@@ -12,7 +12,8 @@ SHA=`git rev-parse --verify HEAD`
 
 cd $SRC_DIR
 
-REPO_NAME=$(basename `git config remote.origin.url`)
+REPO_NAME=`git config remote.origin.url`
+REPO_NAME=${REPO_NAME#https://}
 
 # Now let's go have some fun with the cloned repo
 git config user.name "Travis"
@@ -31,4 +32,11 @@ fi
 git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
-git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH
+set +ex
+git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH &> tmp.txt
+
+if [[ $? != 0 ]]; then
+    sed "s/${GH_REPO_TOKEN}/<secure>" tmp.txt
+fi
+
+rm tmp.txt
