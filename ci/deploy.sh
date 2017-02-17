@@ -36,7 +36,7 @@ set +ex
 git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH &> tmp.txt
 
 if [[ $? != 0 ]]; then
-    sed "s/${GH_REPO_TOKEN}/<secure>" tmp.txt
+    sed "s/${GH_REPO_TOKEN}/<secure>/" tmp.txt
 fi
 
 rm tmp.txt
