@@ -72,4 +72,4 @@ script:
 after_success:
   - coveralls
   - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh "$REFDIR" "$REFBRANCH" "."; fi
-  - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR"; fi
+  - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR" .gitmodules; fi
