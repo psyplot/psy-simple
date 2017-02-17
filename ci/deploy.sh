@@ -8,11 +8,12 @@ TARGET_BRANCH=$1
 shift
 WHAT=$@
 
+SHA=`git rev-parse --verify HEAD`
+
 cd $SRC_DIR
 
 REPO="$(git config remote.origin.url)"
 SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-SHA=`git rev-parse --verify HEAD`
 
 # Now let's go have some fun with the cloned repo
 git config user.name "Travis"
@@ -28,7 +29,7 @@ fi
 
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
-git commit -am "Deploy from Travis: ${SHA} [skip ci]"
+git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
 git push $SSH_REPO $TARGET_BRANCH
