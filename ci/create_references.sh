@@ -1,1 +1,1 @@
-py.test -xv --ref -k ref_grid
+py.test -xv --ref tests/test_plotters.py::CombinedSimplePlotterTest2D::ref_arrowsize
