@@ -27,5 +27,5 @@ git commit -m "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [ski
 # Now that we're all set up, we can push.
 git branch --list
 set +ex
-echo git push "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
-git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  2>&1 | sed -e "s/${GH_REPO_TOKEN}/<secure>/g"
+echo git push --force "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
+git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  2>&1 | sed -e "s/${GH_REPO_TOKEN}/<secure>/g"
