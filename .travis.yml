@@ -4,9 +4,12 @@ python:
   - "2.7"
   - "3.5"
 env:
-  - MPL_VERSION=2.0
-  - MPL_VERSION=1.5
-  - MPL_VERSION=1.4
+  global:
+    - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
+  matrix:
+    - MPL_VERSION=2.0
+    - MPL_VERSION=1.5
+    - MPL_VERSION=1.4
 before_install:
   # decrypt keys
   - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in keys.tar.enc -out keys.tar -d
@@ -33,7 +36,6 @@ install:
   - 'ENVKEY=py"${TRAVIS_PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
   - conda env create -f tests/envs/environment_$ENVKEY.yml
   - source activate psyplot_$ENVKEY
-  - git config --global user.name Travis && git config --global user.email "philipp.sommer@unil.ch"
   # add the keys (psy-simple-key and psy-simple-references-key)
   - 'chmod 600 psy-simple-*key && eval `ssh-agent -s` && ssh-add psy-simple-*key'
   # checkout references
