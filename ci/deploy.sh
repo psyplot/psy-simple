@@ -12,7 +12,8 @@ SHA=`git rev-parse --verify HEAD`
 
 cd $SRC_DIR
 
-REPO_NAME=$(basename `git config remote.origin.url`)
+REPO_NAME=`git config remote.origin.url`
+REPO_NAME=${REPO_NAME#https://}
 
 # Now let's go have some fun with the cloned repo
 git config user.name "Travis"

@@ -1,1 +1,1 @@
-py.test -xv --ref -k ref_xticks
+py.test -xv --ref -k ref_grid
