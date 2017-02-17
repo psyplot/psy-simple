@@ -61,8 +61,9 @@ script:
   # create the necessary references
   - 'bash ci/create_references.sh'
   # run the tests
-  - cd $WORK && coverage run --source=psy_simple setup.py pytest
+#  - cd $WORK && coverage run --source=psy_simple setup.py pytest
 
 after_success:
   - coveralls
-  - cd "$REFDIR" && git push origin "$REFBRANCH" && cd $WORK && git push origin $TRAVIS_BRANCH
+  - bash ci/deploy.sh "$REFDIR" "$REFBRANCH" "."
+  - bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR"
