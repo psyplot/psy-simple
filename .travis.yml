@@ -43,6 +43,7 @@ install:
   - 'chmod 600 psy-simple-*key && eval `ssh-agent -s` && ssh-add psy-simple-*key'
   # checkout references
   - bash ci/checkout_references.sh
+  - 'export CREATE_REFERENCES=`cat ci/create_references.sh`'
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
   - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
@@ -70,5 +71,5 @@ script:
 
 after_success:
   - coveralls
-  - bash ci/deploy.sh "$REFDIR" "$REFBRANCH" "."
-  - bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR"
+  - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh "$REFDIR" "$REFBRANCH" "."; fi
+  - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR"; fi
