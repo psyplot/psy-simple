@@ -31,4 +31,4 @@ fi
 git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
-git push "https://${GH_REPO_TOKEN}@${REPO_NAME} $TARGET_BRANCH
+git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH
