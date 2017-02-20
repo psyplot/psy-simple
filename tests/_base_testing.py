@@ -1,13 +1,13 @@
 import os
+import os.path as osp
 import sys
 import shutil
 import subprocess as spr
 import tempfile
 from unittest import TestCase
-from get_ref_dir import get_ref_dir
 import numpy as np
 
-ref_dir = get_ref_dir()
+ref_dir = osp.join(osp.dirname(__file__), 'reference_figures')
 
 test_dir = os.path.dirname(__file__)
 
