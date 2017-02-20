@@ -45,8 +45,8 @@ install:
   - bash ci/checkout_references.sh
   - 'export CREATE_REFERENCES=`cat ci/create_references.sh`'
   - 'export WORK=`pwd`'
-  - 'export REFDIR=`python tests/get_ref_dir.py`'
-  - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
+  - 'export REFDIR=tests/reference_figures'
+  - 'export REFBRANCH=`python ci/get_ref_branch.py`'
   # use latest development version
   # NOTE: Remove this when psyplot is stable enough
   - git clone "https://github.com/Chilipp/psyplot.git" -b v1.0.0.dev0
@@ -72,4 +72,3 @@ script:
 after_success:
   - coveralls
   - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh "$REFDIR" "$REFBRANCH" "."; fi
-  - if [[ "$CREATE_REFERENCES" != "" ]]; then bash ci/deploy.sh . "$TRAVIS_BRANCH" "$REFDIR" .gitmodules; fi
