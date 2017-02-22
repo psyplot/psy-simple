@@ -3,4 +3,4 @@
 # `bash -c ${CREATE_REFERENCES}` creates the reference figures. Set
 # CREATE_REFERENCES="" if no references shall be created
 
-export CREATE_REFERENCES="py.test -xv --ref tests/test_plotters.py::CombinedSimplePlotterTest::ref_cmap"
+export CREATE_REFERENCES='py.test -xv --ref tests/test_plotters.py::CombinedSimplePlotterTest::ref_cmap'
