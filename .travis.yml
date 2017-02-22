@@ -76,7 +76,7 @@ script:
       py.test -xv --ref $CREATE_REFERENCES;
     fi
   # run the tests
-#  - cd $WORK && coverage run --source=psy_simple setup.py pytest
+  - cd $WORK && coverage run --source=psy_simple setup.py pytest
 
 after_success:
   - coveralls
