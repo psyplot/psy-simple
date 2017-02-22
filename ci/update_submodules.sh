@@ -19,4 +19,4 @@ echo "deploying ..."
 cd $WORK
 bash ci/deploy.sh deploy $TRAVIS_BRANCH $REFDIR
 
-rm -r deploy
+rm -rf deploy
