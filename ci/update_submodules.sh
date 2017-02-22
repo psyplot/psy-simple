@@ -12,6 +12,8 @@ sed -i "s#https://#git://#" .gitmodules
 echo "Initializing submodule $REFDIR"
 git submodule update --init $REFDIR
 
+sed -i "s#git://#https://#" .gitmodules
+
 echo "Pull from origin"
 cd $REFDIR
 git checkout $REFBRANCH
@@ -19,6 +21,6 @@ git pull
 
 echo "deploying ..."
 cd $WORK
-bash ci/deploy.sh deploy $TRAVIS_BRANCH $REFDIR
+bash ci/deploy.sh deploy $TRAVIS_BRANCH "$REFDIR" .gitmodules
 
 rm -rf deploy
