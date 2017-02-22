@@ -19,9 +19,16 @@ REPO_NAME=${REPO_NAME#https://}
 git config user.name "Travis"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
+git add -N $WHAT
+
+# If there are no changes to the compiled out (e.g. this is a README update) then just bail.
+if [ -z `git diff --exit-code` ]; then
+    echo "No changes to the output on this push; exiting."
+    exit 0
+fi
+
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
-git add $WHAT
 git commit -m "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
