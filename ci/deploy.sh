@@ -48,9 +48,9 @@ git branch --set-upstream $TARGET_BRANCH
 set +ex
 
 for COUNTER in {1..10} ; do
-    echo Try No. ${COUNTER}: "git fetch && git merge && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
-    git fetch "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH
-    git merge -m " Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
+    echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
+    git pull "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH --no-commit
+    git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
     git rebase TRAVIS_DEPLOY
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
     if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
