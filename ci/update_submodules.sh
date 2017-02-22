@@ -7,6 +7,8 @@ echo "Cloning $TRAVIS_BRANCH from $REPO"
 git clone -b $TRAVIS_BRANCH $REPO deploy
 cd deploy
 
+sed -i "s#https://#git://#" .gitmodules
+
 echo "Initializing submodule $REFDIR"
 git submodule update --init $REFDIR
 
