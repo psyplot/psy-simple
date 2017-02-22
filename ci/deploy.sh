@@ -28,9 +28,25 @@ if [ -z `git diff --exit-code` ]; then
 fi
 
 # Commit the "changes", i.e. the new version.
-git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
+git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
+# Since we push in parallel, and the remote repository might be locked, we give
+# it 10 tries
 set +ex
-echo git push --force "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
-git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  2>&1 | sed -e "s/${GH_REPO_TOKEN}/<secure>/g"
+
+for COUNTER in {1..10} ; do
+    echo Try No. ${COUNTER}: git push --force "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
+    git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
+    if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
+        # print the log
+        sed -e "s/${GH_REPO_TOKEN}/<secure>/g" log.txt
+        if [[ $COUNTER == 10 ]]; then
+            exit 1
+        fi
+        echo "Retrying in 10 seconds..."
+        sleep 10
+    else  # push successed, exit loop
+        break
+    fi
+done
