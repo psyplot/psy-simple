@@ -33,11 +33,16 @@ git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip c
 # Now that we're all set up, we can push.
 # Since we push in parallel, and the remote repository might be locked, we give
 # it 10 tries
+
+git checkout $TARGET_BRANCH
+
 set +ex
 
 for COUNTER in {1..10} ; do
-    echo Try No. ${COUNTER}: git push --force "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
-    git push --force "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
+    echo Try No. ${COUNTER}: git pull && git rebase TRAVIS_DEPLOY && git push "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
+    git pull "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH
+    git rebase TRAVIS_DEPLOY
+    git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
     if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
         # print the log
         sed -e "s/${GH_REPO_TOKEN}/<secure>/g" log.txt

@@ -7,12 +7,20 @@ echo "Cloning $TRAVIS_BRANCH from $REPO"
 git clone -b $TRAVIS_BRANCH $REPO deploy
 cd deploy
 
+git branch TRAVIS_DEPLOY
+
+git checkout TRAVIS_DEPLOY
+
+# create backup of gitmodules
+cp .gitmodules .gitmodules.bak
+
 sed -i "s#https://#git://#" .gitmodules
 
 echo "Initializing submodule $REFDIR"
 git submodule update --init $REFDIR
 
-sed -i "s#git://#https://#" .gitmodules
+# restore original gitmodules
+mv .gitmodules.bak .gitmodules
 
 echo "Pull from origin"
 cd $REFDIR
