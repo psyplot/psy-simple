@@ -56,7 +56,8 @@ docs/index.doctree
 
 # test results
 *psyplot_testresults
-*reference_figures
+tests/envs/cov_psyplot_py*
+tests/envs/psyplot_py*.html
 
 # PyBuilder
 target/

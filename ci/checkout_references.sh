@@ -4,12 +4,27 @@ set -ex
 
 REF_REPO=https://github.com/Chilipp/psy-simple-references.git
 
-TEST_DIR=`dirname $0`
-BRANCH=`python ci/get_ref_branch.py`
+REFDIR=`python tests/get_ref_dir.py`
 
-REF_DIR='tests/reference_figures'
+set +e
+git submodule init ${REFDIR}
+SUCCES=$?
+set -e
 
-mkdir $REF_DIR  && cd $REF_DIR
-
-git clone ${REF_REPO} .
-git checkout $BRANCH || git checkout --orphan $BRANCH
+if [[ ${SUCCES} != 0 ]]; then
+    BRANCH=`python tests/get_ref_dir.py -b`
+    set +e
+    git submodule add -b ${BRANCH} ${REF_REPO} ${REFDIR}
+    SUCCES=$?
+    set -e
+    if [[ ${SUCCES} != 0 ]]; then
+        git clone ${REF_REPO}
+        cd psy-simple-references
+        git branch ${BRANCH}
+        git push origin ${BRANCH}
+        cd ../
+        rm -rf psy-simple-references
+        git submodule add -b ${BRANCH} ${REF_REPO} ${REFDIR}
+    fi
+fi
+git submodule update ${REFDIR}
