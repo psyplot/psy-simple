@@ -73,7 +73,7 @@ script:
   # create the necessary references
   - if [[ $CREATE_REFERENCES != "" ]]; then
       echo "Running $CREATE_REFERENCES";
-      bash -c $CREATE_REFERENCES;
+      py.test -xv --ref $CREATE_REFERENCES;
     fi
   # run the tests
 #  - cd $WORK && coverage run --source=psy_simple setup.py pytest
