@@ -46,9 +46,6 @@ install:
   # checkout references
   - bash ci/checkout_references.sh
   - source ci/create_references.sh
-  - if [[ $CREATE_REFERENCES != "" && $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_REPO_SLUG == 'Chilipp/psy-simple' ]]; then
-      export PUSH_REFERENCES="true";
-    fi
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
   - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
@@ -73,7 +70,8 @@ script:
   # create the necessary references
   - if [[ $CREATE_REFERENCES != "" ]]; then
       echo "Running $CREATE_REFERENCES";
-      coverage run --source=psy_simple setup.py test -a "-v --ref $CREATE_REFERENCES";
+      coverage run --source=psy_simple setup.py test -a "-v --ref $CREATE_REFERENCES" &&
+      source ci/set_push_references.sh
     fi
   # run the tests
   - cd $WORK && coverage run -a --source=psy_simple setup.py test -a "-v"
