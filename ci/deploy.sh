@@ -2,6 +2,12 @@
 set -e # Exit with nonzero exit code if anything fails
 set -x
 
+WORK=`pwd`
+
+if [ -f $WORK/deployed ]; then
+    rm $WORK/deployed
+fi
+
 SRC_DIR=$1
 shift
 TARGET_BRANCH=$1
@@ -39,7 +45,7 @@ git checkout $TARGET_BRANCH
 set +ex
 
 for COUNTER in {1..10} ; do
-    echo Try No. ${COUNTER}: git pull && git rebase TRAVIS_DEPLOY && git push "https://<secure>@${REPO_NAME}" $TARGET_BRANCH
+    echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
     git pull "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH
     git rebase TRAVIS_DEPLOY
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
@@ -55,3 +61,5 @@ for COUNTER in {1..10} ; do
         break
     fi
 done
+
+touch $WORK/deployed

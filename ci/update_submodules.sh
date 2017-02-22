@@ -3,6 +3,11 @@ set -e
 
 WORK=`pwd`
 
+if [ ! -f $WORK/deployed ]; then
+    echo "No reference figures deployed, exiting..."
+    exit 0
+fi
+
 echo "Cloning $TRAVIS_BRANCH from $REPO"
 git clone -b $TRAVIS_BRANCH $REPO deploy
 cd deploy
