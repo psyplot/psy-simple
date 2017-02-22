@@ -42,6 +42,9 @@ git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip c
 
 git checkout $TARGET_BRANCH
 
+git config merge.defaultToUpstream true
+git branch --set-upstream $TARGET_BRANCH
+
 set +ex
 
 for COUNTER in {1..10} ; do
