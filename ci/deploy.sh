@@ -28,8 +28,7 @@ if [ -z `git diff --exit-code` ]; then
 fi
 
 # Commit the "changes", i.e. the new version.
-# The delta will show diffs between new and old versions.
-git commit -m "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
+git commit -am "Deploy from Travis build $TRAVIS_BUILD_NUMBER: Commit ${SHA} [skip ci]"
 
 # Now that we're all set up, we can push.
 set +ex
