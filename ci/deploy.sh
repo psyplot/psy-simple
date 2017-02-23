@@ -42,12 +42,15 @@ git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip c
 
 git checkout $TARGET_BRANCH
 
-current_epoch=$(date -u +%s)
-target_epoch=$(date -u -d '02/23/2017 01:05' +%s)
+if [[ $WAIT_FOR_SYNC != "" ]]; then
 
-sleep_seconds=$(( $target_epoch - $current_epoch ))
+    current_epoch=$(date -u +%s)
+    target_epoch=$(date -u -d '02/23/2017 01:05' +%s)
 
-sleep $sleep_seconds
+    sleep_seconds=$(( $target_epoch - $current_epoch ))
+
+    sleep $sleep_seconds
+fi
 
 git config merge.defaultToUpstream true
 git branch --set-upstream $TARGET_BRANCH

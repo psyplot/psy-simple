@@ -34,6 +34,6 @@ git pull
 
 echo "deploying ..."
 cd $WORK
-bash ci/deploy.sh deploy $TRAVIS_BRANCH "$REFDIR" .gitmodules
+WAIT_FOR_SYNC=1 bash ci/deploy.sh deploy $TRAVIS_BRANCH "$REFDIR" .gitmodules
 
 rm -rf deploy
