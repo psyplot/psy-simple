@@ -59,6 +59,7 @@ set +ex
 
 for COUNTER in {1..10} ; do
     echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
+    git pull -h
     git pull --no-commit --rebase origin $TARGET_BRANCH
     git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
     git rebase TRAVIS_DEPLOY
