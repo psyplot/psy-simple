@@ -45,7 +45,7 @@ git checkout $TARGET_BRANCH
 if [[ $WAIT_FOR_SYNC != "" ]]; then
 
     current_epoch=$(date -u +%s)
-    target_epoch=$(date -u -d '02/23/2017 10:17' +%s)
+    target_epoch=$(date -u -d '02/23/2017 10:45' +%s)
 
     sleep_seconds=$(( $target_epoch - $current_epoch ))
 
@@ -56,8 +56,11 @@ set +ex
 
 for COUNTER in {1..10} ; do
     echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
-    git pull --rebase=preserve origin $TARGET_BRANCH
-    git rebase --preserve-merges TRAVIS_DEPLOY
+    git pull -h
+    git pull --no-commit origin $TARGET_BRANCH
+    git rebase TRAVIS_DEPLOY
+    git status
+    git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
     git status
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
     if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
