@@ -42,6 +42,13 @@ git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip c
 
 git checkout $TARGET_BRANCH
 
+current_epoch=$(date -u +%s)
+target_epoch=$(date -u -d '02/23/2017 01:05' +%s)
+
+sleep_seconds=$(( $target_epoch - $current_epoch ))
+
+sleep $sleep_seconds
+
 git config merge.defaultToUpstream true
 git branch --set-upstream $TARGET_BRANCH
 
@@ -49,7 +56,7 @@ set +ex
 
 for COUNTER in {1..10} ; do
     echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
-    git pull --no-commit origin $TARGET_BRANCH
+    git pull --no-commit --rebase origin $TARGET_BRANCH
     git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
     git rebase TRAVIS_DEPLOY
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt

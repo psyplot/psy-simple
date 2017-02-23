@@ -74,10 +74,10 @@ script:
       source ci/set_push_references.sh;
     fi
   # run the tests
-  - cd $WORK && coverage run -a --source=psy_simple setup.py test -a "-v"
+  # - cd $WORK && coverage run -a --source=psy_simple setup.py test -a "-v"
 
-after_success:
-  - coveralls
+# after_success:
+#   - coveralls
 
 deploy:
   - provider: script
