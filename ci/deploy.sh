@@ -52,17 +52,13 @@ if [[ $WAIT_FOR_SYNC != "" ]]; then
     sleep $sleep_seconds
 fi
 
-git config merge.defaultToUpstream true
-git branch --set-upstream $TARGET_BRANCH
-
 set +ex
 
 for COUNTER in {1..10} ; do
     echo Try No. ${COUNTER}: "git pull && git rebase TRAVIS_DEPLOY && git push https://<secure>@${REPO_NAME} $TARGET_BRANCH"
-    git pull -h
-    git pull --no-commit --rebase origin $TARGET_BRANCH
-    git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
-    git rebase TRAVIS_DEPLOY
+    git pull --rebase=preserve origin $TARGET_BRANCH
+    git rebase --preserve-merges TRAVIS_DEPLOY
+    git status
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
     if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
         # print the log
