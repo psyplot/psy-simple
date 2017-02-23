@@ -9,6 +9,5 @@ dependencies:
     - netCDF4
     - scipy  # necessary for scipy engine test
     - seaborn
-    - gdal  # for psyplot.gdal_store
     - pip:
         - pytest
