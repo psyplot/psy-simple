@@ -11,7 +11,8 @@ if [[ $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_REPO_SLUG == 'Chilipp/psy-simpl
     cd $REFDIR
     git add -N .
     if [[ -z `git diff --exit-code` ]]; then
-        echo "No changes to the output on this push; exiting."
+        echo "No changes to the reference figures on this push -- No deploy."
+        export PUSH_REFERENCES="false"
     else
         echo "------------------------------"
         echo "ATTENTION! REFERENCES CHANGED!"

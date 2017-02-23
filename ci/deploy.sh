@@ -42,16 +42,6 @@ git commit -am "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip c
 
 git checkout $TARGET_BRANCH
 
-if [[ $WAIT_FOR_SYNC != "" ]]; then
-
-    current_epoch=$(date -u +%s)
-    target_epoch=$(date -u -d '02/23/2017 10:56' +%s)
-
-    sleep_seconds=$(( $target_epoch - $current_epoch ))
-
-    sleep $sleep_seconds
-fi
-
 set +ex
 
 for COUNTER in {1..10} ; do
@@ -60,12 +50,16 @@ for COUNTER in {1..10} ; do
     git pull --no-commit origin $TARGET_BRANCH
     git rebase TRAVIS_DEPLOY
     git status
-    git commit -m "Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
+    git commit -m "Deploy from Travis job $TRAVIS_JOB_NUMBER: Commit ${SHA} [skip ci] \
+
+    Merge branch '${TRAVIS_BRANCH}' of ${REPO}"
+
     git status
     git push "https://${GH_REPO_TOKEN}@${REPO_NAME}" $TARGET_BRANCH  &> log.txt
     if [[ $? != 0 ]]; then  # push failed, wait 10 seconds and try again
         # print the log
         sed -e "s/${GH_REPO_TOKEN}/<secure>/g" log.txt
+        rm log.txt
         if [[ $COUNTER == 10 ]]; then
             exit 1
         fi
