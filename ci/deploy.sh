@@ -45,7 +45,7 @@ git checkout $TARGET_BRANCH
 if [[ $WAIT_FOR_SYNC != "" ]]; then
 
     current_epoch=$(date -u +%s)
-    target_epoch=$(date -u -d '02/23/2017 01:05' +%s)
+    target_epoch=$(date -u -d '02/23/2017 10:17' +%s)
 
     sleep_seconds=$(( $target_epoch - $current_epoch ))
 
