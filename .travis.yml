@@ -13,6 +13,10 @@ env:
     - MPL_VERSION=2.0
     - MPL_VERSION=1.5
     - MPL_VERSION=1.4
+matrix:
+    exclude:
+        - python: 3.6
+          env: MPL_VERSION=1.4
 before_install:
   # decrypt keys
   - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in keys.tar.enc -out keys.tar -d
