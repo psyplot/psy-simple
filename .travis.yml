@@ -58,8 +58,6 @@ install:
   - 'export REFDIR=`python tests/get_ref_dir.py`'
   - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
   - git submodule update --init $REFDIR
-  - source ci/set_create_references.sh
-  - export REPO="$(git config remote.origin.url)"
   # use latest development version
   # NOTE: Remove this when psyplot is stable enough
   - git clone "https://github.com/Chilipp/psyplot.git" -b v1.0.0.dev0
@@ -78,11 +76,7 @@ before_script:
 
 script:
   # create the necessary references
-  - if [[ $CREATE_REFERENCES != "" ]]; then
-      echo "Running py.test -v --ref $CREATE_REFERENCES";
-      coverage run --source=psy_simple setup.py test -a "-v --ref $CREATE_REFERENCES" &&
-      source ci/set_push_references.sh;
-    fi
+  - coverage run --source=psy_simple setup.py test -a "-v --ref" && python ci/check_ref_deploy.py
   # run the tests
   - cd $WORK && coverage run -a --source=psy_simple setup.py test -a "-v"
 
@@ -91,12 +85,12 @@ after_success:
 
 deploy:
   - provider: script
-    script: ci/update_reference_submodule.sh
+    script: ci/update_reference_submodule.py
     skip_cleanup: true
     on:
-      condition: "$PUSH_REFERENCES == true"
+      condition: "-e deploy"
   - provider: script
-    script: ci/update_submodules.sh
+    script: ci/update_submodules.py
     skip_cleanup: true
     on:
-      condition: "$PUSH_REFERENCES == true"
+      condition: "-e deploy"
