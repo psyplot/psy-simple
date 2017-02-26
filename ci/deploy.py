@@ -41,7 +41,6 @@ def deploy(src_dir, target_branch, *what):
     # Now that we're all set up, we can push.
     # Since we push in parallel, and the remote repository might be locked, we
     # give it 10 tries
-    spr.check_call(['git', 'status'])
     spr.check_call(['git', 'checkout', target_branch])
 
     for i in range(1, 11):
@@ -52,7 +51,7 @@ def deploy(src_dir, target_branch, *what):
         spr.check_call('git pull --no-commit origin'.split() + [target_branch])
 
         spr.check_call('git rebase TRAVIS_DEPLOY'.split())
-        spr.check_call('git commit -m'.split() + [
+        spr.call('git commit -m'.split() + [
             msg + '\n\nMerge branch "%s" of "%s"' % (this_branch, repo)])
 
         p = spr.Popen(
