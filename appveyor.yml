@@ -49,11 +49,13 @@ install:
   # export the environment for debugging
   - conda env export -n psyplot_%ENVKEY%
 
-build:
+build: false
+
+test_script:
   - coverage run --source=psy_simple setup.py test -a "-v --ref"
   - coverage run -a --source=psy_simple setup.py test -a "-v"
 
-on_success:
+after_test:
   - coverage report
   # deploy references
   - if exist deploy_references python ci\update_reference_submodule.py
