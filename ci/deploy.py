@@ -6,15 +6,15 @@ import subprocess as spr
 def deploy(src_dir, target_branch, *what):
     p = spr.Popen('git rev-parse --verify HEAD'.split(),
                   stdout=spr.PIPE)
-    sha = p.stdout.read()
+    sha = p.stdout.read().decode('utf-8').splitlines()[0]
     work = os.getcwd()
 
     # change to the repository
     os.chdir(src_dir)
-    with spr.Popen('git config remote.origin.url'.split(),
-                   stdout=spr.PIPE) as p:
-        repo = p.stdout.read()
-        repo_name = repo.replace('https://', '')
+    p = spr.Popen('git config remote.origin.url'.split(),
+                  stdout=spr.PIPE)
+    repo = p.stdout.read().decode('utf-8').splitlines()[0]
+    repo_name = repo.replace('https://', '')
 
     spr.check_call('git config user.name "Travis"'.split())
     spr.check_call(
@@ -54,19 +54,19 @@ def deploy(src_dir, target_branch, *what):
         spr.check_call('git commit -m'.split() + [
             msg + '\n\nMerge branch "%s" of "%s"' % (this_branch, repo)])
 
-        with spr.Popen(
-                cmd.replace('<secure>', os.getenv('GH_REPO_TOKEN')).split(),
-                stdout=spr.PIPE, stderr=spr.PIPE) as p:
-            print(p.stdout.read().replace(os.getenv('GH_REPO_TOKEN'),
-                                          '<secure>'))
-            if p.returncode:
-                print(p.stderr.read().replace(os.getenv('GH_REPO_TOKEN'),
-                                              '<secure>'))
-                print('Failed')
-                if i == 10:
-                    raise ValueError('Failed after 10 tries')
-                print('Retrying in 10 seconds...')
-            else:
-                print('Success')
+        p = spr.Popen(
+            cmd.replace('<secure>', os.getenv('GH_REPO_TOKEN')).split(),
+            stdout=spr.PIPE, stderr=spr.PIPE)
+        print(p.stdout.read().decode('utf-8').replace(
+                os.getenv('GH_REPO_TOKEN'), '<secure>'))
+        if p.returncode:
+            print(p.stderr.read().decode('utf-8').replace(
+                os.getenv('GH_REPO_TOKEN'), '<secure>'))
+            print('Failed')
+            if i == 10:
+                raise ValueError('Failed after 10 tries')
+            print('Retrying in 10 seconds...')
+        else:
+            print('Success')
 
     os.chdir(work)

@@ -17,7 +17,7 @@ get_ref_dir = gt.get_ref_dir
 get_ref_branch = gt.get_ref_branch
 
 
-with spr.Popen(
-        ('git -C %s config remote.origin.url' % osp.dirname(__file__)).split(),
-        stdout=spr.PIPE) as p:
-    repo = p.stdout.read()
+p = spr.Popen(
+    ('git -C %s config remote.origin.url' % osp.dirname(__file__)).split(),
+    stdout=spr.PIPE)
+repo = p.stdout.read().decode('utf-8').splitlines()[0]
