@@ -1,4 +1,4 @@
-PYTHON_VERSIONlanguage: python
+language: generic
 env:
   global:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
