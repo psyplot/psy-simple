@@ -36,7 +36,7 @@ def deploy(src_dir, target_branch, *what):
             os.getenv('APPVEYOR_BUILD_VERSION'), sha)
         this_branch = os.getenv('APPVEYOR_REPO_BRANCH')
     # Commit the "changes", i.e. the new version.
-    spr.check_call(('git commit -am "%s"' % msg).split())
+    spr.check_call(('git commit -am').split() + [msg])
 
     # Now that we're all set up, we can push.
     # Since we push in parallel, and the remote repository might be locked, we
