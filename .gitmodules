@@ -1,7 +1,3 @@
-[submodule "tests/reference_figures/linux/py3.5/mpl1.4"]
-	path = tests/reference_figures/linux/py3.5/mpl1.4
-	url = https://github.com/Chilipp/psy-simple-references.git
-	branch = linux_py3.5_mpl1.4
 [submodule "tests/reference_figures/linux/py3.5/mpl1.5"]
 	path = tests/reference_figures/linux/py3.5/mpl1.5
 	url = https://github.com/Chilipp/psy-simple-references.git
