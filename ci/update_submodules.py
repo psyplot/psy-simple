@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import os
 import os.path as osp
 from utils import repo, get_ref_dir, get_ref_branch
@@ -37,4 +38,8 @@ os.chdir(work)
 
 deploy(deploy_dir, this_branch, ref_dir, '.gitmodules')
 
-shutil.rmtree(deploy_dir)
+if sys.platform == 'win32':
+    spr.check_call('powershell -Command Remove-Item -Recurse -Force'.split() +
+                   [deploy_dir])
+else:
+    shutil.rmtree(deploy_dir)

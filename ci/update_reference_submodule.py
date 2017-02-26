@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import os
 from utils import get_ref_dir, get_ref_branch, repo
 import subprocess as spr
@@ -31,4 +32,9 @@ for f in glob.glob(osp.join(ref_dir, '*.png')):
 
 deploy(deploy_dir, ref_branch, '.')
 
-shutil.rmtree(deploy_dir)
+
+if sys.platform == 'win32':
+    spr.check_call('powershell -Command Remove-Item -Recurse -Force'.split() +
+                   [deploy_dir])
+else:
+    shutil.rmtree(deploy_dir)
