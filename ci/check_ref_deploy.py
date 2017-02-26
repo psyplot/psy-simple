@@ -21,6 +21,6 @@ if maybe_upload:
         print("ATTENTION! REFERENCES CHANGED!")
         print("------------------------------")
         print("Enabled the deploy to psy-simple-references")
-        open(osp.join(work, 'deploy'), 'w').close()
+        open(osp.join(work, 'deploy_references'), 'w').close()
     else:
         print("No changes to the reference figures on this push -- No deploy.")
