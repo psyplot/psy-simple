@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 from utils import get_ref_dir, get_ref_branch, repo
 import subprocess as spr
 import shutil
@@ -11,13 +12,19 @@ ref_dir = get_ref_dir()
 
 deploy_dir = 'deploy'
 
+work = os.getcwd()
+
 spr.check_call(['git', 'clone', '-b', ref_branch,
                 repo.replace('psy-simple', 'psy-simple-references'),
                 deploy_dir])
 
+os.chdir(deploy_dir)
+
 spr.check_call('git branch TRAVIS_DEPLOY'.split())
 
 spr.check_call('git checkout TRAVIS_DEPLOY'.split())
+
+os.chdir(work)
 
 for f in glob.glob(osp.join(ref_dir, '*.png')):
     shutil.copyfile(f, osp.join(deploy_dir, osp.basename(f)))
