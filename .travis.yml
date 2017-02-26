@@ -48,14 +48,6 @@ matrix:
             - MPL_VERSION=1.5
           os: osx
         - env:
-            - PYTHON_VERSION=3.5
-            - MPL_VERSION=2.0
-          os: osx
-        - env:
-            - PYTHON_VERSION=3.5
-            -  MPL_VERSION=1.5
-          os: osx
-        - env:
             - PYTHON_VERSION=2.7
             - MPL_VERSION=2.0
           os: osx
@@ -64,6 +56,10 @@ matrix:
             - MPL_VERSION=1.5
           os: osx
 before_install:
+  # make sure, gfortran and gnu-sed are installed
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      brew install gnu-sed --with-default-names;
+    fi
   - sed -i "s/git@github.com:/https:\/\/${GH_REPO_TOKEN}@github.com\//" .gitmodules
 git:
     submodules: false
