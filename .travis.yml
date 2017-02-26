@@ -22,9 +22,6 @@ matrix:
         - python: 2.7
           env: MPL_VERSION=1.4
 before_install:
-  # decrypt keys
-  - openssl aes-256-cbc -K $encrypted_7fd3f220e342_key -iv $encrypted_7fd3f220e342_iv -in keys.tar.enc -out keys.tar -d
-  - tar xvf keys.tar
   - sed -i "s/git@github.com:/https:\/\/${GH_REPO_TOKEN}@github.com\//" .gitmodules
 git:
     submodules: false
@@ -50,8 +47,6 @@ install:
   - 'ENVKEY=py"${TRAVIS_PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
   - conda env create -f tests/envs/environment_$ENVKEY.yml
   - source activate psyplot_$ENVKEY
-  # add the keys (psy-simple-key and psy-simple-references-key)
-  - 'chmod 600 psy-simple-*key && eval `ssh-agent -s` && ssh-add psy-simple-*key'
   # checkout references
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
