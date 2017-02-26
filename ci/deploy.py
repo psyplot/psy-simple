@@ -25,6 +25,7 @@ def deploy(src_dir, target_branch, *what):
 
     if not spr.call('git diff --exit-code'.split()):
         print("No changes to the output on this push; exiting.")
+        os.chdir(work)
         return
 
     if os.getenv('TRAVIS'):
