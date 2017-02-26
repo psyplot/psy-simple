@@ -23,7 +23,7 @@ def deploy(src_dir, target_branch, *what):
 
     spr.check_call('git add -N'.split() + list(what))
 
-    if not spr.check_call('git diff --exit-code'.split()):
+    if not spr.call('git diff --exit-code'.split()):
         print("No changes to the output on this push; exiting.")
         return
 
