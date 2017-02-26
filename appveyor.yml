@@ -52,7 +52,7 @@ install:
 build: false
 
 test_script:
-  - coverage run --source=psy_simple setup.py test -a "-v --ref"
+  - coverage run --source=psy_simple setup.py test -a "-v --ref" && python ci/check_ref_deploy.py
   - coverage run -a --source=psy_simple setup.py test -a "-v"
 
 after_test:
