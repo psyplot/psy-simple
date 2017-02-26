@@ -77,7 +77,7 @@ script:
   # create the necessary references
   - coverage run --source=psy_simple setup.py test -a "-v --ref" && python ci/check_ref_deploy.py
   # run the tests
-  - cd $WORK && coverage run -a --source=psy_simple setup.py test -a "-v"
+  - coverage run -a --source=psy_simple setup.py test -a "-v"
 
 after_success:
   - coveralls
