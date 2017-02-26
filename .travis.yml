@@ -1,4 +1,7 @@
 language: python
+os:
+  - linux
+  - osx
 env:
   global:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
@@ -26,12 +29,18 @@ before_install:
 git:
     submodules: false
 install:
+  # select the os name for the conda installer
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        OS_NAME=MacOSX;
+    else
+        OS_NAME=Linux;
+    fi
   # We do this conditionally because it saves us some downloading if the
   # version is the same.
-  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+  - if [[ "$PYTHON_VERSION" == "2.7" ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda2-latest-"${OS_NAME}"-x86_64.sh -O miniconda.sh;
     else
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        wget https://repo.continuum.io/miniconda/Miniconda3-latest-"${OS_NAME}"-x86_64.sh -O miniconda.sh;
     fi
   # make sure we use an 'innocent' default matplotlib environment
   - touch matplotlibrc
@@ -62,11 +71,6 @@ install:
   - python setup.py install
   # export the environment for debugging
   - conda env export -n psyplot_$ENVKEY
-
-before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
 
 script:
   # create the necessary references
