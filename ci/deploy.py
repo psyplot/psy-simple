@@ -68,5 +68,6 @@ def deploy(src_dir, target_branch, *what):
             print('Retrying in 10 seconds...')
         else:
             print('Success')
+            break
 
     os.chdir(work)
