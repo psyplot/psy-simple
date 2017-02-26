@@ -16,7 +16,7 @@ elif os.getenv('APPVEYOR'):
 
 deploy_dir = 'deploy'
 
-work = os.abspath(os.getcwd())
+work = osp.abspath(os.getcwd())
 
 # clone directory
 spr.check_call(['git', 'clone', '-b', this_branch, repo, deploy_dir])
