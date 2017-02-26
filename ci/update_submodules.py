@@ -35,6 +35,6 @@ spr.check_call(['git', 'pull'])
 
 os.chdir(work)
 
-deploy(osp.join(deploy_dir, ref_dir), this_branch, ref_dir, '.gitmodules')
+deploy(deploy_dir, this_branch, ref_dir, '.gitmodules')
 
 shutil.rmtree(deploy_dir)
