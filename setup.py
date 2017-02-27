@@ -51,7 +51,6 @@ setup(name='psy-simple',
       packages=find_packages(exclude=['docs', 'tests*', 'examples']),
       install_requires=[
           'psyplot',
-          'seaborn',
       ],
       tests_require=['pytest'],
       cmdclass={'test': PyTest},
