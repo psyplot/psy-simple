@@ -13,6 +13,7 @@ from matplotlib.rcsetup import (
     validate_bool, validate_color, validate_bool_maybe_none, validate_fontsize,
     ValidateInStrings, validate_int, validate_legend_loc,
     validate_nseq_float, validate_colorlist)
+from psy_simple import __version__ as plugin_version
 
 
 bound_strings = ['data', 'mid', 'rounded', 'roundedsym', 'minmax', 'sym']
