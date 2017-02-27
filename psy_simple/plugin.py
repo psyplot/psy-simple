@@ -908,7 +908,10 @@ rcParams = RcParams(defaultParams={
                         'default delimiter to separate netCDF meta attributes '
                         'when displayed on the plot'],
 
-    # Miscallaneous
+    # -------------------------------------------------------------------------
+    # ---------------------------- Miscallaneous ------------------------------
+    # -------------------------------------------------------------------------
+
     # color lists for user-defined colormaps (see for example
     # psy_simple.colors._cmapnames)
     'colors.cmaps': [
