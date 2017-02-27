@@ -54,5 +54,5 @@ setup(name='psy-simple',
       ],
       tests_require=['pytest'],
       cmdclass={'test': PyTest},
-      entry_points={'psyplot': ['rcParams=psy_simple.plugin:rcParams']},
+      entry_points={'psyplot': ['plugin=psy_simple.plugin']},
       zip_safe=False)
