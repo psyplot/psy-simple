@@ -7,7 +7,6 @@ dependencies:
     - dask
     - xarray
     - netCDF4
-    - scipy  # necessary for scipy engine test
     - seaborn
     - pip:
         - pytest
