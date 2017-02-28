@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psyplot.docstring import docstrings, safe_modulo, dedents, dedent
-from psyplot.data import InteractiveList
+from psyplot.data import InteractiveList, CFDecoder
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)
@@ -116,8 +116,8 @@ class TextBase(object):
         # replace datetime.datetime like time informations
         if isinstance(data, InteractiveList):
             data = data[0]
-        tname = self.decoder.get_tname(next(self.plotter.iter_base_variables),
-                                       data.coords)
+        tname = self.any_decoder.get_tname(
+            next(self.plotter.iter_base_variables), data.coords)
         if tname is not None and tname in data.coords:
             time = data.coords[tname]
             if not time.values.ndim:
