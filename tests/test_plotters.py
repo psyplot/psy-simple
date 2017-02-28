@@ -6,6 +6,7 @@ from functools import wraps
 from itertools import chain
 import unittest
 import numpy as np
+import xarray as xr
 import matplotlib as mpl
 import matplotlib.colors as mcol
 import matplotlib.pyplot as plt
@@ -349,6 +350,51 @@ class LinePlotterTest(tb.BasePlotterTest):
             self.assertEqual(mpl.colors.colorConverter.to_rgba(
                                  mpl.rcParams['axes.edgecolor']),
                              ax.spines[pos].get_edgecolor(), msg=error)
+
+
+class CoordinateTest(unittest.TestCase):
+    """A test case for the :class:`psy_simple.plotters.AlternativeXCoord` class
+    """
+
+    def tearDown(self):
+        psy.close('all')
+
+    @property
+    def _test_dataset(self):
+        v = xr.Variable(('exp', ), [1, 1, 2, 2, 3, 3])
+        return xr.Dataset({'v1': v, 'v2': v.copy(True), 'v3': v.copy(True)})
+
+    def test_duplicates_line(self):
+        """"Test the coordinate containing duplicates"""
+        ds = self._test_dataset
+        sp = psy.plot.lineplot(ds, name=['v1', 'v2'], coord='v3',
+                               xlabel='%(name)s')
+        ax = sp.plotters[0].ax
+        self.assertEqual(ax.get_xlabel(), 'v3')
+        self.assertEqual(sp.plotters[0].plot_data[0].dims, ('v3', ))
+
+        sp.update(coord=None)
+        self.assertEqual(ax.get_xlabel(), 'exp')
+        self.assertEqual(sp.plotters[0].plot_data[0].dims, ('exp', ))
+
+        sp.update(coord='v3')
+        self.assertEqual(ax.get_xlabel(), 'v3')
+        self.assertEqual(sp.plotters[0].plot_data[0].dims, ('v3', ))
+
+    def test_duplicates_density(self):
+        ds = self._test_dataset
+        sp = psy.plot.density(ds, name='v1', coord='v3', xlabel='%(name)s')
+        ax = sp.plotters[0].ax
+        self.assertEqual(ax.get_xlabel(), 'v3')
+        self.assertEqual(sp.plotters[0].plot_data.dims, ('v1', 'v3'))
+
+        sp.update(coord=None)
+        self.assertEqual(ax.get_xlabel(), 'exp')
+        self.assertEqual(sp.plotters[0].plot_data.dims, ('v1', 'exp'))
+
+        sp.update(coord='v3')
+        self.assertEqual(ax.get_xlabel(), 'v3')
+        self.assertEqual(sp.plotters[0].plot_data.dims, ('v1', 'v3'))
 
 
 class SingleLinePlotterTest(LinePlotterTest):
