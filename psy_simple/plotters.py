@@ -2107,7 +2107,7 @@ class Xlim2D(Xlim):
         func = 'get_x' if not self.transpose.value else 'get_y'
         if (self.decoder.is_triangular(self.data) and
                 xcoord.name == getattr(self.decoder, func)(self.data).name):
-            triangles = self.decoder.get_triangles(self.data)
+            triangles = self.decoder.get_triangles(self.data, self.data.coords)
             if self.transpose.value:
                 return triangles.y[triangles.triangles].ravel()
             else:
@@ -2124,7 +2124,7 @@ class Ylim2D(Ylim):
         func = 'get_x' if self.transpose.value else 'get_y'
         if (self.decoder.is_triangular(self.data) and
                 ycoord.name == getattr(self.decoder, func)(self.data).name):
-            triangles = self.decoder.get_triangles(self.data)
+            triangles = self.decoder.get_triangles(self.data, self.data.coords)
             if self.transpose.value:
                 return triangles.x[triangles.triangles].ravel()
             else:
