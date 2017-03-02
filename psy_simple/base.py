@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psyplot.docstring import docstrings, safe_modulo, dedents, dedent
-from psyplot.data import InteractiveList, CFDecoder
+from psyplot.data import InteractiveList
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)

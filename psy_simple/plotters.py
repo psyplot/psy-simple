@@ -19,7 +19,7 @@ from psy_simple.base import (
     BasePlotter, TextBase, label_size, label_weight, label_props, MaskLess,
     MaskGreater, MaskBetween, MaskLeq, MaskGeq)
 from psy_simple.colors import get_cmap
-from psyplot.data import InteractiveList, isstring, InteractiveArray, CFDecoder
+from psyplot.data import InteractiveList, isstring, CFDecoder
 from psyplot.compat.pycompat import map, zip, range
 from psy_simple.plugin import validate_color, validate_float, safe_list
 
