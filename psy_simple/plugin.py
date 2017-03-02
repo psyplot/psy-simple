@@ -16,6 +16,10 @@ from matplotlib.rcsetup import (
 from psy_simple import __version__ as plugin_version
 
 
+def get_versions(requirements=True):
+    return {'version': plugin_version}
+
+
 bound_strings = ['data', 'mid', 'rounded', 'roundedsym', 'minmax', 'sym']
 
 tick_strings = bound_strings + ['hour', 'day', 'week', 'month', 'monthend',
