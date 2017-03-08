@@ -3751,7 +3751,7 @@ class LegendLabels(Formatoption, TextBase):
                         value, self.iter_data)]
 
 
-class Legend(Formatoption):
+class Legend(DictFormatoption):
     """
     Draw a legend
 
@@ -3779,12 +3779,8 @@ class Legend(Formatoption):
         if self.shared_by is not None:
             return
         self.remove()
-        if not value:
+        if not value.get('loc'):
             return
-        if value is True:
-            value == 'best'
-        if not isinstance(value, dict):
-            value = {'loc': value}
         artists = []
         labels = []
         for fmto in self.shared.union([self]):

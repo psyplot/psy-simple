@@ -367,6 +367,21 @@ def validate_sym_lims(val):
     return list(map(validator, val))
 
 
+def validate_legend(value):
+    if isinstance(value, dict):
+        return value
+    try:
+        return {'loc': validate_int(value)}
+    except (ValueError, TypeError) as e:
+        pass
+    try:
+        return {'loc': validate_legend_loc(value)}
+    except (ValueError, TypeError) as e:
+        pass
+    value = validate_bool(value)
+    return {'loc': 'best' if value else False}
+
+
 validate_ticklabels = try_and_error(validate_none, validate_str,
                                     validate_stringlist)
 
@@ -834,9 +849,7 @@ rcParams = RcParams(defaultParams={
             validate_str, ValidateList(six.text_type)),
         'fmt key to modify the legend labels'],
     'plotter.simple.legend': [
-        True, try_and_error(
-            validate_bool, validate_int, validate_dict, validate_legend_loc),
-        'fmt key to draw a legend'],
+        True, validate_legend, 'fmt key to draw a legend'],
 
     # Plot2D
     'plotter.plot2d.plot': [
