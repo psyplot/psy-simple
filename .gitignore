@@ -51,7 +51,9 @@ coverage.xml
 *.log
 
 # Sphinx documentation
+docs/api
 docs/_build/
+docs/examples/
 docs/index.doctree
 
 # test results

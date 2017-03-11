@@ -579,7 +579,9 @@ rcParams = RcParams(defaultParams={
         {'simple': {
              'module': 'psy_simple.plotters',
              'plotter_name': 'SimplePlotterBase',
-             'plot_func': False},
+             'plot_func': False,
+             'summary': ('All plotters that are visualized by the psy-simple '
+                         'package')},
          'lineplot': {
              'module': 'psy_simple.plotters',
              'plotter_name': 'LinePlotter',
