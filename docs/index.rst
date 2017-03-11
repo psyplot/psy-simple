@@ -68,6 +68,7 @@ Documentation
     :maxdepth: 1
 
     installing
+    plot_methods
     examples/index
     api/psy_simple
 
