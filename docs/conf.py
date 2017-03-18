@@ -15,9 +15,11 @@
 import sphinx
 import inspect
 import os
+import os.path as osp
 import sys
 import re
 import six
+import subprocess as spr
 from itertools import chain
 from collections import defaultdict
 import warnings
@@ -68,11 +70,12 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 process_examples = True
 
 if on_rtd:
-    import subprocess as spr
     spr.call([sys.executable] +
              ('-m ipykernel install --user --name python3 '
               '--display-name python3').split())
-    spr.call(['bash', 'apigen.bash'])
+
+if on_rtd or not osp.exists(osp.join(osp.dirname(__file__), 'api')):
+    spr.check_call(['bash', 'apigen.bash'])
 
 # The cdo example would require the installation of climate data operators
 # which is a bit of an overkill

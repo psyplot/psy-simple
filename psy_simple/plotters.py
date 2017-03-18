@@ -442,7 +442,7 @@ class TicksBase(TicksManagerBase, DataTicksCalculator):
             self.set_locator(self.default_locators[which])
         elif isinstance(value, int):
             return self._reduce_ticks(value)
-        elif isinstance(value[0], six.string_types):
+        elif len(value) and isinstance(value[0], six.string_types):
             return self.set_ticks(self.calc_funcs[value[0]](*value[1:]))
         elif isinstance(value, tuple):
             steps = 11 if len(value) == 2 else value[3]

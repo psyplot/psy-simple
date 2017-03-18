@@ -8,7 +8,9 @@ import numpy as np
 from matplotlib.patches import ArrowStyle
 from warnings import warn
 from itertools import repeat
-from psyplot.config.rcsetup import RcParams, validate_dict, safe_list, SubDict
+from psyplot.config.rcsetup import (
+    RcParams, safe_list, SubDict, validate_dict, validate_stringlist,
+    validate_stringset)
 from matplotlib.rcsetup import (
     validate_bool, validate_color, validate_bool_maybe_none, validate_fontsize,
     ValidateInStrings, validate_int, validate_legend_loc,
@@ -176,48 +178,6 @@ def validate_none(b):
         return None
     else:
         raise ValueError('Could not convert "%s" to None' % b)
-
-
-def validate_stringlist(s):
-    """Validate a list of strings
-
-    Parameters
-    ----------
-    val: iterable of strings
-
-    Returns
-    -------
-    list
-        list of str
-
-    Raises
-    ------
-    ValueError"""
-    if isinstance(s, six.string_types):
-        return [six.text_type(v.strip()) for v in s.split(',') if v.strip()]
-    else:
-        try:
-            return [six.text_type(v) for v in s if v]
-        except TypeError as e:
-            raise ValueError(e.message)
-
-
-def validate_stringset(*args, **kwargs):
-    """Validate a set of strings
-
-    Parameters
-    ----------
-    val: iterable of strings
-
-    Returns
-    -------
-    set
-        set of str
-
-    Raises
-    ------
-    ValueError"""
-    return set(validate_stringlist(*args, **kwargs))
 
 
 def validate_axiscolor(value):
@@ -506,7 +466,7 @@ class TicksValidator(ValidateInStrings):
         # strings must be in the given list
         elif isinstance(val, six.string_types):
             return [ValidateInStrings.__call__(self, val), None]
-        elif isinstance(val[0], six.string_types):
+        elif len(val) and isinstance(val[0], six.string_types):
             return [ValidateInStrings.__call__(self, val[0])] + list(val[1:])
         # otherwise we assume an array
         else:
