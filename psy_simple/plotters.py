@@ -1475,15 +1475,21 @@ class LinePlot(Formatoption):
     --------------
     None
         Don't make any plotting
+    ``'area'``
+        To make an area plot (filled between x=0 and x), see
+        :func:`matplotlib.pyplot.fill_between`
+    ``'areax'``
+        To make a transposed area plot (filled between y=0 and y), see
+        :func:`matplotlib.pyplot.fill_betweenx`
     str or list of str
-        The line style  string to use (['solid' | 'dashed', 'dashdot', 'dotted'
+        The line style string to use (['solid' | 'dashed', 'dashdot', 'dotted'
         | (offset, on-off-dash-seq) | '-' | '--' | '-.' | ':' | 'None' | ' ' |
-        ''])
+        '']).
     """
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     priority = BEFOREPLOTTING + 0.1
 
@@ -1525,9 +1531,15 @@ class LinePlot(Formatoption):
         else:
             x = df.index.values
         if self.transpose.value:
-            return self.ax.plot(y, x,
-                                color=c, linestyle=ls, marker=m,
-                                **self._kwargs)
+            x, y = y, x
+        if ls in ['area', 'areay']:
+            ymin = np.vstack([y, np.zeros_like(y)]).min(axis=0)
+            ymax = np.vstack([y, np.zeros_like(y)]).max(axis=0)
+            return [self.ax.fill_between(x, ymin, ymax, color=c)]
+        elif ls == 'areax':
+            xmin = np.vstack([x, np.zeros_like(x)]).min(axis=0)
+            xmax = np.vstack([x, np.zeros_like(x)]).max(axis=0)
+            return [self.ax.fill_betweenx(y, xmin, xmax, color=c)]
         else:
             return self.ax.plot(x, y,
                                 color=c, linestyle=ls, marker=m,
@@ -1579,7 +1591,7 @@ class ErrorPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     priority = BEFOREPLOTTING
 
@@ -1674,7 +1686,7 @@ class BarPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     priority = BEFOREPLOTTING
 
@@ -1789,7 +1801,7 @@ class ViolinPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     priority = BEFOREPLOTTING
 
@@ -2396,7 +2408,7 @@ class Plot2D(Formatoption):
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     priority = BEFOREPLOTTING
 
@@ -3571,7 +3583,7 @@ class VectorPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plot'
+    group = 'plotting'
 
     name = 'Plot type of the arrows'
 

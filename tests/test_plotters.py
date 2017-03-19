@@ -95,6 +95,30 @@ class LinePlotterTest(tb.BasePlotterTest):
         if close:
             sp.close(True, True)
 
+    def ref_plot_area(self, close=True):
+        """Create reference file for plot formatoption with ``'area'``"""
+        sp = self.plot(plot='area')
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('plot_area')))
+        if close:
+            sp.close(True, True)
+
+    def ref_plot_areax(self, close=True):
+        """Create reference file for plot formatoption with ``'areax'``"""
+        sp = self.plot(plot='areax', transpose=True)
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('plot_areax')))
+        if close:
+            sp.close(True, True)
+
+    def test_plot_area(self, *args):
+        """Test plot formatoption with ``'areax'``"""
+        self.update(plot='area')
+        self.compare_figures(next(iter(args), self.get_ref_file('plot_area')))
+
+    def test_plot_areax(self, *args):
+        """Test plot formatoption with ``'areax'``"""
+        self.update(plot='areax', transpose=True)
+        self.compare_figures(next(iter(args), self.get_ref_file('plot_areax')))
+
     def test_coord(self):
         """Test whether we can use an alternative coordinate"""
         self.update(coord='v', xlabel='%(name)s')
@@ -445,6 +469,14 @@ class ViolinPlotterTest(LinePlotterTest):
     def ref_xticks(self, close=True):
         pass
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_area(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_areax(self, close=True):
+        pass
+
     @unittest.skip('Test needs to be implemented')
     def test_xticks(self, *args):
         """
@@ -452,6 +484,14 @@ class ViolinPlotterTest(LinePlotterTest):
 
             Implement this test"""
         # TODO: implement this test
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_area(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_areax(self, *args):
         pass
 
     def test_color(self):
@@ -508,6 +548,22 @@ class BarPlotterTest(LinePlotterTest):
 
     @unittest.skip("No need for figure creation")
     def ref_xticks(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_area(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_areax(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_area(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_areax(self, *args):
         pass
 
     def test_xticks(self, *args):
@@ -687,6 +743,22 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
 
     @unittest.skip('Not implemented for 2D-Plotter')
     def test_coord(self):
+        pass
+
+    @unittest.skip("Not implemented for 2D-Plotter")
+    def ref_plot_area(self, close=True):
+        pass
+
+    @unittest.skip("Not implemented for 2D-Plotter")
+    def ref_plot_areax(self, close=True):
+        pass
+
+    @unittest.skip("Not implemented for 2D-Plotter")
+    def test_plot_area(self, *args):
+        pass
+
+    @unittest.skip("Not implemented for 2D-Plotter")
+    def test_plot_areax(self, *args):
         pass
 
     def test_ylabel(self):
