@@ -3788,9 +3788,9 @@ class Legend(DictFormatoption):
     name = 'Properties of the legend'
 
     def update(self, value):
+        self.remove()
         if self.shared_by is not None:
             return
-        self.remove()
         if not value.get('loc'):
             return
         artists = []
