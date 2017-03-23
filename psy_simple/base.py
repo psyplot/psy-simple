@@ -388,8 +388,11 @@ def label_props(base, label_name=None, children=[], parents=[],
             # at the same time)
             if not self._todefault:
                 for key in fontprops:
-                    self.default_props.setdefault(
-                        key, getattr(text, 'get_' + key)())
+                    if key == 'bbox':
+                        default = dict(facecolor='none', edgecolor='none')
+                    else:
+                        default = getattr(text, 'get_' + key)()
+                    self.default_props.setdefault(key, default)
             else:
                 fontprops = self.default_props.copy()
                 self.default_props.clear()
