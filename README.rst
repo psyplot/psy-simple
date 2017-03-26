@@ -54,4 +54,16 @@ psy-simple: The psyplot plugin for simple visualizations
 
 .. end-badges
 
-To be filled...
+Welcome to the psyplot plugin for simple visualization. This package targets
+simple visualization like line plots, 2D plots, bar plots, density plots, etc.
+It provides the basics for all the more advanced and specialized plugins like
+the psy-maps_ or psy-reg_ plugin.
+
+See the full documentation on
+`readthedocs.org <http://psyplot.readthedocs.io/projects/psy-simple>`__ for all
+`plot methods`_ and examples_.
+
+.. _psy-maps: http://psyplot.readthedocs.io/projects/psy-maps/
+.. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/
+.. _plot methods: http://psyplot.readthedocs.io/projects/psy-simple/en/latest/plot_methods
+.. _examples: http://psyplot.readthedocs.io/projects/psy-simple/en/latest/examples

@@ -1,3 +1,5 @@
+.. _plot_methods:
+
 psyplot plot methods
 ====================
 
@@ -5,10 +7,11 @@ This plugin defines the following new plot methods for the
 :class:`psyplot.project.ProjectPlotter` class. They can, for example, be
 accessed through
 
-.. code-block:: python
+.. ipython::
 
-    import psyplot.project as psy
-    psy.plot.lineplot
+    In [1]: import psyplot.project as psy
+    
+    In [2]: psy.plot.lineplot
 
 .. autosummary::
     :toctree: generated

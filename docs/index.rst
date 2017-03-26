@@ -3,11 +3,21 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _psy-simple:
+
 Interactive data visualization with python
 ==========================================
 
-To be filled...
+Welcome to the psyplot plugin for simple visualization. This package targets
+simple visualization like line plots, 2D plots, bar plots, density plots, etc.
+It provides the basics for all the more advanced and specialized plugins like
+the psy-maps_ or psy-reg_ plugin.
 
+See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
+
+
+.. _psy-maps: http://psyplot.readthedocs.io/projects/psy-maps/
+.. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/
 
 .. start-badges
 
