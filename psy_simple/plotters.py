@@ -1509,11 +1509,14 @@ class LinePlot(Formatoption):
         if hasattr(self, '_plot'):
             self.remove()
         if self.value is not None:
-            self._plot = list(chain(*starmap(self.plot_arr, zip(
-                self.iter_data, self.color.colors,
-                cycle(safe_list(self.value)), self.marker.markers))))
+            self._plot = list(filter(None, chain.from_iterable(starmap(
+                self.plot_arr, zip(
+                    self.iter_data, self.color.colors,
+                    cycle(safe_list(self.value)), self.marker.markers)))))
 
     def plot_arr(self, arr, c, ls, m):
+        if ls is None:
+            return [None]
         # since date time objects are covered better by pandas,
         # we convert to a series
         if arr.ndim == 2:  # contains also error information
@@ -3789,7 +3792,11 @@ class Legend(DictFormatoption):
 
     def update(self, value):
         self.remove()
-        if self.shared_by is not None:
+        shared_by = self.shared_by
+        if shared_by is not None:
+            # update the legend of the other formatoption instead of this one
+            if not shared_by.plotter._updating:
+                shared_by.update(shared_by.value)
             return
         if not value.get('loc'):
             return
@@ -3802,7 +3809,10 @@ class Legend(DictFormatoption):
         self.legend = self.ax.legend(artists, labels, **value)
 
     def get_artists_and_labels(self):
-        return self.plot._plot, self.legendlabels.labels
+        return self.plot._plot, [
+            l for l, ls in zip(self.legendlabels.labels,
+                               cycle(safe_list(self.plot.value)))
+            if ls is not None]
 
     def remove(self):
         if hasattr(self, 'legend'):

@@ -342,6 +342,29 @@ def validate_legend(value):
     return {'loc': 'best' if value else False}
 
 
+def validate_lineplot(value):
+    """Validate the value for the LinePlotter.plot formatoption
+
+    Parameters
+    ----------
+    value: None, str or list with mixture of both
+        The value to validate"""
+    if value is None:
+        return value
+    elif isinstance(value, six.string_types):
+        return six.text_type(value)
+    else:
+        value = list(value)
+        for i, v in enumerate(value):
+            if v is None:
+                pass
+            elif isinstance(v, six.string_types):
+                value[i] = six.text_type(v)
+            else:
+                raise ValueError('Expected None or string, found %s' % (v, ))
+    return value
+
+
 validate_ticklabels = try_and_error(validate_none, validate_str,
                                     validate_stringlist)
 
@@ -744,7 +767,7 @@ rcParams = RcParams(defaultParams={
         None, try_and_error(validate_none, validate_str, validate_stringlist),
         'Alternative x-coordinate to use for LinePlotter'],
     'plotter.line.plot': [
-        '-', try_and_error(validate_none, validate_str, validate_stringlist),
+        '-', validate_lineplot,
         'fmt key to modify the line style'],
     'plotter.line.error': [
         'fill', try_and_error(ValidateInStrings('error', ['fill'], True),

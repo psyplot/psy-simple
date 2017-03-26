@@ -109,6 +109,12 @@ class LinePlotterTest(tb.BasePlotterTest):
         if close:
             sp.close(True, True)
 
+    def ref_plot_None(self, close=True):
+        sp = self.plot(plot=['--', None])
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('plot_None')))
+        if close:
+            sp.close(True, True)
+
     def test_plot_area(self, *args):
         """Test plot formatoption with ``'areax'``"""
         self.update(plot='area')
@@ -118,6 +124,11 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Test plot formatoption with ``'areax'``"""
         self.update(plot='areax', transpose=True)
         self.compare_figures(next(iter(args), self.get_ref_file('plot_areax')))
+
+    def test_plot_None(self, *args):
+        """Test excluding one specific line"""
+        self.update(plot=['--', None])
+        self.compare_figures(next(iter(args), self.get_ref_file('plot_None')))
 
     def test_coord(self):
         """Test whether we can use an alternative coordinate"""
@@ -446,6 +457,14 @@ class SingleLinePlotterTest(LinePlotterTest):
         return psy.plot.lineplot(
             self.ncfile, name=name, t=0, z=0, y=0, **kwargs)
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_None(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_None(self, *args):
+        pass
+
 
 class ViolinPlotterTest(LinePlotterTest):
     """Test class for :class:`psyplot.plotter.simple.BarPlotter`"""
@@ -477,6 +496,10 @@ class ViolinPlotterTest(LinePlotterTest):
     def ref_plot_areax(self, close=True):
         pass
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_None(self, *args):
+        pass
+
     @unittest.skip('Test needs to be implemented')
     def test_xticks(self, *args):
         """
@@ -492,6 +515,10 @@ class ViolinPlotterTest(LinePlotterTest):
 
     @unittest.skip("No need for figure creation")
     def test_plot_areax(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_None(self, *args):
         pass
 
     def test_color(self):
@@ -559,11 +586,19 @@ class BarPlotterTest(LinePlotterTest):
         pass
 
     @unittest.skip("No need for figure creation")
+    def ref_plot_None(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
     def test_plot_area(self, *args):
         pass
 
     @unittest.skip("No need for figure creation")
     def test_plot_areax(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_None(self, *args):
         pass
 
     def test_xticks(self, *args):
@@ -753,12 +788,20 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
     def ref_plot_areax(self, close=True):
         pass
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_None(self, *args):
+        pass
+
     @unittest.skip("Not implemented for 2D-Plotter")
     def test_plot_area(self, *args):
         pass
 
     @unittest.skip("Not implemented for 2D-Plotter")
     def test_plot_areax(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_None(self, *args):
         pass
 
     def test_ylabel(self):
