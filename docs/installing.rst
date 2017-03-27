@@ -11,7 +11,7 @@ How to install
 Installation using conda
 ^^^^^^^^^^^^^^^^^^^^^^^^
 We highly recommend to use conda_ for installing psy-simple. After downloading
-the installer from anaconda_, you can install psyplot simply via::
+the installer from anaconda_, you can install psy-simple simply via::
 
     $ conda install -c chilipp psy-simple
 
