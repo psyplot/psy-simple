@@ -22,6 +22,8 @@ class BasePlotterTest(bt.PsyPlotTestCase):
 
     var = 't2m'
 
+    masking_val = 250
+
     @classmethod
     def setUpClass(cls):
         cls.ds = open_dataset(cls.ncfile)
@@ -109,35 +111,37 @@ class BasePlotterTest(bt.PsyPlotTestCase):
 
     def test_maskgreater(self):
         """Test maskgreater formatoption"""
-        self.update(maskgreater=250)
+        self.update(maskgreater=self.masking_val)
         for arr in self.plotter.maskgreater.iter_data:
-            self.assertLessEqual(arr.max().values, 250)
+            self.assertLessEqual(arr.max().values, self.masking_val)
 
     def test_maskgeq(self):
         """Test maskgeq formatoption"""
-        self.update(maskgeq=250)
+        self.update(maskgeq=self.masking_val)
         for arr in self.plotter.maskgeq.iter_data:
-            self.assertLessEqual(arr.max().values, 250)
+            self.assertLessEqual(arr.max().values, self.masking_val)
 
     def test_maskless(self):
         """Test maskless formatoption"""
-        self.update(maskless=250)
+        self.update(maskless=self.masking_val)
         for arr in self.plotter.maskless.iter_data:
-            self.assertGreaterEqual(arr.min().values, 250)
+            self.assertGreaterEqual(arr.min().values, self.masking_val)
 
     def test_maskleq(self):
         """Test maskleq formatoption"""
-        self.update(maskleq=250)
+        self.update(maskleq=self.masking_val)
         for arr in self.plotter.maskleq.iter_data:
-            self.assertGreaterEqual(arr.min().values, 250)
+            self.assertGreaterEqual(arr.min().values, self.masking_val)
 
     def test_maskbetween(self):
         """Test maskbetween formatoption"""
-        self.update(maskbetween=[250, 251])
+        self.update(maskbetween=[self.masking_val, self.masking_val + 1])
         for arr in self.plotter.maskbetween.iter_data:
             data = arr.values[~np.isnan(arr.values)]
-            self.assertLessEqual(data[data < 251].max(), 250)
-            self.assertGreaterEqual(data[data > 250].max(), 251)
+            self.assertLessEqual(data[data < self.masking_val + 1].max(),
+                                 self.masking_val)
+            self.assertGreaterEqual(data[data > self.masking_val].max(),
+                                    self.masking_val + 1)
 
 
 class TestBase2D(object):
