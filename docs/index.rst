@@ -5,8 +5,8 @@
 
 .. _psy-simple:
 
-Interactive data visualization with python
-==========================================
+psy-simple: The psyplot plugin for simple visualizations
+========================================================
 
 Welcome to the psyplot plugin for simple visualization. This package targets
 simple visualization like line plots, 2D plots, bar plots, density plots, etc.
