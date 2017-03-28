@@ -1,4 +1,4 @@
-"""Test module of the :mod:`psyplot.plotter.simple` module"""
+"""Test module of the :mod:`psy_simple.plotters` module"""
 import os
 import re
 import six
@@ -24,7 +24,7 @@ bold = tb.bold
 
 
 class LinePlotterTest(tb.BasePlotterTest):
-    """Test class for :class:`psyplot.plotter.simple.LinePlotter`"""
+    """Test class for :class:`psy_simple.plotters.LinePlotter`"""
 
     plot_type = 'line'
 
@@ -45,7 +45,7 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Create reference file for grid formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.LinePlotter.grid`
+        :attr:`~psy_simple.plotters.LinePlotter.grid`
         formatoption"""
         sp = self.plot(grid=True)
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('grid1')))
@@ -58,7 +58,7 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Create reference file for transpose formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.LinePlotter.transpose`
+        :attr:`~psy_simple.plotters.LinePlotter.transpose`
         formatoption"""
         sp = self.plot()
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('transpose1')))
@@ -71,7 +71,7 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Create reference file for legend formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.LinePlotter.legend`
+        :attr:`~psy_simple.plotters.LinePlotter.legend`
         formatoption"""
         sp = self.plot(
             legend={'loc': 'upper center', 'bbox_to_anchor': (0.5, -0.05),
@@ -84,7 +84,7 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Create reference file for xticks formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.LinePlotter.xticks`
+        :attr:`~psy_simple.plotters.LinePlotter.xticks`
         formatoption"""
         sp = psy.plot.lineplot(
             self.ncfile, name=self.var, lon=0, lev=0, lat=[0, 1],
@@ -257,10 +257,16 @@ class LinePlotterTest(tb.BasePlotterTest):
     _max_rounded_ref = 400
 
     def _test_DataTicksCalculator(self):
-        # testing of psyplot.plotter.simple.DataTicksCalculator
+        # testing of psy_simple.plotters.DataTicksCalculator
         self.update(xticks=['data', 2])
         ax = plt.gca()
-        lon = self.data[0].lon.values
+        if isinstance(self.data, InteractiveList):
+            data = self.data[0]
+        else:
+            data = self.data
+
+        lon = data.lon.values
+
         self.assertEqual(list(ax.get_xticks()),
                          list(lon[::2]))
         self.update(xticks=['mid', 2])
@@ -280,16 +286,16 @@ class LinePlotterTest(tb.BasePlotterTest):
         self.update(xticks='minmax')
         self.assertEqual(
             list(ax.get_xticks()), np.linspace(
-                self.data[0].lon.values.min(), self.data[0].lon.values.max(),
+                lon.min(), lon.max(),
                 11, endpoint=True).tolist())
         self.update(xticks='sym')
         self.assertEqual(
             list(ax.get_xticks()), np.linspace(
-                -self.data[0].lon.values.max(), self.data[0].lon.values.max(),
+                -lon.max(), lon.max(),
                 10, endpoint=True).tolist())
 
     def _test_DtTicksBase(self, *args):
-        # testing of psyplot.plotter.simple.DtTicksBase
+        # testing of psy_simple.plotters.DtTicksBase
         args = iter(args)
         data = InteractiveList.from_dataset(
             self.data[0].psy.base, y=[0, 1], z=0, x=0, name=self.var,
@@ -433,7 +439,7 @@ class CoordinateTest(unittest.TestCase):
 
 
 class SingleLinePlotterTest(LinePlotterTest):
-    """Test of :class:`psyplot.plotter.simple.LinePlotter` with a single array
+    """Test of :class:`psy_simple.plotters.LinePlotter` with a single array
     instead of an InteractiveList"""
 
     plot_type = 'singleline'
@@ -467,7 +473,7 @@ class SingleLinePlotterTest(LinePlotterTest):
 
 
 class ViolinPlotterTest(LinePlotterTest):
-    """Test class for :class:`psyplot.plotter.simple.BarPlotter`"""
+    """Test class for :class:`psy_simple.plotters.BarPlotter`"""
 
     plot_type = 'violin'
 
@@ -530,7 +536,7 @@ class ViolinPlotterTest(LinePlotterTest):
 
 
 class SingleViolinPlotterTest(ViolinPlotterTest):
-    """Test of :class:`psyplot.plotter.simple.ViolinPlotter` with a single array
+    """Test of :class:`psy_simple.plotters.ViolinPlotter` with a single array
     instead of an InteractiveList"""
 
     plot_type = 'singleviolin'
@@ -556,7 +562,7 @@ class SingleViolinPlotterTest(ViolinPlotterTest):
 
 
 class BarPlotterTest(LinePlotterTest):
-    """Test class for :class:`psyplot.plotter.simple.BarPlotter`"""
+    """Test class for :class:`psy_simple.plotters.BarPlotter`"""
 
     plot_type = 'bar'
 
@@ -643,7 +649,7 @@ class BarPlotterTest(LinePlotterTest):
 
 
 class SingleBarPlotterTest(BarPlotterTest):
-    """Test of :class:`psyplot.plotter.simple.ViolinPlotter` with a single array
+    """Test of :class:`psy_simple.plotters.ViolinPlotter` with a single array
     instead of an InteractiveList"""
 
     plot_type = 'singlebar'
@@ -675,12 +681,9 @@ class References2D(object):
         """Create reference file for datagrid formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.datagrid`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.datagrid`
         formatoption"""
-        if self.plot_type[:6] == 'simple':
-            kwargs = dict(xlim=(0, 40), ylim=(0, 40))
-        else:
-            kwargs = dict(lonlatbox='Europe')
+        kwargs = dict(xlim=(0, 40), ylim=(0, 40))
         sp = self.plot(**kwargs)
         sp.update(datagrid='k-')
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('datagrid')))
@@ -691,7 +694,7 @@ class References2D(object):
         """Create reference file for cmap formatoption.
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.cmap`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.cmap`
         formatoption"""
         sp = self.plot(cmap='RdBu')
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('cmap')))
@@ -702,7 +705,7 @@ class References2D(object):
         """Create reference file for cbar formatoption.
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.cbar`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.cbar`
         formatoption"""
         sp = self.plot(cbar=['fb', 'fr', 'fl', 'ft', 'b', 'r'])
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('cbar')))
@@ -713,7 +716,7 @@ class References2D(object):
         """Create reference file for miss_color formatoption.
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.miss_color`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.miss_color`
         formatoption"""
         if self.plot_type[:3] == 'map':
             kwargs = {'projection': 'ortho', 'grid_labels': False}
@@ -728,7 +731,7 @@ class References2D(object):
         """Create reference file for cbarspacing formatoption.
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.cbarspacing`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.cbarspacing`
         formatoption"""
         if self.plot_type.endswith('vector') or getattr(self, 'vector_mode',
                                                         False):
@@ -921,8 +924,107 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
         super(Simple2DPlotterTest, self).test_ylim(test_pctls=False)
 
 
+class IconTestMixin(object):
+    """A mixin class for changed test methods for icon"""
+
+    def ref_datagrid(self, close=True):
+        """Create reference file for datagrid formatoption
+
+        Create reference file for
+        :attr:`~psy_simple.plotters.Simple2DPlotter.datagrid`
+        formatoption"""
+        sp = self.plot()
+        sp.update(datagrid='k-')
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('datagrid')))
+        if close:
+            sp.close(True, True)
+
+    def test_datagrid(self, *args):
+        """Test datagrid formatoption"""
+        self.update(datagrid='k-')
+        self.compare_figures(next(iter(args), self.get_ref_file('datagrid')))
+
+    def test_xlabel(self):
+        """Test xlabel formatoption"""
+        self.update(xlabel='{desc}')
+        label = self.plotter.ax.xaxis.get_label()
+        self.assertEqual(label.get_text(), 'center longitude [radian]')
+        self.update(labelsize=22, labelweight='bold',
+                    labelprops={'ha': 'left'})
+        self.assertEqual(label.get_size(), 22)
+        self.assertEqual(label.get_weight(), bold)
+        self.assertEqual(label.get_ha(), 'left')
+
+    def test_ylabel(self):
+        """Test ylabel formatoption"""
+        self.update(ylabel='{desc}')
+        label = self.plotter.ax.yaxis.get_label()
+        self.assertEqual(label.get_text(), 'center latitude [radian]')
+        self.update(labelsize=22, labelweight='bold',
+                    labelprops={'ha': 'left'})
+        self.assertEqual(label.get_size(), 22)
+        self.assertEqual(label.get_weight(), bold)
+        self.assertEqual(label.get_ha(), 'left')
+
+    def _test_DataTicksCalculator(self):
+        # testing of psy_simple.plotters.DataTicksCalculator
+
+        ax = plt.gca()
+        if isinstance(self.data, InteractiveList):
+            data = self.data[0]
+        else:
+            data = self.data
+
+        lon = data.clon.values
+
+        self.update(xticks='rounded')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(-1, 1, 11, endpoint=True).tolist())
+        self.update(xticks='roundedsym')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(-1, 1, 10, endpoint=True).tolist())
+        self.update(xticks='minmax')
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                lon.min(), lon.max(),
+                11, endpoint=True).tolist())
+        self.update(xticks='sym')
+        vmax = np.abs(lon).max()
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                -vmax, vmax,
+                10, endpoint=True).tolist())
+
+
+class IconSimplePlotterTest(IconTestMixin, Simple2DPlotterTest):
+    """Test :class:`psy_simple.plotters.Simple2DPlotter` class for icon grid"""
+
+    grid_type = 'icon'
+
+    masking_val = 280
+
+    ncfile = os.path.join(bt.test_dir, 'icon_test.nc')
+
+    def test_bounds(self):
+        """Test bounds formatoption"""
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(260, 310, 11, endpoint=True).tolist())
+        self.update(bounds='minmax')
+        bounds = [261.2, 265.78, 270.36, 274.94, 279.52, 284.1, 288.68,
+                  293.26, 297.85, 302.43, 307.01]
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
+        self.update(bounds=['rounded', 5, 5, 95])
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(275, 305, 5, endpoint=True).tolist())
+
+
 class LinePlotterTest2D(tb.TestBase2D, LinePlotterTest):
-    """Test :class:`psyplot.plotter.simple.LinePlotter` class without
+    """Test :class:`psy_simple.plotters.LinePlotter` class without
     time and vertical dimension"""
 
     var = 't2m_2d'
@@ -939,7 +1041,7 @@ class LinePlotterTest2D(tb.TestBase2D, LinePlotterTest):
 
 
 class Simple2DPlotterTest2D(tb.TestBase2D, Simple2DPlotterTest):
-    """Test :class:`psyplot.plotter.simple.Simple2DPlotter` class without
+    """Test :class:`psy_simple.plotters.Simple2DPlotter` class without
     time and vertical dimension"""
 
     var = 't2m_2d'
@@ -989,7 +1091,7 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
         """Create reference file for datagrid formatoption
 
         Create reference file for
-        :attr:`~psyplot.plotter.simple.Simple2DPlotter.datagrid`
+        :attr:`~psy_simple.plotters.Simple2DPlotter.datagrid`
         formatoption"""
         sp = self.plot()
         sp.update(datagrid='k-')
@@ -1095,6 +1197,61 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
             np.linspace(1.0, 8.5, 5, endpoint=True).tolist())
 
 
+class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
+    """
+    Test :class:`psy_simple.plotters.SimpleVectorPlotter` class for icon grid
+    """
+
+    grid_type = 'icon'
+
+    ncfile = os.path.join(bt.test_dir, 'icon_test.nc')
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = open_dataset(cls.ncfile)
+        cls.data = ArrayList.from_dataset(
+            cls.ds, t=0, z=0, name=[cls.var], auto_update=True)[0]
+        cls.data.attrs['long_name'] = 'absolute wind speed'
+        cls.data.name = 'wind'
+        cls.plotter = SimpleVectorPlotter(cls.data)
+        cls.create_dirs()
+        cls._color_fmts = cls.plotter.fmt_groups['colors']
+        # there is an issue with the colorbar that the size of the axes changes
+        # slightly after replotting. Therefore we force a replot here
+        if not six.PY34:
+            cls.plotter.update(color='absolute')
+            cls.plotter.update(todefault=True, replot=True)
+
+    def plot(self, **kwargs):
+        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
+        fix_colorbar = not color_fmts.intersection(kwargs)
+        kwargs.setdefault('color', 'absolute')
+        ds = psy.open_dataset(self.ncfile)
+        sp = psy.plot.vector(ds, name=[self.var], **kwargs)
+        if fix_colorbar:
+            # if we have no color formatoptions, we have to consider that
+            # the position of the plot may have slighty changed
+            sp.update(todefault=True, replot=True, **dict(
+                item for item in kwargs.items() if item[0] != 'color'))
+        return sp
+
+    def test_bounds(self):
+        """Test bounds formatoption"""
+        self.update(color='absolute')
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(0, 15, 11, endpoint=True).tolist())
+        self.update(bounds='minmax')
+        bounds = [0.04, 1.32, 2.61, 3.89, 5.17, 6.45, 7.73, 9.01, 10.29, 11.57,
+                  12.85]
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
+        self.update(bounds=['rounded', 5, 5, 95])
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.round(np.linspace(0.5, 10.0, 5, endpoint=True), 2).tolist())
+
+
 def _do_from_both(func):
     """Call the given `func` only from :class:`Simple2DPlotterTest` and
     :class:`SimpleVectorPlotterTest`"""
@@ -1143,7 +1300,7 @@ class _CombinedPlotterData(object):
 
 class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
     """Test case for stream plot of
-    :class:`psyplot.plotter.simple.CombinedSimplePlotter`"""
+    :class:`psy_simple.plotters.CombinedSimplePlotter`"""
 
     plot_type = 'simplecombined'
 
@@ -1373,7 +1530,7 @@ class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
 
 
 class CombinedSimplePlotterTest2D(tb.TestBase2D, CombinedSimplePlotterTest):
-    """Test :class:`psyplot.plotter.simple.CombinedSimplePlotter` class without
+    """Test :class:`psy_simple.plotters.CombinedSimplePlotter` class without
     time and vertical dimension"""
 
     var = ['t2m', ['u_2d', 'v_2d']]
@@ -1383,6 +1540,105 @@ class CombinedSimplePlotterTest2D(tb.TestBase2D, CombinedSimplePlotterTest):
             has_time = not bool(self.vector_mode)
         CombinedSimplePlotterTest._label_test(
             self, key, label_func, has_time=has_time)
+
+
+class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
+    """Test :class:`psyplot.plotter.maps.CombinedPlotter` class for icon grid
+    """
+
+    grid_type = 'icon'
+
+    ncfile = os.path.join(bt.test_dir, 'icon_test.nc')
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = open_dataset(cls.ncfile)
+        rcParams[CombinedSimplePlotter().vcmap.default_key] = 'winter'
+        cls._data = ArrayList.from_dataset(
+            cls.ds, t=0, z=0, name=[cls.var], auto_update=True,
+            prefer_list=True)[0]
+        cls._data.attrs['long_name'] = 'Temperature'
+        cls._data.attrs['name'] = 't2m'
+        cls.plotter = CombinedSimplePlotter(cls.data)
+        cls.create_dirs()
+        cls._color_fmts = cls.plotter.fmt_groups['colors']
+
+        # there is an issue with the colorbar that the size of the axes changes
+        # slightly after replotting. Therefore we force a replot here
+        cls.plotter.update(color='absolute')
+        cls.plotter.update(todefault=True, replot=True)
+
+    def plot(self, **kwargs):
+        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
+        fix_colorbar = not color_fmts.intersection(kwargs)
+        ds = psy.open_dataset(self.ncfile)
+        kwargs.setdefault('color', 'absolute')
+        if self.vector_mode:
+            kwargs = self._rename_fmts(kwargs)
+        sp = psy.plot.combined(ds, name=[self.var], **kwargs)
+        if not self.vector_mode or fix_colorbar:
+            # if we have no color formatoptions, we have to consider that
+            # the position of the plot may have slighty changed
+            sp.update(todefault=True, replot=True, **dict(
+                item for item in kwargs.items() if item[0] != 'color'))
+        return sp
+
+    @unittest.skip("Density for quiver plots of unstructered data is not "
+                   "supported!")
+    def ref_density(self):
+        pass
+
+    @unittest.skip("Density for quiver plots of unstructered data is not "
+                   "supported!")
+    def test_density(self):
+        pass
+
+    def test_bounds(self):
+        """Test bounds formatoption"""
+        # test bounds of scalar field
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(260, 310, 11, endpoint=True).tolist())
+        self.update(bounds='minmax')
+        bounds = [261.2, 265.78, 270.36, 274.94, 279.52, 284.1, 288.68,
+                  293.26, 297.85, 302.43, 307.01]
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
+        self.update(bounds=['rounded', 5, 5, 95])
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(275, 305, 5, endpoint=True).tolist())
+
+        # test vector bounds
+        self.update(color='absolute')
+        self.assertEqual(
+            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
+            np.linspace(0, 15, 11, endpoint=True).tolist())
+        self.update(vbounds='minmax')
+        bounds = [0.04, 1.32, 2.61, 3.89, 5.17, 6.45, 7.73, 9.01, 10.29, 11.57,
+                  12.85]
+        self.assertEqual(
+            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(), bounds)
+        self.update(vbounds=['rounded', 5, 5, 95])
+        self.assertEqual(
+            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
+            np.round(np.linspace(0.5, 10.0, 5, endpoint=True), 2).tolist())
+
+
+    @property
+    def _minmax_cticks(self):
+        if not self.vector_mode:
+            arr = self.plotter.plot_data[0].values
+            arr = arr[~np.isnan(arr)]
+            return np.round(
+                np.linspace(arr.min(), arr.max(), 11, endpoint=True),
+                decimals=2).tolist()
+        arr = self.plotter.plot_data[1].values
+        speed = (arr[0]**2 + arr[1]**2) ** 0.5
+        speed = speed[~np.isnan(speed)]
+        return np.round(
+            np.linspace(speed.min(), speed.max(), 11, endpoint=True),
+            decimals=2).tolist()
 
 
 class DensityPlotterTest(bt.PsyPlotTestCase):

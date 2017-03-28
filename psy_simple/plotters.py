@@ -2,7 +2,7 @@ import six
 from warnings import warn
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
-from pandas import date_range, to_datetime, DatetimeIndex
+from pandas import date_range, to_datetime, DatetimeIndex, Index
 from pandas.tseries import offsets
 import xarray as xr
 import matplotlib as mpl
@@ -2120,9 +2120,11 @@ class Xlim2D(Xlim):
     def array(self):
         xcoord = self.transpose.get_x(self.data)
         func = 'get_x' if not self.transpose.value else 'get_y'
-        if (self.decoder.is_triangular(self.data) and
-                xcoord.name == getattr(self.decoder, func)(self.data).name):
-            triangles = self.decoder.get_triangles(self.data, self.data.coords)
+        data = next(self.iter_data)
+        if (self.decoder.is_triangular(data) and
+                xcoord.name == getattr(self.decoder, func)(data).name):
+            triangles = self.decoder.get_triangles(
+                data, data.coords, convert_radian=self.plotter.convert_radian)
             if self.transpose.value:
                 return triangles.y[triangles.triangles].ravel()
             else:
@@ -2137,9 +2139,11 @@ class Ylim2D(Ylim):
     def array(self):
         ycoord = self.transpose.get_y(self.data)
         func = 'get_x' if self.transpose.value else 'get_y'
-        if (self.decoder.is_triangular(self.data) and
-                ycoord.name == getattr(self.decoder, func)(self.data).name):
-            triangles = self.decoder.get_triangles(self.data, self.data.coords)
+        data = next(self.iter_data)
+        if (self.decoder.is_triangular(data) and
+                ycoord.name == getattr(self.decoder, func)(data).name):
+            triangles = self.decoder.get_triangles(
+                data, data.coords, convert_radian=self.plotter.convert_radian)
             if self.transpose.value:
                 return triangles.x[triangles.triangles].ravel()
             else:
@@ -2283,8 +2287,9 @@ class MissColor(Formatoption):
         """The :class:`matplotlib.tri.Triangulation` instance containing the
         spatial informations"""
         decoder = self.decoder
-        return decoder.get_triangles(self.data, self.data.coords, copy=True,
-                                     nans='only')
+        return decoder.get_triangles(
+            self.data, self.data.coords, copy=True, nans='only',
+            convert_radian=self.plotter.convert_radian)
 
     def update(self, value):
         if self.plotter.replot:
@@ -2313,9 +2318,9 @@ class MissColor(Formatoption):
                 if mratio:
                     triangles.set_mask(
                         TriAnalyzer(triangles).get_flat_tri_mask(mratio))
-                if self.transform is not None:
+                try:
                     transform = self.transform.projection
-                else:
+                except AttributeError:
                     transform = None
                 self._miss_color_plot = self.ax.tripcolor(
                     triangles, np.zeros(len(triangles.triangles)),
@@ -2440,12 +2445,23 @@ class Plot2D(Formatoption):
         return self.decoder.get_plotbounds(coord)
 
     @property
+    def xcoord(self):
+        """The x coordinate :class:`xarray.Variable`"""
+        return self.decoder.get_x(self.data, coords=self.data.coords)
+
+    @property
+    def ycoord(self):
+        """The y coordinate :class:`xarray.Variable`"""
+        return self.decoder.get_y(self.data, coords=self.data.coords)
+
+    @property
     def triangles(self):
         """The :class:`matplotlib.tri.Triangulation` instance containing the
         spatial informations"""
         decoder = self.decoder
-        return decoder.get_triangles(self.data, self.data.coords, copy=True,
-                                     nans='skip')
+        return decoder.get_triangles(
+            self.data, self.data.coords, copy=True, nans='skip',
+            convert_radian=self.plotter.convert_radian)
 
     @property
     def mappable(self):
@@ -2457,6 +2473,7 @@ class Plot2D(Formatoption):
         self._plot_funcs = {
             'mesh': self._pcolormesh,
             'tri': self._tripcolor}
+        self._orig_format_coord = None
         self._kwargs = {}
 
     def update(self, value):
@@ -2469,9 +2486,12 @@ class Plot2D(Formatoption):
         if self.plotter.replot or any(
                 self.plotter.has_changed(key) for key in chain(
                     self.connections, self.dependencies, [self.key])):
-            self.remove()
+            self.remove(format_coord=(self.value is not None))
         if self.value is not None:
             self._plot_funcs[self.value]()
+            if self._orig_format_coord is None:
+                self._orig_format_coord = self.ax.format_coord
+                self.ax.format_coord = self.format_coord
 
     def _pcolormesh(self):
         if self.decoder.is_triangular(self.raw_data):
@@ -2515,10 +2535,60 @@ class Plot2D(Formatoption):
                 triangles, arr[~np.isnan(arr)], norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
 
-    def remove(self):
+    def remove(self, format_coord=True):
         if hasattr(self, '_plot'):
             self._plot.remove()
             del self._plot
+        if format_coord and self._orig_format_coord is not None:
+            self.ax.format_coord = self._orig_format_coord
+            self._orig_format_coord = None
+
+    def format_coord(self, x, y):
+        """A method that can replace the :func:`matplotlib.axes.replace_coord
+        """
+        orig_s = self._orig_format_coord(x, y)
+        try:
+            orig_s += self.add2format_coord(x, y)
+        except:
+            self.logger.debug(
+                'Failed to get plot informations for status bar!', exc_info=1)
+        return orig_s
+
+    def add2format_coord(self, x, y):
+        """Additional information for the :meth:`format_coord`"""
+        data = self.data
+        xcoord = self.xcoord
+        ycoord = self.ycoord
+        if self.decoder.is_triangular(self.raw_data):
+            x, y, z = self.get_xyz_tri(xcoord, x, ycoord, y, data)
+        elif xcoord.ndim == 1:
+            x, y, z = self.get_xyz_1d(xcoord, x, ycoord, y, data)
+        elif xcoord.ndim == 2:
+            x, y, z = self.get_xyz_2d(xcoord, x, ycoord, y, data)
+        return ', data: %s: %.4g, %s: %.4g, %s: %.4g' % (
+            xcoord.name, x, ycoord.name, y, data.name, z)
+
+    def get_xyz_tri(self, xcoord, x, ycoord, y, data):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        1d coords"""
+        return self.get_xyz_2d(xcoord, x, ycoord, y, data)
+
+    def get_xyz_1d(self, xcoord, x, ycoord, y, data):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        1d coords"""
+        xclose = xcoord.indexes[xcoord.name].get_loc(x, method='nearest')
+        yclose = ycoord.indexes[ycoord.name].get_loc(y, method='nearest')
+        val = data[yclose, xclose].values
+        return xcoord[xclose].values, ycoord[yclose].values, val
+
+    def get_xyz_2d(self, xcoord, x, ycoord, y, data):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        2d coords"""
+        xy = xcoord.values.ravel() + 1j * ycoord.values.ravel()
+        dist = np.abs(xy - (x + 1j * y))
+        imin = np.nanargmin(dist)
+        xy_min = xy[imin]
+        return xy_min.real, xy_min.imag, data.values.ravel()[imin]
 
 
 class DataGrid(Formatoption):
@@ -2573,7 +2643,9 @@ class DataGrid(Formatoption):
         """The :class:`matplotlib.tri.Triangulation` instance containing the
         spatial informations"""
         decoder = self.decoder
-        return decoder.get_triangles(self.data, self.data.coords, copy=True)
+        return decoder.get_triangles(
+            self.data, self.data.coords, copy=True,
+            convert_radian=self.plotter.convert_radian)
 
     def _triplot(self, value):
         if isinstance(value, dict):
@@ -2668,10 +2740,7 @@ class XTicks2D(XTicks):
         if not isinstance(plot_data, InteractiveList):
             plot_data = [plot_data]
         for da in plot_data:
-            if self.transpose.value:
-                data.append(da.coords[da.dims[-2]])
-            else:
-                data.append(da.coords[da.dims[-1]])
+            data.append(self.transpose.get_x(da))
         if len(data) == 1:
             return data[0]
         try:
@@ -2694,10 +2763,8 @@ class YTicks2D(YTicks):
         if not isinstance(plot_data, InteractiveList):
             plot_data = [plot_data]
         for da in plot_data:
-            if self.transpose.value:
-                return da.coords[da.dims[-1]]
-            else:
-                return da.coords[da.dims[-2]]
+            for da in plot_data:
+                data.append(self.transpose.get_y(da))
         if len(data) == 1:
             return data[0]
         try:
@@ -4203,6 +4270,10 @@ class XYTickPlotter(Plotter):
 class Base2D(Plotter):
     """Base plotter for 2-dimensional plots
     """
+
+    #: Boolean that is True if triangles with units in radian should be
+    #: converted to degrees
+    convert_radian = False
 
     _rcparams_string = ['plotter.plot2d.']
 
