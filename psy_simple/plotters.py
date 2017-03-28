@@ -2314,7 +2314,7 @@ class MissColor(Formatoption):
                 self._miss_color_plot.set_cmap(cmap)
             else:
                 triangles = self.triangles
-                mratio = rcParams['plotter.maps.plot.min_circle_ratio']
+                mratio = rcParams['plotter.plot2d.plot.min_circle_ratio']
                 if mratio:
                     triangles.set_mask(
                         TriAnalyzer(triangles).get_flat_tri_mask(mratio))

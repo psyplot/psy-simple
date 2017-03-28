@@ -864,6 +864,10 @@ rcParams = RcParams(defaultParams={
         'mesh', try_and_error(validate_none, ValidateInStrings(
             '2d plot', ['mesh', 'tri'], True)),
         'fmt key to specify the plot type of 2D scalar plots'],
+    'plotter.plot2d.plot.min_circle_ratio': [
+        0.05, validate_float,
+        'fmt key to specify the min_circle_ratio that is used to mask very '
+        ' flat triangles in a triangular plot'],
     'plotter.plot2d.cbar': [
         ['b'], validate_cbarpos,
         'fmt key to specify the position of the colorbar'],
