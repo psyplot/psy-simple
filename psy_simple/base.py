@@ -628,7 +628,7 @@ class Text(TextBase, Formatoption):
             for t in self._texts[cs]:
                 if (x, y) == t.get_position():
                     t.set_text(s)
-                    t.update(d)
+                    t.update(d.copy())
                     found = True
                     break
             if not found:
