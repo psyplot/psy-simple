@@ -633,7 +633,7 @@ class Text(TextBase, Formatoption):
                     break
             if not found:
                 self._texts[cs].add(self.ax.text(
-                    x, y, s, d, transform=self.transform[cs]))
+                    x, y, s, d.copy(), transform=self.transform[cs]))
 
     def share(self, fmto, **kwargs):
         """Share the settings of this formatoption with other data objects
