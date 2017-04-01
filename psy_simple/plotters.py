@@ -225,6 +225,11 @@ class AxisColor(DictFormatoption):
 
     name = 'Color of x- and y-axes'
 
+    @property
+    def value2pickle(self):
+        """Return the current axis colors"""
+        return {key: s.get_edgecolor() for key, s in self.ax.spines.items()}
+
     def initialize_plot(self, value):
         positions = ['right', 'left', 'bottom', 'top']
         #: :class:`dict` storing the default linewidths
