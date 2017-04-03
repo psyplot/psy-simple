@@ -1,14 +1,12 @@
-{% set path = PWD %}
-{% set version = VERSION %}
-{% set name = "psy-simple" %}
-
+# template for psy-simple recipe. Please change ``PWD`` and ``VERSION`` to the
+# correct path and version number. See also ci/enhance_recipe.py
 package:
-  name: {{ name|lower }}
-  version: {{ version }}
+  name: psy-simple
+  version: VERSION
 
 source:
-  fn: {{ name }}-{{ version }}.tar.gz
-  url: file://{{ path }}/dist/{{ name }}-{{ version }}.tar.gz
+  fn: psy-simple-VERSION.tar.gz
+  url: file://PWD/dist/psy-simple-VERSION.tar.gz
 
 build:
   script: python setup.py install --single-version-externally-managed --record record.txt
