@@ -862,7 +862,7 @@ rcParams = RcParams(defaultParams={
     # Plot2D
     'plotter.plot2d.plot': [
         'mesh', try_and_error(validate_none, ValidateInStrings(
-            '2d plot', ['mesh', 'tri'], True)),
+            '2d plot', ['mesh', 'contourf', 'tri'], True)),
         'fmt key to specify the plot type of 2D scalar plots'],
     'plotter.plot2d.plot.min_circle_ratio': [
         0.05, validate_float,

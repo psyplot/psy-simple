@@ -3,6 +3,7 @@ from warnings import warn
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
 from pandas import date_range, to_datetime, DatetimeIndex, Index
+import weakref
 from pandas.tseries import offsets
 import xarray as xr
 import matplotlib as mpl
@@ -2299,6 +2300,8 @@ class MissColor(Formatoption):
     def update(self, value):
         if self.plotter.replot:
             self.remove()
+        if self.plot.value is None:
+            return
         if not self.decoder.is_unstructured(self.data):
             mappable = self.plot.mappable
             if value is not None:
@@ -2402,6 +2405,39 @@ class Bounds(DataTicksCalculator):
                 value, len(value) - 1)
 
 
+def format_coord_func(ax, ref):
+    """Create a function that can replace the
+    :func:`matplotlib.axes.Axes.format_coord`
+
+    Parameters
+    ----------
+    ax: matplotlib.axes.Axes
+        The axes instance
+    ref: weakref.weakref
+        The reference to the :class:`~psyplot.plotter.Formatoption` instance
+
+    Returns
+    -------
+    function
+        The function that can be used to replace `ax.format_coord`
+    """
+    orig_format_coord = ax.format_coord
+
+    def func(x, y):
+        orig_s = orig_format_coord(x, y)
+        fmto = ref()
+        if fmto is None:
+            return orig_s
+        try:
+            orig_s += fmto.add2format_coord(x, y)
+        except:
+            fmto.logger.debug(
+                'Failed to get plot informations for status bar!', exc_info=1)
+        return orig_s
+
+    return func
+
+
 @docstrings.get_sectionsf('Plot2D')
 class Plot2D(Formatoption):
     """
@@ -2473,10 +2509,16 @@ class Plot2D(Formatoption):
         """Returns the mappable that can be used for colorbars"""
         return self._plot
 
+    @property
+    def format_coord(self):
+        """The function that can replace the axes.format_coord method"""
+        return format_coord_func(self.ax, weakref.ref(self))
+
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
         self._plot_funcs = {
             'mesh': self._pcolormesh,
+            'contourf': self._contourf,
             'tri': self._tripcolor}
         self._orig_format_coord = None
         self._kwargs = {}
@@ -2522,6 +2564,31 @@ class Plot2D(Formatoption):
                 self.xbounds, self.ybounds, arr, norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
 
+    def _contourf(self):
+        if self.decoder.is_triangular(self.raw_data):
+            return self._tripcolor()
+        arr = self.array
+        try:
+            N = self.bounds.norm.Ncmap
+        except AttributeError:
+            N = len(np.unique(self.bounds.norm(arr.ravel())))
+        cmap = get_cmap(self.cmap.value, N)
+        if hasattr(self, '_plot'):
+            self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
+            # for cartopy, we have to consider the wrapped collection if the
+            # data has to be transformed
+            try:
+                coll = self._plot._wrapped_collection_fix
+            except AttributeError:
+                pass
+            else:
+                coll.update(dict(cmap=cmap, norm=self.bounds.norm))
+        else:
+            self._plot = self.ax.contourf(
+                self.xcoord.values, self.ycoord.values, arr,
+                norm=self.bounds.norm,
+                cmap=cmap, rasterized=True, **self._kwargs)
+
     def _tripcolor(self):
         triangles = self.triangles
         arr = None
@@ -2542,22 +2609,15 @@ class Plot2D(Formatoption):
 
     def remove(self, format_coord=True):
         if hasattr(self, '_plot'):
-            self._plot.remove()
+            try:
+                self._plot.remove()
+            except AttributeError:  # contour plot
+                for artist in self._plot.collections[:]:
+                    try:
+                        artist.remove()
+                    except ValueError:
+                        pass
             del self._plot
-        if format_coord and self._orig_format_coord is not None:
-            self.ax.format_coord = self._orig_format_coord
-            self._orig_format_coord = None
-
-    def format_coord(self, x, y):
-        """A method that can replace the :func:`matplotlib.axes.replace_coord
-        """
-        orig_s = self._orig_format_coord(x, y)
-        try:
-            orig_s += self.add2format_coord(x, y)
-        except:
-            self.logger.debug(
-                'Failed to get plot informations for status bar!', exc_info=1)
-        return orig_s
 
     def add2format_coord(self, x, y):
         """Additional information for the :meth:`format_coord`"""
@@ -2570,8 +2630,18 @@ class Plot2D(Formatoption):
             x, y, z = self.get_xyz_1d(xcoord, x, ycoord, y, data)
         elif xcoord.ndim == 2:
             x, y, z = self.get_xyz_2d(xcoord, x, ycoord, y, data)
-        return ', data: %s: %.4g, %s: %.4g, %s: %.4g' % (
-            xcoord.name, x, ycoord.name, y, data.name, z)
+        xunit = xcoord.attrs.get('units', '')
+        if xunit:
+            xunit = ' ' + xunit
+        yunit = ycoord.attrs.get('units', '')
+        if yunit:
+            yunit = ' ' + yunit
+        zunit = data.attrs.get('units', '')
+        if zunit:
+            zunit = ' ' + zunit
+        return ', data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s' % (
+            xcoord.name, x, xunit, ycoord.name, y, yunit,
+            data.name, z, zunit)
 
     def get_xyz_tri(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
@@ -3670,6 +3740,11 @@ class VectorPlot(Formatoption):
                    'density', 'linewidth', 'color']
 
     @property
+    def format_coord(self):
+        """The function that can replace the axes.format_coord method"""
+        return format_coord_func(self.ax, weakref.ref(self))
+
+    @property
     def mappable(self):
         """The mappable, i.e. the container of the plot"""
         if self.value == 'stream':
@@ -3677,11 +3752,24 @@ class VectorPlot(Formatoption):
         else:
             return self._plot
 
+    @property
+    def xcoord(self):
+        """The x coordinate :class:`xarray.Variable`"""
+        v = next(self.raw_data.psy.iter_base_variables)
+        return self.decoder.get_x(v, coords=self.data.coords)
+
+    @property
+    def ycoord(self):
+        """The y coordinate :class:`xarray.Variable`"""
+        v = next(self.raw_data.psy.iter_base_variables)
+        return self.decoder.get_y(v, coords=self.data.coords)
+
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
         self._plot_funcs = {
             'quiver': self._quiver_plot,
             'stream': self._stream_plot}
+        self._orig_format_coord = None
         self._args = []
         self._kwargs = {}
 
@@ -3696,9 +3784,12 @@ class VectorPlot(Formatoption):
         if hasattr(self, '_plot') and (self.plotter.replot or any(
                 self.plotter.has_changed(key) for key in chain(
                     self.connections, self.dependencies, [self.key]))):
-            self.remove()
+            self.remove(format_coord=(self.value is not None))
         if not hasattr(self, "_plot") and self.value is not None:
             self._plot_funcs[self.value]()
+            if self._orig_format_coord is None:
+                self._orig_format_coord = self.ax.format_coord
+                self.ax.format_coord = self.format_coord
 
     def _quiver_plot(self):
         x, y, u, v = self._get_data()
@@ -3720,9 +3811,11 @@ class VectorPlot(Formatoption):
         y = self.transpose.get_y(data)
         return x, y, u, v
 
-    def remove(self):
+    def remove(self, format_coord=True):
+
         def keep(x):
             return not isinstance(x, mpl.patches.FancyArrowPatch)
+
         if not hasattr(self, '_plot'):
             return
         if isinstance(self._plot, mpl.streamplot.StreamplotSet):
@@ -3739,6 +3832,58 @@ class VectorPlot(Formatoption):
             except ValueError:  # the artist has already been removed
                 pass
         del self._plot
+
+    def add2format_coord(self, x, y):
+        """Additional information for the :meth:`format_coord`"""
+        u, v = self.data
+        uname, vname = self.data.coords['variable'].values
+        xcoord = self.xcoord
+        ycoord = self.ycoord
+        if self.decoder.is_triangular(self.raw_data[0]):
+            x, y, z1, z2 = self.get_xyz_tri(xcoord, x, ycoord, y, u, v)
+        elif xcoord.ndim == 1:
+            x, y, z1, z2 = self.get_xyz_1d(xcoord, x, ycoord, y, u, v)
+        elif xcoord.ndim == 2:
+            x, y, z1, z2 = self.get_xyz_2d(xcoord, x, ycoord, y, u, v)
+        speed = (z1**2 + z2**2)**0.5
+        xunit = xcoord.attrs.get('units', '')
+        if xunit:
+            xunit = ' ' + xunit
+        yunit = ycoord.attrs.get('units', '')
+        if yunit:
+            yunit = ' ' + yunit
+        zunit = u.attrs.get('units', '')
+        if zunit:
+            zunit = ' ' + zunit
+        return (', vector data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s, '
+                '%s: %.4g%s, absolute: %.4g%s') % (
+                    xcoord.name, x, xunit, ycoord.name, y, yunit,
+                    uname, z1, zunit, vname, z2, zunit,
+                    speed, zunit)
+
+    def get_xyz_tri(self, xcoord, x, ycoord, y, u, v):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        1d coords"""
+        return self.get_xyz_2d(xcoord, x, ycoord, y, u, v)
+
+    def get_xyz_1d(self, xcoord, x, ycoord, y, u, v):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        1d coords"""
+        xclose = xcoord.indexes[xcoord.name].get_loc(x, method='nearest')
+        yclose = ycoord.indexes[ycoord.name].get_loc(y, method='nearest')
+        uval = u[yclose, xclose].values
+        vval = v[yclose, xclose].values
+        return xcoord[xclose].values, ycoord[yclose].values, uval, vval
+
+    def get_xyz_2d(self, xcoord, x, ycoord, y, u, v):
+        """Get closest x, y and z for the given `x` and `y` in `data` for
+        2d coords"""
+        xy = xcoord.values.ravel() + 1j * ycoord.values.ravel()
+        dist = np.abs(xy - (x + 1j * y))
+        imin = np.nanargmin(dist)
+        xy_min = xy[imin]
+        return (xy_min.real, xy_min.imag, u.values.ravel()[imin],
+                v.values.ravel()[imin])
 
 
 class CombinedVectorPlot(VectorPlot):
