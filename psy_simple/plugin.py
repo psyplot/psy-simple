@@ -862,7 +862,7 @@ rcParams = RcParams(defaultParams={
     # Plot2D
     'plotter.plot2d.plot': [
         'mesh', try_and_error(validate_none, ValidateInStrings(
-            '2d plot', ['mesh', 'contourf', 'tri'], True)),
+            '2d plot', ['mesh', 'contourf', 'tri', 'tricontourf'], True)),
         'fmt key to specify the plot type of 2D scalar plots'],
     'plotter.plot2d.plot.min_circle_ratio': [
         0.05, validate_float,
@@ -893,6 +893,9 @@ rcParams = RcParams(defaultParams={
         'rounded', BoundsValidator('bounds', bound_strings, True,
                                    inis=mpl.colors.Normalize),
         'fmt key to specify bounds and norm of the colorbar'],
+    'plotter.plot2d.levels': [
+        None, BoundsValidator('levels', bound_strings, True),
+        'fmt key to specify the levels for a contour plot'],
     # TODO: Implement opacity
     # 'plotter.plot2d.opacity': [None, try_and_error(validate_none,
     #                                                validate_opacity)],

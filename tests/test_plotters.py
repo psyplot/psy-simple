@@ -924,6 +924,28 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
         super(Simple2DPlotterTest, self).test_ylim(test_pctls=False)
 
 
+class Simple2DPlotterContourTest(Simple2DPlotterTest):
+
+    plot_type = 'simple2D_contour'
+
+    @classmethod
+    def setUpClass(cls):
+        rcParams[Simple2DPlotter().plot.default_key] = 'contourf'
+        super(Simple2DPlotterContourTest, cls).setUpClass()
+
+    @unittest.skip('Extend keyword not implemented')
+    def test_extend(self):
+        pass
+
+    @unittest.skip('miss_color keyword not implemented')
+    def test_miss_color(self):
+        pass
+
+    @unittest.skip('miss_color keyword not implemented')
+    def ref_miss_color(self):
+        pass
+
+
 class IconTestMixin(object):
     """A mixin class for changed test methods for icon"""
 
@@ -1021,6 +1043,28 @@ class IconSimplePlotterTest(IconTestMixin, Simple2DPlotterTest):
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
             np.linspace(275, 305, 5, endpoint=True).tolist())
+
+
+class IconSimplePlotterContourTest(IconSimplePlotterTest):
+
+    plot_type = 'icon_contour'
+
+    @classmethod
+    def setUpClass(cls):
+        rcParams[Simple2DPlotter().plot.default_key] = 'contourf'
+        super(IconSimplePlotterContourTest, cls).setUpClass()
+
+    @unittest.skip('Extend keyword not implemented')
+    def test_extend(self):
+        pass
+
+    @unittest.skip('miss_color keyword not implemented')
+    def test_miss_color(self):
+        pass
+
+    @unittest.skip('miss_color keyword not implemented')
+    def ref_miss_color(self):
+        pass
 
 
 class LinePlotterTest2D(tb.TestBase2D, LinePlotterTest):

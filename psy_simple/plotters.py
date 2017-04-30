@@ -2302,6 +2302,9 @@ class MissColor(Formatoption):
             self.remove()
         if self.plot.value is None:
             return
+        elif value is not None and self.plot.value == 'contourf':
+            warn('The miss_color formatoption is not supported for filled '
+                 'contour plots!')
         if not self.decoder.is_unstructured(self.data):
             mappable = self.plot.mappable
             if value is not None:
@@ -2358,6 +2361,8 @@ class Bounds(DataTicksCalculator):
     int
         Specifies how many ticks to use with the ``'rounded'`` option. I.e. if
         integer ``i``, then this is the same as ``['rounded', i]``.
+    matplotlib.colors.Normalize
+        A matplotlib normalization instance
 
     Examples
     --------
@@ -2453,6 +2458,14 @@ class Plot2D(Formatoption):
     'tri'
         Use the :func:`matplotlib.pyplot.tripcolor` function to plot data on a
         triangular grid
+    'contourf'
+        Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`
+        function or the :func:`matplotlib.pyplot.tricontourf` for triangular
+        data. The levels for the contour plot are controlled by the
+        :attr:`levels` formatoption
+    'tricontourf'
+        Make a filled contour plot using the
+        :func:`matplotlib.pyplot.tricontourf` function
     """
 
     plot_fmt = True
@@ -2464,6 +2477,8 @@ class Plot2D(Formatoption):
     name = '2D plot type'
 
     children = ['cmap', 'bounds']
+
+    dependencies = ['levels']
 
     @property
     def array(self):
@@ -2519,6 +2534,7 @@ class Plot2D(Formatoption):
         self._plot_funcs = {
             'mesh': self._pcolormesh,
             'contourf': self._contourf,
+            'tricontourf': self._contourf,
             'tri': self._tripcolor}
         self._orig_format_coord = None
         self._kwargs = {}
@@ -2533,7 +2549,7 @@ class Plot2D(Formatoption):
         if self.plotter.replot or any(
                 self.plotter.has_changed(key) for key in chain(
                     self.connections, self.dependencies, [self.key])):
-            self.remove(format_coord=(self.value is not None))
+            self.remove()
         if self.value is not None:
             self._plot_funcs[self.value]()
             if self._orig_format_coord is None:
@@ -2565,8 +2581,9 @@ class Plot2D(Formatoption):
                 cmap=cmap, rasterized=True, **self._kwargs)
 
     def _contourf(self):
-        if self.decoder.is_triangular(self.raw_data):
-            return self._tripcolor()
+        if hasattr(self, '_plot') and self.plotter.has_changed(
+                self.levels.key):
+            self.remove()
         arr = self.array
         try:
             N = self.bounds.norm.Ncmap
@@ -2574,19 +2591,30 @@ class Plot2D(Formatoption):
             N = len(np.unique(self.bounds.norm(arr.ravel())))
         cmap = get_cmap(self.cmap.value, N)
         if hasattr(self, '_plot'):
-            self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
-            # for cartopy, we have to consider the wrapped collection if the
-            # data has to be transformed
-            try:
-                coll = self._plot._wrapped_collection_fix
-            except AttributeError:
-                pass
-            else:
-                coll.update(dict(cmap=cmap, norm=self.bounds.norm))
+            self._plot.set_cmap(cmap)
+            self._plot.set_norm(self.bounds.norm)
         else:
-            self._plot = self.ax.contourf(
-                self.xcoord.values, self.ycoord.values, arr,
-                norm=self.bounds.norm,
+            levels = self.levels.norm.boundaries
+            xcoord = self.xcoord
+            ycoord = self.ycoord
+            if self.plotter.convert_radian:
+                if xcoord.attrs.get('units') == 'radian':
+                    xcoord = xcoord * 180. / np.pi
+                if ycoord.attrs.get('units') == 'radian':
+                    ycoord = ycoord * 180. / np.pi
+            if (self.value == 'tricontourf' or
+                    self.decoder.is_triangular(self.raw_data)):
+                pm = self.ax.tricontourf
+                mask = ~np.isnan(arr)
+                x = xcoord.values[mask]
+                y = ycoord.values[mask]
+                arr = arr[mask]
+            else:
+                pm = self.ax.contourf
+                x = xcoord.values
+                y = ycoord.values
+            self._plot = pm(
+                x, y, arr, levels, norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
 
     def _tripcolor(self):
@@ -2607,7 +2635,7 @@ class Plot2D(Formatoption):
                 triangles, arr[~np.isnan(arr)], norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
 
-    def remove(self, format_coord=True):
+    def remove(self):
         if hasattr(self, '_plot'):
             try:
                 self._plot.remove()
@@ -2664,6 +2692,40 @@ class Plot2D(Formatoption):
         imin = np.nanargmin(dist)
         xy_min = xy[imin]
         return xy_min.real, xy_min.imag, data.values.ravel()[imin]
+
+
+docstrings.delete_types('Bounds.possible_types', 'no_norm|None',
+                        'None', 'matplotlib.colors.Normalize')
+
+
+class ContourLevels(Bounds):
+    """
+    The levels for the contour plot
+
+    This formatoption sets the levels for the filled contour plot and only has
+    an effect if the :attr:`plot` Formatoption is set to ``'contourf'``
+
+    Possible types
+    --------------
+    None
+        Use the settings from the :attr:`bounds` formatoption and if this
+        does not specify boundaries, use 11
+    %(Bounds.possible_types.no_norm|None)s
+    """
+
+    dependencies = ['cbounds']
+
+    priority = BEFOREPLOTTING
+
+    name = 'Levels for the filled contour plot'
+
+    def update(self, value):
+        if value is None:
+            try:
+                value = self.cbounds.norm.boundaries
+            except AttributeError:
+                value = ['rounded', 11]
+        super(ContourLevels, self).update(value)
 
 
 class DataGrid(Formatoption):
@@ -2803,6 +2865,18 @@ class SimplePlot2D(Plot2D):
         return self.decoder.get_plotbounds(self.transpose.get_y(
             self.data))
 
+    @property
+    def xcoord(self):
+        if self.transpose.value:
+            return super(SimplePlot2D, self).ycoord
+        return super(SimplePlot2D, self).xcoord
+
+    @property
+    def ycoord(self):
+        if self.transpose.value:
+            return super(SimplePlot2D, self).xcoord
+        return super(SimplePlot2D, self).ycoord
+
 
 class XTicks2D(XTicks):
 
@@ -2865,8 +2939,12 @@ class Extend(Formatoption):
 
     name = 'Ends of the colorbar'
 
+    connections = ['plot']
+
     def update(self, value):
         # nothing to do here because the extend is set by the Cbar formatoption
+        if self.plot.value == 'contourf' and value != 'neither':
+            warn('Extend keyword is not implemented for contour plots')
         pass
 
 
@@ -2919,7 +2997,8 @@ class Cbar(Formatoption):
 
     >>> plotter.update(cbar='bl')"""
 
-    dependencies = ['plot', 'cmap', 'bounds', 'extend', 'cbarspacing']
+    dependencies = ['plot', 'cmap', 'bounds', 'extend', 'cbarspacing',
+                    'levels']
 
     group = 'colors'
 
@@ -3055,10 +3134,15 @@ class Cbar(Formatoption):
                 plt.close(cbar.ax.get_figure())
             else:
                 # set the axes for the mappable if this has been removed
-                if cbar.mappable.axes is None:
-                    cbar.mappable.axes = self.plotter.ax
+                mappable = cbar.mappable
+                delaxes = not hasattr(mappable, 'axes')
+                if getattr(mappable, 'axes', None) is None:
+                    mappable.axes = self.plotter.ax
                     try2remove(cbar)
-                    cbar.mappable.axes = None
+                    if delaxes:
+                        del mappable.axes
+                    else:
+                        mappable.axes = None
                 else:
                     try2remove(cbar)
 #                fig = cbar.ax.get_figure()
@@ -3120,8 +3204,7 @@ class Cbar(Formatoption):
         kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
-        self.cbars[pos] = fig.colorbar(
-            self.plot.mappable, **kwargs)
+        self.cbars[pos] = fig.colorbar(self.plot.mappable, **kwargs)
         if pos == 'fl':
             # draw tick labels left
             self.cbars[pos].ax.tick_params('y', labelleft=True,
@@ -3784,7 +3867,7 @@ class VectorPlot(Formatoption):
         if hasattr(self, '_plot') and (self.plotter.replot or any(
                 self.plotter.has_changed(key) for key in chain(
                     self.connections, self.dependencies, [self.key]))):
-            self.remove(format_coord=(self.value is not None))
+            self.remove()
         if not hasattr(self, "_plot") and self.value is not None:
             self._plot_funcs[self.value]()
             if self._orig_format_coord is None:
@@ -3811,7 +3894,7 @@ class VectorPlot(Formatoption):
         y = self.transpose.get_y(data)
         return x, y, u, v
 
-    def remove(self, format_coord=True):
+    def remove(self):
 
         def keep(x):
             return not isinstance(x, mpl.patches.FancyArrowPatch)
@@ -4649,6 +4732,7 @@ class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
     yticks = YTicks2D('yticks')
     xlim = Xlim2D('xlim')
     ylim = Ylim2D('ylim')
+    levels = ContourLevels('levels', cbounds='bounds')
     legend = None
     legendlabels = None
     color = None  # no need for this formatoption
