@@ -1099,8 +1099,6 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
     var = ['u', 'v']
 
     def plot(self, **kwargs):
-        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
-        fix_colorbar = not color_fmts.intersection(kwargs)
         kwargs.setdefault('color', 'absolute')
         ds = psy.open_dataset(self.ncfile)
         kwargs.setdefault('t', ds.time.values[0])
@@ -1109,11 +1107,6 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
         kwargs.setdefault('y', slice(81.0, 34.0))
         kwargs.setdefault('method', 'sel')
         sp = psy.plot.vector(ds, name=[self.var], **kwargs)
-        if fix_colorbar:
-            # if we have no color formatoptions, we have to consider that
-            # the position of the plot may have slighty changed
-            sp.update(todefault=True, replot=True, **dict(
-                item for item in kwargs.items() if item[0] != 'color'))
         return sp
 
     @unittest.skip("miss_color formatoption not implemented")
@@ -1156,19 +1149,13 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
         cls.data = cls.data.psy.sel(lon=slice(0, 69.0), lat=slice(81.0, 34.0))
         cls.data.attrs['long_name'] = 'absolute wind speed'
         cls.data.name = 'wind'
+        rcParams[SimpleVectorPlotter().color.default_key] = 'absolute'
         cls.plotter = SimpleVectorPlotter(cls.data)
         cls.create_dirs()
         cls._color_fmts = cls.plotter.fmt_groups['colors']
-        # there is an issue with the colorbar that the size of the axes changes
-        # slightly after replotting. Therefore we force a replot here
-        if not six.PY34:
-            cls.plotter.update(color='absolute')
-            cls.plotter.update(todefault=True, replot=True)
 
     def update(self, *args, **kwargs):
-        if self._color_fmts.intersection(kwargs) or any(
-                re.match('ctick|clabel', fmt) for fmt in kwargs):
-            kwargs.setdefault('color', 'absolute')
+        kwargs.setdefault('color', 'absolute')
         super(SimpleVectorPlotterTest, self).update(*args, **kwargs)
 
     @unittest.skip("Not supported")
@@ -1241,6 +1228,63 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
             np.linspace(1.0, 8.5, 5, endpoint=True).tolist())
 
 
+class SimpleStreamVectorPlotterTest(SimpleVectorPlotterTest):
+    """Test case for stream plot of
+    :class:`psy_simple.plotters.SimpleVectorPlotter`
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        rcParams[SimpleVectorPlotter().plot.default_key] = 'stream'
+        return super(SimpleStreamVectorPlotterTest, cls).setUpClass()
+
+    def get_ref_file(self, identifier):
+        return super(SimpleStreamVectorPlotterTest, self).get_ref_file(
+            identifier + '_stream')
+
+    def ref_arrowsize(self, *args):
+        """Create reference file for arrowsize formatoption.
+
+        Create reference file for
+        :attr:`~psy_simple.plotters.SimpleVectorPlotter.arrowsize` (and others)
+        formatoption"""
+        sp = self.plot(arrowsize=2.0)
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('arrowsize')))
+
+    def ref_arrowstyle(self, *args):
+        """Create reference file for arrowstyle formatoption.
+
+        Create reference file for
+        :attr:`~psy_simple.plotters.SimpleVectorPlotter.arrowstyle` (and
+        others) formatoption"""
+        sp = self.plot(arrowsize=2.0, arrowstyle='fancy')
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('arrowstyle')))
+
+    def test_arrowsize(self, *args):
+        """Test arrowsize formatoption"""
+        self.update(arrowsize=2.0)
+        self.compare_figures(next(iter(args), self.get_ref_file('arrowsize')))
+
+    def test_arrowstyle(self, *args):
+        """Test arrowstyle formatoption"""
+        self.update(arrowsize=2.0, arrowstyle='fancy')
+        self.compare_figures(next(iter(args), self.get_ref_file('arrowstyle')))
+
+    def ref_density(self, *args):
+        """Create reference file for density formatoption.
+
+        Create reference file for
+        :attr:`~psy_simple.plotters.SimpleVectorPlotter.density` (and others)
+        formatoption"""
+        sp = self.plot(density=0.5)
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('density')))
+
+    def test_density(self, *args):
+        """Test density formatoption"""
+        self.update(density=0.5)
+        self.compare_figures(next(iter(args), self.get_ref_file('density')))
+
+
 class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
     """
     Test :class:`psy_simple.plotters.SimpleVectorPlotter` class for icon grid
@@ -1252,6 +1296,7 @@ class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
 
     @classmethod
     def setUpClass(cls):
+        rcParams[SimpleVectorPlotter().color.default_key] = 'absolute'
         cls.ds = open_dataset(cls.ncfile)
         cls.data = ArrayList.from_dataset(
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True)[0]
@@ -1260,23 +1305,11 @@ class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
         cls.plotter = SimpleVectorPlotter(cls.data)
         cls.create_dirs()
         cls._color_fmts = cls.plotter.fmt_groups['colors']
-        # there is an issue with the colorbar that the size of the axes changes
-        # slightly after replotting. Therefore we force a replot here
-        if not six.PY34:
-            cls.plotter.update(color='absolute')
-            cls.plotter.update(todefault=True, replot=True)
 
     def plot(self, **kwargs):
-        color_fmts = psy.plot.vector.plotter_cls().fmt_groups['colors']
-        fix_colorbar = not color_fmts.intersection(kwargs)
         kwargs.setdefault('color', 'absolute')
         ds = psy.open_dataset(self.ncfile)
         sp = psy.plot.vector(ds, name=[self.var], **kwargs)
-        if fix_colorbar:
-            # if we have no color formatoptions, we have to consider that
-            # the position of the plot may have slighty changed
-            sp.update(todefault=True, replot=True, **dict(
-                item for item in kwargs.items() if item[0] != 'color'))
         return sp
 
     def test_bounds(self):
@@ -1343,7 +1376,7 @@ class _CombinedPlotterData(object):
 
 
 class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
-    """Test case for stream plot of
+    """Test case for vector plot of
     :class:`psy_simple.plotters.CombinedSimplePlotter`"""
 
     plot_type = 'simplecombined'

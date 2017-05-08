@@ -161,15 +161,19 @@ class AlternativeXCoord(Formatoption):
         xarray.DataArray
             The data array with the replaced coordinate"""
         da = next(islice(self.iter_raw_data, i, i+1))
+        name, coord = self.get_alternative_coord(da, i)
+        other_coords = {key: da.coords[key]
+                        for key in set(da.coords).difference(da.dims)}
+        ret = da.rename({da.dims[-1]: name}).assign_coords(
+            **{name: coord}).assign_coords(**other_coords)
+        return ret
+
+    def get_alternative_coord(self, da, i):
         alternative_name = next(islice(cycle(safe_list(self.value)), i, i+1))
         coord_da = InteractiveList.from_dataset(
             da.psy.base, name=alternative_name, dims=da.psy.idims)[0]
         coord = xr.Variable((coord_da.name, ), coord_da, coord_da.attrs)
-        other_coords = {key: da.coords[key]
-                        for key in set(da.coords).difference(da.dims)}
-        ret = da.rename({da.dims[-1]: coord_da.name}).assign_coords(
-            **{coord_da.name: coord}).assign_coords(**other_coords)
-        return ret
+        return coord_da.name, coord
 
 
 class Grid(Formatoption):
@@ -342,6 +346,17 @@ class DataTicksCalculator(Formatoption):
     def _calc_vmin_vmax(self, percmin=None, percmax=None):
         def minmax(arr):
             return [arr.min(), arr.max()]
+
+        def shared_arrays():
+            for fmto in self.shared:
+                fmto._lock_children()
+                fmto.lock.acquire()
+                arr = fmto.array
+                yield arr
+                # release the locks
+                fmto.lock.release()
+                fmto._release_children()
+
         percentiles = []
         if not self.shared:
             arr = self.array
@@ -349,11 +364,11 @@ class DataTicksCalculator(Formatoption):
             # np.concatenate all arrays if any of the percentiles are required
             if percmin is not None or percmax is not None:
                 arr = np.concatenate(tuple(chain(
-                    [self.array], (fmto.array for fmto in self.shared))))
+                    [self.array], shared_arrays())))
             # np.concatenate only min and max-values instead of the full arrays
             else:
                 arr = np.concatenate(tuple(map(minmax, chain(
-                    [self.array], (fmto.array for fmto in self.shared)))))
+                    [self.array], shared_arrays()))))
         if not percmin:
             vmin = arr.min()
         else:
@@ -551,8 +566,8 @@ class DtTicksBase(TicksBase, TicksManager):
         # do nothing if the data is a pandas.Index without time informations
         # or not a pandas.Index
         if not getattr(data, 'is_all_dates', None):
-            warn("Could not convert time informations for %s ticks with "
-                 "object %r." % (self.key, type(data)), logger=self.logger)
+            warn("[%s] - Could not convert time informations for %s ticks "
+                 "with object %r." % (self.logger.name, self.key, type(data)))
             return None
         else:
             return data
@@ -708,8 +723,7 @@ class TickLabelsBase(TicksManagerBase):
             ticks = self.axis.get_ticklocs(minor=self.which == 'minor')
             if len(ticks) != len(value):
                 warn("[%s] - Length of ticks (%i) and ticklabels (%i)"
-                     "do not match!" % (self.key, len(ticks), len(value)),
-                     logger=self.logger)
+                     "do not match!" % (self.key, len(ticks), len(value)))
             self.set_ticklabels(value)
 
     def set_stringformatter(self, s):
@@ -1893,6 +1907,10 @@ class LimitBase(DataTicksCalculator):
 
     connections = ['plot']
 
+    @property
+    def value2share(self):
+        return self.range
+
     @abstractmethod
     def set_limit(self, min_val, max_val):
         """The method to set the minimum and maximum limit
@@ -2303,8 +2321,8 @@ class MissColor(Formatoption):
         if self.plot.value is None:
             return
         elif value is not None and self.plot.value == 'contourf':
-            warn('The miss_color formatoption is not supported for filled '
-                 'contour plots!')
+            warn('[%s] - The miss_color formatoption is not supported for '
+                 'filled contour plots!' % self.logger.name)
         if not self.decoder.is_unstructured(self.data):
             mappable = self.plot.mappable
             if value is not None:
@@ -2799,8 +2817,8 @@ class DataGrid(Formatoption):
         ybounds = self.ybounds
         xbounds = self.xbounds
         if xbounds.ndim == 2:
-            warn('The visualization of a datagrid is not implemented for '
-                 'circumpolar grids', logger=self.logger)
+            warn('[%s] - The visualization of a datagrid is not implemented for '
+                 'circumpolar grids' % self.logger.name)
         else:
             try:
                 value.setdefault('transform', self.transform.projection)
@@ -2944,7 +2962,8 @@ class Extend(Formatoption):
     def update(self, value):
         # nothing to do here because the extend is set by the Cbar formatoption
         if self.plot.value == 'contourf' and value != 'neither':
-            warn('Extend keyword is not implemented for contour plots')
+            warn('[%s] - Extend keyword is not implemented for contour '
+                 'plots' % self.logger.name)
         pass
 
 
@@ -3590,7 +3609,7 @@ class VectorCalculator(Formatoption):
         - **v**: for the v component
     """
 
-    dependencies = ['plot']
+    dependencies = ['plot', 'transpose']
 
     priority = BEFOREPLOTTING
 
@@ -3604,12 +3623,11 @@ class VectorCalculator(Formatoption):
             'v': self._get_v}
 
     def _maybe_ravel(self, arr):
+        if self.transpose.value:
+            arr = arr.T
         if self.plot.value == 'quiver':
             return np.ravel(arr)
         return np.asarray(arr)
-        arr = np.asarray(arr)
-        arr[np.isnan(arr)] = 0.0
-        return arr
 
     def _calc_speed(self, scale=1.0):
         data = self.plot.data
@@ -3697,13 +3715,14 @@ class VectorColor(VectorCalculator):
                 value = self._calc_funcs[value]()
                 self.colored = True
                 self._color_array = value
-            try:
-                value = validate_float(value)
-                self.colored = False
-            except ValueError:
-                value = self._maybe_ravel(value)
-                self.colored = True
-                self._color_array = value
+            else:
+                try:
+                    value = validate_float(value)
+                    self.colored = False
+                except ValueError:
+                    value = self._maybe_ravel(value)
+                    self.colored = True
+                    self._color_array = value
         if self.plot.value == 'quiver' and self.colored:
             self.plot._args = [value]
             self.plot._kwargs.pop('color', None)
@@ -3781,8 +3800,9 @@ class Density(Formatoption):
 
     def _set_quiver_density(self, value):
         if any(val != 1.0 for val in value):
-            warn("Quiver plot does not support the density keyword!",
-                 RuntimeWarning, logger=self.logger)
+            warn("[%s] - Quiver plot does not support the density "
+                 "keyword!" % self.logger.name,
+                 RuntimeWarning)
 
     def _unset_stream_density(self):
         self.plot._kwargs.pop('density', None)
@@ -3892,7 +3912,7 @@ class VectorPlot(Formatoption):
             u, v = data.values
         x = self.transpose.get_x(data)
         y = self.transpose.get_y(data)
-        return x, y, u, v
+        return np.asarray(x), np.asarray(y), u, v
 
     def remove(self):
 
@@ -3967,6 +3987,27 @@ class VectorPlot(Formatoption):
         xy_min = xy[imin]
         return (xy_min.real, xy_min.imag, u.values.ravel()[imin],
                 v.values.ravel()[imin])
+
+
+class SimpleVectorPlot(VectorPlot):
+    # disable the stream plot for triangular grids because it is not supported
+    # for 1d arrays and for circumpolar grids because 2d coordinates are not
+    # supported
+
+    __doc__ = VectorPlot.__doc__
+
+    def set_value(self, value, *args, **kwargs):
+        if value == 'stream' and self.raw_data is not None:
+            u = self.raw_data[0]
+            if u.psy.decoder.is_unstructured(u):
+                warn('[%s] - Streamplot is not supported for unstructured '
+                     'grids!' % self.logger.name)
+                value = 'quiver'
+            elif u.psy.decoder.is_circumpolar(u):
+                warn('[%s] - Streamplot is not supported for circumpolar '
+                     'grids!' % self.logger.name)
+                value = 'quiver'
+        super(SimpleVectorPlot, self).set_value(value, *args, **kwargs)
 
 
 class CombinedVectorPlot(VectorPlot):
@@ -4146,7 +4187,7 @@ class Hist2DXRange(LimitBase):
 
     group = 'data'
 
-    name = 'Range of the histogram in y-direction'
+    name = 'Range of the histogram in x-direction'
 
     data_dependent = True
 
@@ -4154,9 +4195,16 @@ class Hist2DXRange(LimitBase):
 
     @property
     def array(self):
-        da = self.data if self.coord.value is not None else self.raw_data
-        coord = da.coords[da.dims[0]].values
-        return coord[~np.isnan(coord)]
+        # We don't use the :attr:`data` attribute because this fails if the
+        # formatoption is shared and the ``coord`` formatoption is not None
+        if self.coord.value is not None:
+            coord = self.coord.get_alternative_coord(
+                self.raw_data, self.index_in_list or 0)[1].values
+        else:
+            da = self.raw_data
+            coord = da.coords[da.dims[0]].values
+        ret = coord[~np.isnan(coord)]
+        return ret
 
     def set_limit(self, *args):
         self.range = args
@@ -4228,9 +4276,9 @@ class DataPrecision(Formatoption):
             value = [value[0], value[0]]
         for i, val in enumerate(value):
             if isstring(val) and self.density.value != 'kde':
-                warn("Cannot assign a string to the precision if the density "
-                     "estimation method is not 'kde' but '%s'" % (
-                         self.density.value), logger=self.logger)
+                warn("[%s] - Cannot assign a string to the precision if the "
+                     "density estimation method is not 'kde' but '%s'" % (
+                         self.logger.name, self.density.value))
                 value[i] = 0
         self.prec = value
         for i, prec in enumerate(value):
@@ -4847,7 +4895,7 @@ class SimpleVectorPlotter(BaseVectorPlotter, SimplePlotterBase):
     --------
     psyplot.plotter.maps.VectorPlotter"""
 
-    plot = VectorPlot('plot')
+    plot = SimpleVectorPlot('plot')
     xticks = XTicks2D('xticks')
     yticks = YTicks2D('yticks')
     xlim = Xlim2D('xlim')
