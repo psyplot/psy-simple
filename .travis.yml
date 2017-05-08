@@ -97,19 +97,24 @@ install:
   - git clone "https://github.com/Chilipp/psyplot.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot.git"
   - cd psyplot && python setup.py install && cd .. && rm -rf psyplot
   # install coveralls
-  - pip install coveralls
+  - pip install coveralls pytest-xdist pytest-cov
   # install psyplot
   - python setup.py install
   # export the environment for debugging
   - conda env export -n psyplot_$ENVKEY
+  # get the number of available cores
+  - 'NCORES=`python -c "import multiprocessing; print(multiprocessing.cpu_count())"`'
+  # use 8 cores at maximum
+  - 'export NCORES=`python -c "print(min(8, ${NCORES}))"`'
+  - echo using $NCORES
   # print versions of all the important requirements
   - psyplot -aV
 
 script:
   # create the necessary references
-  - coverage run --source=psy_simple setup.py test -a "-v --ref" && python ci/check_ref_deploy.py
+  - py.test -v --ref --cov=psy_simple && python ci/check_ref_deploy.py
   # run the tests
-  - coverage run -a --source=psy_simple setup.py test -a "-v"
+  - py.test -v -n $NCORES --cov-append --cov=psy_simple
 
 after_success:
   - coveralls
