@@ -3164,8 +3164,6 @@ class Cbar(Formatoption):
                         mappable.axes = None
                 else:
                     try2remove(cbar)
-#                fig = cbar.ax.get_figure()
-#                fig.delaxes(self.cbars[pos].ax)
                 if pos in to_adjust:
                     adjustment[to_adjust[pos]] = mpl.rcParams[
                         'figure.subplot.' + to_adjust[pos]]
