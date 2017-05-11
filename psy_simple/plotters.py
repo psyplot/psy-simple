@@ -2762,12 +2762,7 @@ class DataGrid(Formatoption):
     dict
         any keyword arguments that are passed to the plotting function (
         :func:`matplotlib.pyplot.triplot` for triangular grids and
-        :func:`matplotlib.pyplot.hlines` for rectilinear grids)
-
-    See Also
-    --------
-    psyplot.plotter.maps.FieldPlotter.xgrid
-    psyplot.plotter.maps.FieldPlotter.ygrid"""
+        :func:`matplotlib.pyplot.hlines` for rectilinear grids)"""
 
     children = ['transform']
 
@@ -3046,6 +3041,7 @@ class Cbar(Formatoption):
         self.other_cbars = kwargs.pop('other_cbars', [])
         super(Cbar, self).__init__(*args, **kwargs)
         self._kwargs = {}
+        self._just_drawn = set()
 
     def initialize_plot(self, value):
         self._set_original_position()
@@ -3221,7 +3217,8 @@ class Cbar(Formatoption):
         kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
-        self.cbars[pos] = fig.colorbar(self.plot.mappable, **kwargs)
+        self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)
+        self._just_drawn.add(cbar)
         if pos == 'fl':
             # draw tick labels left
             self.cbars[pos].ax.tick_params('y', labelleft=True,
@@ -3230,6 +3227,9 @@ class Cbar(Formatoption):
             # draw ticklabels at the top
             self.cbars[pos].ax.tick_params('x', labeltop=True,
                                            labelbottom=False)
+
+    def finish_update(self):
+        self._just_drawn.clear()
 
 
 class CLabel(TextBase, Formatoption):
@@ -3394,6 +3394,16 @@ class CTicks(CbarOptions, TicksBase):
     def _bounds_ticks(self, step=None):
         step = step or 1
         return self.bounds.bounds[::step]
+
+    def update(self, value):
+        # reset the locators if the colorbar as been drawn from scratch
+        if self.cbar._just_drawn:
+            try:
+                del self._colorbar
+            except AttributeError:
+                pass
+            self.set_default_locators()
+        super(CTicks, self).update(value)
 
     def update_axis(self, value):
         cbar = self.colorbar
@@ -3621,7 +3631,8 @@ class VectorCalculator(Formatoption):
             'v': self._get_v}
 
     def _maybe_ravel(self, arr):
-        if self.transpose.value:
+        if (getattr(self, 'transpose', None) is not None and
+                self.transpose.value):
             arr = arr.T
         if self.plot.value == 'quiver':
             return np.ravel(arr)
