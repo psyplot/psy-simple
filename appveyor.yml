@@ -18,7 +18,7 @@ install:
   # save local state and delete the GH_REPO_TOKEN because it is not needed
   # during the installation and therefore increases security
   - setlocal
-  - unset GH_REPO_TOKEN
+  - set GH_REPO_TOKEN=
   # Install miniconda Python
   - "powershell ./ci/install_python.ps1"
    # Prepend newly installed Python to the PATH of this build (this cannot be
