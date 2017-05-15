@@ -252,9 +252,11 @@ def validate_alpha(val):
 def validate_iter(value):
     """Validate that the given value is an iterable"""
     try:
-        return iter(value)
+        iter(value)
     except TypeError:
         raise ValueError("%s is not an iterable!" % repr(value))
+    else:
+        return value
 
 
 def validate_cbarpos(value):

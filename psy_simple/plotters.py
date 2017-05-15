@@ -1399,14 +1399,15 @@ class LineColors(Formatoption):
                                     ax._get_lines.prop_cycler)
             # use the default colors if it is reset to None
             if self.default_colors is not None:
-                self.color_cycle = chain(self.default_colors, self.color_cycle)
+                self.color_cycle = cycle(chain(self.default_colors,
+                                               self.color_cycle))
         else:
             try:
-                self.color_cycle = iter(get_cmap(value)(
+                self.color_cycle = cycle(get_cmap(value)(
                     np.linspace(0., 1., len(list(self.iter_data)),
                                 endpoint=True)))
             except (ValueError, TypeError, KeyError):
-                self.color_cycle = iter(value)
+                self.color_cycle = cycle(value)
         if changed:
             self.colors = [
                 next(self.color_cycle) for arr in self.iter_data]
