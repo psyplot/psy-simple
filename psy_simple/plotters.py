@@ -330,11 +330,12 @@ class DataTicksCalculator(Formatoption):
         data = self.data
         if not hasattr(data, 'notnull'):
             data = data.to_series()
+        mask = np.asarray(data.notnull())
         if self.shared:
             return np.concatenate(
-                [data.values[data.notnull().values]] + [
+                [data.values[mask]] + [
                     fmto.array for fmto in self.shared])
-        return data.values[data.notnull().values]
+        return data.values[mask]
 
     def _data_ticks(self, step=None):
         step = step or 1
@@ -4417,7 +4418,7 @@ class Hist2DYRange(Hist2DXRange):
 
     @property
     def array(self):
-        return self.raw_data[self.raw_data.notnull()].values
+        return np.asarray(self.raw_data)[np.asarray(self.raw_data.notnull())]
 
 
 class DataPrecision(Formatoption):
