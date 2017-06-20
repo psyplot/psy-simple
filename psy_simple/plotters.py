@@ -4154,9 +4154,10 @@ class Legend(DictFormatoption):
         artists = []
         labels = []
         for fmto in self.shared.union([self]):
-            this_artists, this_labels = fmto.get_artists_and_labels()
-            artists.extend(this_artists)
-            labels.extend(this_labels)
+            if hasattr(fmto.plot, '_plot'):
+                this_artists, this_labels = fmto.get_artists_and_labels()
+                artists.extend(this_artists)
+                labels.extend(this_labels)
         self.legend = self.ax.legend(artists, labels, **value)
 
     def get_artists_and_labels(self):
