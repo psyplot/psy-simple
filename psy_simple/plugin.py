@@ -811,6 +811,12 @@ rcParams = RcParams(defaultParams={
     'plotter.bar.coord': [
         None, try_and_error(validate_none, validate_str, validate_stringlist),
         'Alternative x-coordinate to use for BarPlotter'],
+    'plotter.bar.widths': [
+        'equal', ValidateInStrings('spacing', ['equal', 'data'], True),
+        'fmt key to change between equal and data given width of the bars'],
+    'plotter.bar.alpha': [
+        1.0, validate_float,
+        'fmt key to control the transparency for the bar plots'],
     'plotter.bar.plot': [
         'bar', try_and_error(validate_none, ValidateInStrings(
             'plot', ['bar', 'stacked'], True)),

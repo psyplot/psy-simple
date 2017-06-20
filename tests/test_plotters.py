@@ -607,6 +607,25 @@ class BarPlotterTest(LinePlotterTest):
     def test_plot_None(self, *args):
         pass
 
+    def ref_plot(self, close=True):
+        """Create the reference figure for the stacked plot"""
+        sp = self.plot(plot='stacked')
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('stacked')))
+        sp2 = self.plot(plot='stacked', transpose=True)
+        sp2.export(os.path.join(bt.ref_dir,
+                                self.get_ref_file('stacked_transposed')))
+        if close:
+            sp.close(True, True, True)
+            sp2.close(True, True, True)
+
+    def test_plot(self, *args):
+        """Test the stacked plot"""
+        self.update(plot='stacked')
+        self.compare_figures(next(iter(args), self.get_ref_file('stacked')))
+        self.update(plot='stacked', transpose=True)
+        self.compare_figures(next(iter(args),
+                                  self.get_ref_file('stacked_transposed')))
+
     def test_xticks(self, *args):
         self._test_DtTicksBase()
 
@@ -648,6 +667,40 @@ class BarPlotterTest(LinePlotterTest):
                                     [0, np.percentile(arr, 75)])
 
 
+class BarPlotterDataTest(BarPlotterTest):
+    """TestCase of :class:`psy_simple.plotters.BarPlotter` with widhts=='data'
+    """
+
+    plot_type = 'bar_data'
+
+    @classmethod
+    def setUpClass(cls):
+        rcParams[BarPlotter().widths.default_key] = 'data'
+        super(BarPlotterDataTest, cls).setUpClass()
+
+    def test_ylim(self):
+        """Test ylim formatoption"""
+        LinePlotterTest.test_ylim(self)
+
+    def _test_DtTicksBase(self, *args):
+        LinePlotterTest._test_DtTicksBase(self, *args)
+
+    def ref_xticks(self, close=True):
+        """Create reference file for xticks formatoption
+
+        Create reference file for
+        :attr:`~psy_simple.plotters.BarPlotter.xticks`
+        formatoption"""
+        sp = psy.plot.barplot(
+            self.ncfile, name=self.var, lon=0, lev=0, lat=[0, 1],
+            xticklabels={'major': '%m', 'minor': '%d'},
+            xtickprops={'pad': 7.0},
+            xticks={'minor': 'week', 'major': 'month'})
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('xticks')))
+        if close:
+            sp.close(True, True)
+
+
 class SingleBarPlotterTest(BarPlotterTest):
     """Test of :class:`psy_simple.plotters.ViolinPlotter` with a single array
     instead of an InteractiveList"""
@@ -672,6 +725,10 @@ class SingleBarPlotterTest(BarPlotterTest):
         name = kwargs.pop('name', self.var)
         return psy.plot.barplot(
             self.ncfile, name=name, t=0, z=0, y=0, **kwargs)
+
+    @unittest.skip("""Not possible for single array""")
+    def test_plot(self, *args):
+        pass
 
 
 class References2D(object):
