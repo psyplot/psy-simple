@@ -1,4 +1,5 @@
 import os
+import six
 import sys
 import shutil
 import subprocess as spr
@@ -115,4 +116,7 @@ class PsyPlotTestCase(TestCase):
             np.testing.assert_allclose(actual, desired, rtol=rtol, atol=atol,
                                        err_msg=msg or '', **kwargs)
         except AssertionError as e:
-            self.fail(e.message)
+            if six.PY2:
+                self.fail(e.message)
+            else:
+                self.fail(str(e))
