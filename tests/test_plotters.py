@@ -47,7 +47,8 @@ class LinePlotterTest(tb.BasePlotterTest):
         Create reference file for
         :attr:`~psy_simple.plotters.LinePlotter.grid`
         formatoption"""
-        sp = self.plot(grid=True)
+        sp = self.plot()
+        sp.update(grid=True)
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('grid1')))
         sp.update(grid='b')
         sp.export(os.path.join(bt.ref_dir, self.get_ref_file('grid2')))

@@ -887,9 +887,10 @@ class TicksOptions(TicksManagerBase):
 
     def update(self, value):
         for which, val in six.iteritems(value):
-            for axis in [self.ax.xaxis, self.ax.yaxis]:
+            for axis, axisname in zip([self.ax.xaxis, self.ax.yaxis], 'xy'):
                 self.which = which
                 self.axis = axis
+                self.axisname = axisname
                 self.update_axis(val)
 
 
@@ -897,7 +898,8 @@ class TickSizeBase(TicksOptions):
     """Abstract base class for modifying tick sizes"""
 
     def update_axis(self, value):
-        self.axis.set_tick_params(which=self.which, labelsize=value)
+        for t in self.axis.get_ticklabels(which=self.which):
+            t.set_size(value)
 
 
 class TickSize(TickSizeBase, TicksOptions, DictFormatoption):
@@ -912,6 +914,8 @@ class TickSize(TickSizeBase, TicksOptions, DictFormatoption):
     See Also
     --------
     tickweight, xtickprops, ytickprops"""
+
+    dependencies = TicksOptions.dependencies + ['xtickprops', 'ytickprops']
 
     name = 'Font size of the ticklabels'
 
@@ -937,6 +941,8 @@ class TickWeight(TickWeightBase, TicksOptions, DictFormatoption):
     --------
     ticksize, xtickprops, ytickprops"""
 
+    dependencies = TicksOptions.dependencies + ['xtickprops', 'ytickprops']
+
     name = 'Font weight of the ticklabels'
 
 
@@ -951,8 +957,6 @@ class TickPropsBase(TicksManagerBase):
         Items may be anything of the :func:`matplotlib.pyplot.tick_params`
         function"""
 
-    children = ['ticksize']
-
     @abstractproperty
     def axisname(self):
         """The name of the axis (either 'x' or 'y')"""
@@ -960,30 +964,10 @@ class TickPropsBase(TicksManagerBase):
 
     def update_axis(self, value):
         value = value.copy()
-        default = self.default
-        if 'major' in default or 'minor' in default:
-            default = default.get(self.which, {})
-        for key, val in chain(
-                default.items(), mpl.rcParams.find_all(
-                    self.axisname + 'tick\.%s\.\w' % self.which).items()):
-            value.setdefault(key.split('.')[-1], val)
-
         if float('.'.join(mpl.__version__.split('.')[:2])) >= 1.5:
             value.pop('visible', None)
-
-        if 'labelsize' not in value:
-            if isinstance(self.ticksize.value, dict):
-                labelsize = self.ticksize.value.get(
-                    self.which, mpl.rcParams[self.axisname + 'tick.labelsize'])
-            else:
-                labelsize = self.ticksize.value
-            self.axis.set_tick_params(
-                which=self.which, labelsize=labelsize, **value)
-            self.axis.set_tick_params(
-                which=self.which, labelsize=labelsize, **value)
-        else:
-            self.axis.set_tick_params(which=self.which, **value)
-            self.axis.set_tick_params(which=self.which, **value)
+        self.ax.tick_params(
+            self.axisname, which=self.which, reset=True, **value)
 
 
 @docstrings.get_sectionsf('XTickProps')
@@ -3669,6 +3653,8 @@ class CTickSize(CbarOptions, TickSizeBase):
 
     name = 'Font size of the colorbar ticklabels'
 
+    dependencies = CbarOptions.dependencies + ['ctickprops']
+
 
 class CTickWeight(CbarOptions, TickWeightBase):
     """
@@ -3686,6 +3672,8 @@ class CTickWeight(CbarOptions, TickWeightBase):
     group = 'colors'
 
     name = 'Font weight of the colorbar ticklabels'
+
+    dependencies = CbarOptions.dependencies + ['ctickprops']
 
 
 class CTickProps(CbarOptions, TickPropsBase):
@@ -3706,6 +3694,21 @@ class CTickProps(CbarOptions, TickPropsBase):
     group = 'colors'
 
     name = 'Font properties of the colorbar ticklabels'
+
+    def update_axis(self, value):
+        value = value.copy()
+        default = self.default
+        if 'major' in default or 'minor' in default:
+            default = default.get(self.which, {})
+        for key, val in chain(
+                default.items(), mpl.rcParams.find_all(
+                    self.axisname + 'tick\.%s\.\w' % self.which).items()):
+            value.setdefault(key.split('.')[-1], val)
+
+        if float('.'.join(mpl.__version__.split('.')[:2])) >= 1.5:
+            value.pop('visible', None)
+        self.colorbar.ax.tick_params(
+            self.axisname, which=self.which, reset=True, **value)
 
 
 class ArrowSize(Formatoption):
@@ -4756,7 +4759,7 @@ class Base2D(Plotter):
     cticklabels = CTickLabels('cticklabels')
     cticksize = CTickSize('cticksize')
     ctickweight = CTickWeight('ctickweight')
-    ctickprops = CTickProps('ctickprops', ticksize='cticksize')
+    ctickprops = CTickProps('ctickprops')
     datagrid = DataGrid('datagrid', index_in_list=0)
 
 
@@ -5134,10 +5137,11 @@ class CombinedBase(ScalarCombinedBase):
     vcticks = VectorCTicks('vcticks', cbar='vcbar', plot='vplot',
                            bounds='vbounds', index_in_list=1)
     vcticklabels = CTickLabels('vcticklabels', cbar='vcbar', index_in_list=1)
-    vcticksize = CTickSize('vcticksize', cbar='vcbar', index_in_list=1)
+    vcticksize = CTickSize('vcticksize', cbar='vcbar', index_in_list=1,
+                           ctickprops='vctickprops')
     vctickweight = CTickWeight('vctickweight', cbar='vcbar', index_in_list=1)
     vctickprops = CTickProps('vctickprops', cbar='vcbar',
-                             ticksize='vcticksize', index_in_list=1)
+                             index_in_list=1)
 
     @classmethod
     @docstrings.dedent
