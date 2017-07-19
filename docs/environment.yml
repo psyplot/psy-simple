@@ -16,7 +16,5 @@ dependencies:
     - sphinx
     - psyplot
     - pip:
-        - sphinx-argparse
         - autodocsumm
-        - cdo
         - sphinx-nbexamples
