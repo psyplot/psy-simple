@@ -470,10 +470,14 @@ class Figtitle(TextBase, Formatoption):
 
     name = 'Figure title'
 
+    @property
+    def enhanced_attrs(self):
+        return self.get_fig_data_attrs()
+
     def initialize_plot(self, s):
         if s:
             self.texts = [self.ax.get_figure().suptitle(
-                self.replace(s, self.plotter.data, self.get_fig_data_attrs()))]
+                self.replace(s, self.plotter.data, self.enhanced_attrs))]
             self.clear_other_texts()
         else:
             self.texts = [self.ax.get_figure().suptitle('')]
@@ -481,7 +485,7 @@ class Figtitle(TextBase, Formatoption):
     def update(self, s):
         if s:
             self.texts[0].set_text(self.replace(s, self.plotter.data,
-                                                self.get_fig_data_attrs()))
+                                                self.enhanced_attrs))
             self.clear_other_texts()
         else:
             self.texts[0].set_text('')
