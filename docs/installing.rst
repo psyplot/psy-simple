@@ -13,7 +13,7 @@ Installation using conda
 We highly recommend to use conda_ for installing psy-simple. After downloading
 the installer from anaconda_, you can install psy-simple simply via::
 
-    $ conda install -c chilipp psy-simple
+    $ conda install -c conda-forge psy-simple
 
 .. _anaconda: https://www.continuum.io/downloads
 .. _conda: http://conda.io/
