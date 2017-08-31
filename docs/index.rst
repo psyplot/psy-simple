@@ -87,6 +87,7 @@ Documentation
     plot_methods
     examples/index
     api/psy_simple
+    changelog
 
 
 
