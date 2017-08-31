@@ -2147,6 +2147,8 @@ class Xlim(LimitBase):
         return arr
 
     def set_limit(self, *args):
+        if self.ax.xaxis_inverted():
+            args = reversed(args)
         self.ax.set_xlim(*args)
 
     def initialize_plot(self, value):
@@ -2201,6 +2203,8 @@ class Ylim(LimitBase):
         return arr
 
     def set_limit(self, *args):
+        if self.ax.yaxis_inverted():
+            args = reversed(args)
         self.ax.set_ylim(*args)
 
 
