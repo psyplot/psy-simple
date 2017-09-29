@@ -8,5 +8,6 @@ dependencies:
     - xarray
     - netCDF4
     - seaborn
+    - numpy>=1.10
     - pip:
         - pytest
