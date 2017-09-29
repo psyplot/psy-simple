@@ -868,6 +868,9 @@ rcParams = RcParams(defaultParams={
         True, validate_legend, 'fmt key to draw a legend'],
 
     # Plot2D
+    'plotter.plot2d.interp_bounds': [
+        None, validate_bool_maybe_none,
+        'Switch to interpolate the bounds for 2D plots'],
     'plotter.plot2d.plot': [
         'mesh', try_and_error(validate_none, ValidateInStrings(
             '2d plot', ['mesh', 'contourf', 'tri', 'tricontourf'], True)),

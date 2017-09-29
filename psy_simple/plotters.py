@@ -2613,12 +2613,37 @@ def format_coord_func(ax, ref):
             return orig_s
         try:
             orig_s += fmto.add2format_coord(x, y)
-        except:
+        except Exception:
             fmto.logger.debug(
                 'Failed to get plot informations for status bar!', exc_info=1)
         return orig_s
 
     return func
+
+
+class InterpolateBounds(Formatoption):
+    """
+    Interpolate grid cell boundaries for 2D plots
+
+    This formatoption can be used to tell enable and disable the interpolation
+    of grid cell boundaries. Usually, netCDF files only contain the centered
+    coordinates. In this case, we interpolate the boundaries between the
+    grid cell centers.
+
+    Possible types
+    --------------
+    None
+        Interpolate the boundaries, except for circumpolar grids
+    bool
+        If True (the default), the grid cell boundaries are inter- and
+        extrapolated. Otherwise, if False, the coordinate centers are used and
+        the default behaviour of matplotlib cuts of the most outer row and
+        column of the 2D-data. Note that this results in a slight shift of the
+        data
+    """
+
+    def update(self, value):
+        pass
 
 
 @docstrings.get_sectionsf('Plot2D')
@@ -2656,7 +2681,7 @@ class Plot2D(Formatoption):
 
     children = ['cmap', 'bounds']
 
-    dependencies = ['levels']
+    dependencies = ['levels', 'interp_bounds']
 
     @property
     def array(self):
@@ -2754,8 +2779,18 @@ class Plot2D(Formatoption):
             else:
                 coll.update(dict(cmap=cmap, norm=self.bounds.norm))
         else:
+            interp_bounds = self.interp_bounds.value
+            if interp_bounds is None and not self.decoder.is_circumpolar(
+                    self.raw_data):
+                interp_bounds = True
+            if interp_bounds:
+                x = self.xbounds
+                y = self.ybounds
+            else:
+                x = self.xcoord.values
+                y = self.ycoord.values
             self._plot = self.ax.pcolormesh(
-                self.xbounds, self.ybounds, arr, norm=self.bounds.norm,
+                x, y, arr, norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
 
     def _contourf(self):
@@ -4968,6 +5003,7 @@ class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
     psyplot.plotter.maps.FieldPlotter"""
 
     transpose = Transpose('transpose')
+    interp_bounds = InterpolateBounds('interp_bounds')
     plot = SimplePlot2D('plot')
     xticks = XTicks2D('xticks')
     yticks = YTicks2D('yticks')
