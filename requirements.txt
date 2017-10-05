@@ -12,4 +12,4 @@ pandas==0.20.3 # rq.filter: >= 0.18.0, < 0.21
 
 # seaborn
 #   http://seaborn.pydata.org/whatsnew.html
-seaborn==0.8.0 # rq.filter: >= 0.7, < 0.9
+seaborn==0.8.1 # rq.filter: >= 0.7, < 0.9
