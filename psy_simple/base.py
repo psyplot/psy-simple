@@ -1,6 +1,7 @@
 import six
 from abc import abstractmethod
 from collections import defaultdict
+from itertools import chain
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -668,7 +669,7 @@ class Text(TextBase, Formatoption):
         self._texts_to_remove.clear()
 
     def remove(self):
-        for t in six.itervalues(self._texts):
+        for t in chain.from_iterable(six.itervalues(self._texts)):
             t.remove()
         self._texts.clear()
 

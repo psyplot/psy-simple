@@ -325,16 +325,18 @@ class DataTicksCalculator(Formatoption):
     data_dependent = True
 
     @property
+    def full_array(self):
+        """The full array of this and the shared data"""
+        return np.concatenate(
+            [self.array] + [fmto.array for fmto in self.shared])
+
+    @property
     def array(self):
         """The numpy array of the data"""
         data = self.data
         if not hasattr(data, 'notnull'):
             data = data.to_series()
         mask = np.asarray(data.notnull())
-        if self.shared:
-            return np.concatenate(
-                [data.values[mask]] + [
-                    fmto.array for fmto in self.shared])
         return data.values[mask]
 
     def _data_ticks(self, step=None):
@@ -355,11 +357,12 @@ class DataTicksCalculator(Formatoption):
         def shared_arrays():
             for fmto in self.shared:
                 fmto._lock_children()
-                fmto.lock.acquire()
+                # do not lock the fmto itself, because this breaks the plotter
+                # update procedure. But make sure, that the dependencies are
+                # locked
                 arr = fmto.array
                 yield arr
                 # release the locks
-                fmto.lock.release()
                 fmto._release_children()
 
         percentiles = []
