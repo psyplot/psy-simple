@@ -2782,19 +2782,20 @@ class Plot2D(Formatoption):
             else:
                 coll.update(dict(cmap=cmap, norm=self.bounds.norm))
         else:
-            interp_bounds = self.interp_bounds.value
-            if interp_bounds is None and not self.decoder.is_circumpolar(
-                    self.raw_data):
-                interp_bounds = True
-            if interp_bounds:
-                x = self.xbounds
-                y = self.ybounds
-            else:
-                x = self.xcoord.values
-                y = self.ycoord.values
+            x, y = self._get_xy_pcolormesh()
             self._plot = self.ax.pcolormesh(
                 x, y, arr, norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
+
+    def _get_xy_pcolormesh(self):
+        interp_bounds = self.interp_bounds.value
+        if interp_bounds is None and not self.decoder.is_circumpolar(
+                self.raw_data):
+            interp_bounds = True
+        if interp_bounds:
+            return self.xbounds, self.ybounds
+        else:
+            return self.xcoord.values, self.ycoord.values
 
     def _contourf(self):
         if hasattr(self, '_plot') and self.plotter.has_changed(
