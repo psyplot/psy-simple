@@ -1599,13 +1599,18 @@ class LinePlot(Formatoption):
             y = np.asarray(df.values).astype(float)
         except ValueError:
             y = np.arange(df.values.size)
-        if not isinstance(df.index, DatetimeIndex):
-            try:
-                x = np.asarray(df.index.values).astype(float)
-            except ValueError:
-                x = np.arange(df.index.values.size)
+        if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
+            index = df.index.get_level_values(0)
         else:
-            x = df.index.values
+            index = df.index
+        if not isinstance(index, DatetimeIndex):
+            try:
+                x = np.asarray(index.values).astype(float)
+            except ValueError:
+                x = np.arange(index.values.size)
+        else:
+            x = index.to_pydatetime()
+
         if self.transpose.value:
             x, y = y, x
         if ls in ['area', 'areay']:
@@ -2158,13 +2163,16 @@ class Xlim(LimitBase):
         try:
             arr.astype(float)
         except (ValueError,  TypeError):
-            return np.arange(len(arr))
+            arr = np.arange(len(arr))
         return arr
 
     def set_limit(self, *args):
         if self.ax.xaxis_inverted():
             args = reversed(args)
-        self.ax.set_xlim(*args)
+        try:
+            self.ax.set_xlim(*args)
+        except AttributeError:  # np.datetime64
+            self.ax.set_xlim(*to_datetime(args))
 
     def initialize_plot(self, value):
         super(Xlim, self).initialize_plot(value)
@@ -2220,7 +2228,10 @@ class Ylim(LimitBase):
     def set_limit(self, *args):
         if self.ax.yaxis_inverted():
             args = reversed(args)
-        self.ax.set_ylim(*args)
+        try:
+            self.ax.set_ylim(*args)
+        except AttributeError:  # np.datetime64
+            self.ax.set_ylim(*to_datetime(args))
 
 
 class SymmetricLimits(Formatoption):
