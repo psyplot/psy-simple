@@ -2171,7 +2171,7 @@ class Xlim(LimitBase):
             args = reversed(args)
         try:
             self.ax.set_xlim(*args)
-        except AttributeError:  # np.datetime64
+        except (AttributeError, TypeError):  # np.datetime64
             self.ax.set_xlim(*to_datetime(args))
 
     def initialize_plot(self, value):
@@ -2230,7 +2230,7 @@ class Ylim(LimitBase):
             args = reversed(args)
         try:
             self.ax.set_ylim(*args)
-        except AttributeError:  # np.datetime64
+        except (AttributeError, TypeError):  # np.datetime64
             self.ax.set_ylim(*to_datetime(args))
 
 
