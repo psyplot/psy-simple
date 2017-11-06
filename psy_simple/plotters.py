@@ -2,7 +2,8 @@ import six
 from warnings import warn
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
-from pandas import date_range, to_datetime, DatetimeIndex, Index, to_timedelta
+from pandas import (
+    date_range, to_datetime, DatetimeIndex, to_timedelta, MultiIndex)
 import weakref
 from pandas.tseries import offsets
 import xarray as xr
@@ -24,6 +25,14 @@ from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
 from psyplot.compat.pycompat import map, zip, range
 from psy_simple.plugin import validate_color, validate_float, safe_list
+
+
+def _get_index_vals(index):
+    if (isinstance(index, MultiIndex) and
+            len(index.names) == 1):
+        return index.get_level_values(0).values
+    else:
+        return index.values
 
 
 def round_to_05(n, exp=None, mode='s'):
@@ -646,7 +655,10 @@ class XTicks(DtTicksBase):
         if self.transpose.value:
             return df
         else:
-            return df.index
+            if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
+                return df.index.get_level_values(0)
+            else:
+                return df.index
 
     def initialize_plot(self, *args, **kwargs):
         super(XTicks, self).initialize_plot(*args, **kwargs)
@@ -2145,7 +2157,7 @@ class Xlim(LimitBase):
             arr = df.index.values
         try:
             arr.astype(float)
-        except ValueError:
+        except (ValueError,  TypeError):
             return np.arange(len(arr))
         return arr
 
