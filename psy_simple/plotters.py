@@ -1704,7 +1704,8 @@ class ErrorPlot(Formatoption):
                         min_range = error[0]
                         max_range = error[1]
                     if self.value == 'fill':
-                        self.plot_fill(data.index.values, min_range, max_range,
+                        vals = _get_index_vals(data.index)
+                        self.plot_fill(vals, min_range, max_range,
                                        next(colors), zorder=line.zorder)
 
     def plot_fill(self, index, min_range, max_range, c, **kwargs):
