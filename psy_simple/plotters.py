@@ -2160,10 +2160,12 @@ class Xlim(LimitBase):
         if self.transpose.value:
             arr = df.values[df.notnull().values]
         else:
-            arr = df.index.values
+            arr = _get_index_vals(df.index)
         try:
             arr.astype(float)
         except (ValueError,  TypeError):
+            print(arr)
+            raise
             arr = np.arange(len(arr))
         return arr
 
@@ -2217,7 +2219,7 @@ class Ylim(LimitBase):
             return arr
         df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
         if self.transpose.value:
-            arr = df.index.values
+            arr = _get_index_vals(df.index)
         else:
             arr = df.values[df.notnull().values]
         try:
