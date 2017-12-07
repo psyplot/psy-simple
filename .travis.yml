@@ -111,6 +111,11 @@ install:
   - 'ENVKEY=py"${PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
   - conda env create -f tests/envs/environment_$ENVKEY.yml
   - source activate psyplot_$ENVKEY
+  # install python cdo bindings
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        conda install -c conda-forge cdo python-cdo;
+        export CDO="$HOME/miniconda/envs/psyplot_$ENVKEY/bin/cdo";
+    fi
   # checkout references
   - 'export WORK=`pwd`'
   - 'export REFDIR=`python tests/get_ref_dir.py`'
