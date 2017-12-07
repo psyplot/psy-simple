@@ -21,6 +21,15 @@ import _base_testing as bt
 from psyplot import InteractiveList, ArrayList, open_dataset, rcParams
 
 
+try:
+    from cdo import Cdo
+    Cdo()
+except Exception:
+    with_cdo = False
+else:
+    with_cdo = True
+
+
 bold = tb.bold
 
 
@@ -2109,6 +2118,7 @@ class FldmeanPlotterTest(LinePlotterTest):
         super(FldmeanPlotterTest, self).test_ylim(test_pctls)
 
 
+@unittest.skipIf(not with_cdo, 'CDOs are required for unstructured grids.')
 class IconFldmeanPlotterTest(bt.PsyPlotTestCase):
 
     plot_type = 'fldmean'
