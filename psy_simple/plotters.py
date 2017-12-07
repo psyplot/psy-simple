@@ -1,4 +1,5 @@
 import six
+import re
 from warnings import warn
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
@@ -386,14 +387,20 @@ class DataTicksCalculator(Formatoption):
             else:
                 arr = np.concatenate(tuple(map(minmax, chain(
                     [self.array], shared_arrays()))))
-        if not percmin:
-            vmin = arr.min()
-        else:
-            percentiles.append(percmin)
-        if percmax is None or percmax == 100:
-            vmax = arr.max()
-        else:
-            percentiles.append(percmax)
+        try:
+            if not percmin:
+                vmin = arr.min()
+            else:
+                percentiles.append(percmin)
+            if percmax is None or percmax == 100:
+                vmax = arr.max()
+            else:
+                percentiles.append(percmax)
+        except ValueError:
+            self.logger.warn(
+                'Cannot calculate minimum and maximum of the data!',
+                exc_info=True)
+            return 0, 1
         if percentiles:
             percentiles = iter(np.percentile(arr, percentiles))
             if percmin:
@@ -651,7 +658,15 @@ class XTicks(DtTicksBase):
 
     @property
     def data(self):
-        df = super(XTicks, self).data.to_dataframe()
+        def select_array(arr):
+            if arr.ndim > 1:
+                return arr.psy[0]
+            return arr
+        data = super(XTicks, self).data
+        if isinstance(data, InteractiveList):
+            df = InteractiveList(map(select_array, data)).to_dataframe()
+        else:
+            df = data.to_series()
         if self.transpose.value:
             return df
         else:
@@ -697,9 +712,20 @@ class YTicks(DtTicksBase):
 
     @property
     def data(self):
-        df = super(YTicks, self).data.to_dataframe()
+        def select_array(arr):
+            if arr.ndim > 1:
+                return arr.psy[0]
+            return arr
+        data = super(XTicks, self).data
+        if isinstance(data, InteractiveList):
+            df = InteractiveList(map(select_array, data)).to_dataframe()
+        else:
+            df = data.to_series()
         if self.transpose.value:
-            return df.index
+            if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
+                return df.index.get_level_values(0)
+            else:
+                return df.index
         else:
             return df
 
@@ -1350,22 +1376,19 @@ class Transpose(Formatoption):
                 #: The x-coordinate name of the variable as stored in the
                 #: dataset (might differ from the one in this array because
                 #: this could also be time, z, y, etc.)
-                ds_coord = arr.psy.decoder.get_xname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('x', True)
                 xname = arr.dims[0]
         else:
             if self.value:
-                ds_coord = arr.psy.decoder.get_yname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('y', True)
                 xname = arr.dims[-2 if not is_unstructured else -1]
             else:
-                ds_coord = arr.psy.decoder.get_xname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('x', True)
                 xname = arr.dims[-1]
         if xname == ds_coord:
             if self.value:
-                return arr.psy.decoder.get_y(arr, arr.coords)
-            return arr.psy.decoder.get_x(arr, arr.coords)
+                return arr.psy.get_coord('y', True)
+            return arr.psy.get_coord('x', True)
         else:
             return arr.coords[xname]
 
@@ -1382,22 +1405,19 @@ class Transpose(Formatoption):
                 #: The x-coordinate name of the variable as stored in the
                 #: dataset (might differ from the one in this array because
                 #: this could also be time, z, y, etc.)
-                ds_coord = arr.psy.decoder.get_xname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('x', True)
                 yname = arr.dims[0]
         else:
             if not self.value:
-                ds_coord = arr.psy.decoder.get_yname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('y', True)
                 yname = arr.dims[-2 if not is_unstructured else -1]
             else:
-                ds_coord = arr.psy.decoder.get_xname(
-                    next(arr.psy.iter_base_variables))
+                ds_coord = arr.psy.get_dim('x', True)
                 yname = arr.dims[-1]
         if yname == ds_coord:
             if self.value:
-                return arr.psy.decoder.get_x(arr, arr.coords)
-            return arr.psy.decoder.get_y(arr, arr.coords)
+                return arr.psy.get_coord('x', True)
+            return arr.psy.get_coord('y', True)
         else:
             return arr.coords[yname]
 
@@ -1549,10 +1569,10 @@ class LinePlot(Formatoption):
     None
         Don't make any plotting
     ``'area'``
-        To make an area plot (filled between x=0 and x), see
+        To make an area plot (filled between y=0 and y), see
         :func:`matplotlib.pyplot.fill_between`
     ``'areax'``
-        To make a transposed area plot (filled between y=0 and y), see
+        To make a transposed area plot (filled between x=0 and x), see
         :func:`matplotlib.pyplot.fill_betweenx`
     str or list of str
         The line style string to use (['solid' | 'dashed', 'dashdot', 'dotted'
@@ -1704,9 +1724,23 @@ class ErrorPlot(Formatoption):
                         min_range = error[0]
                         max_range = error[1]
                     if self.value == 'fill':
-                        vals = _get_index_vals(data.index)
+                        vals = self._get_x_values(data)
                         self.plot_fill(vals, min_range, max_range,
                                        next(colors), zorder=line.zorder)
+
+    def _get_x_values(self, df):
+        if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
+            index = df.index.get_level_values(0)
+        else:
+            index = df.index
+        if not isinstance(index, DatetimeIndex):
+            try:
+                x = np.asarray(index.values).astype(float)
+            except ValueError:
+                x = np.arange(index.values.size)
+        else:
+            x = index.to_pydatetime()
+        return x
 
     def plot_fill(self, index, min_range, max_range, c, **kwargs):
         if self.transpose.value:
@@ -2154,7 +2188,7 @@ class Xlim(LimitBase):
     def array(self):
         def select_array(arr):
             if arr.ndim > 1:
-                return arr[0]
+                return arr.psy[0]
             return arr
         df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
         if self.transpose.value:
@@ -2164,8 +2198,6 @@ class Xlim(LimitBase):
         try:
             arr.astype(float)
         except (ValueError,  TypeError):
-            print(arr)
-            raise
             arr = np.arange(len(arr))
         return arr
 
@@ -2215,7 +2247,7 @@ class Ylim(LimitBase):
     def array(self):
         def select_array(arr):
             if arr.ndim > 1:
-                return arr[0]
+                return arr.psy[0]
             return arr
         df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
         if self.transpose.value:
@@ -2324,8 +2356,9 @@ class Xlim2D(Xlim):
         data = next(self.iter_data)
         if (self.decoder.is_triangular(data) and
                 xcoord.name == getattr(self.decoder, func)(data).name):
+            raw = next(six.itervalues(data.psy.base_variables))
             triangles = self.decoder.get_triangles(
-                data, data.coords, convert_radian=self.plotter.convert_radian)
+                raw, data.coords, convert_radian=self.plotter.convert_radian)
             if self.transpose.value:
                 return triangles.y[triangles.triangles].ravel()
             else:
@@ -2343,8 +2376,9 @@ class Ylim2D(Ylim):
         data = next(self.iter_data)
         if (self.decoder.is_triangular(data) and
                 ycoord.name == getattr(self.decoder, func)(data).name):
+            raw = next(six.itervalues(data.psy.base_variables))
             triangles = self.decoder.get_triangles(
-                data, data.coords, convert_radian=self.plotter.convert_radian)
+                raw, data.coords, convert_radian=self.plotter.convert_radian)
             if self.transpose.value:
                 return triangles.x[triangles.triangles].ravel()
             else:
@@ -2767,6 +2801,8 @@ class Plot2D(Formatoption):
             'mesh': self._pcolormesh,
             'contourf': self._contourf,
             'tricontourf': self._contourf,
+            'contour': self._contourf,
+            'tricontour': self._contourf,
             'tri': self._tripcolor}
         self._orig_format_coord = None
         self._kwargs = {}
@@ -2833,6 +2869,7 @@ class Plot2D(Formatoption):
         except AttributeError:
             N = len(np.unique(self.bounds.norm(arr.ravel())))
         cmap = get_cmap(self.cmap.value, N)
+        filled = self.value not in ['contour', 'tricontour']
         if hasattr(self, '_plot'):
             self._plot.set_cmap(cmap)
             self._plot.set_norm(self.bounds.norm)
@@ -2845,20 +2882,20 @@ class Plot2D(Formatoption):
                     xcoord = xcoord * 180. / np.pi
                 if ycoord.attrs.get('units') == 'radian':
                     ycoord = ycoord * 180. / np.pi
-            if (self.value == 'tricontourf' or
+            if (self.value in ['tricontourf', 'tricontour'] or
                     self.decoder.is_triangular(self.raw_data)):
-                pm = self.ax.tricontourf
+                pm = self.ax.tricontourf if filled else self.ax.tricontour
                 mask = ~np.isnan(arr)
                 x = xcoord.values[mask]
                 y = ycoord.values[mask]
                 arr = arr[mask]
             else:
-                pm = self.ax.contourf
+                pm = self.ax.contourf if filled else self.ax.contour
                 x = xcoord.values
                 y = ycoord.values
             self._plot = pm(
                 x, y, arr, levels, norm=self.bounds.norm,
-                cmap=cmap, rasterized=True, **self._kwargs)
+                cmap=cmap, **self._kwargs)
 
     def _tripcolor(self):
         triangles = self.triangles
@@ -3019,7 +3056,8 @@ class DataGrid(Formatoption):
         spatial informations"""
         decoder = self.decoder
         return decoder.get_triangles(
-            self.data, self.data.coords, copy=True,
+            next(six.itervalues(self.data.psy.base_variables)),
+            self.data.coords, copy=True,
             convert_radian=self.plotter.convert_radian)
 
     def _triplot(self, value):
@@ -3452,6 +3490,10 @@ class Cbar(Formatoption):
             # draw ticklabels at the top
             self.cbars[pos].ax.tick_params('x', labeltop=True,
                                            labelbottom=False)
+        elif pos == 'r':
+            # draw ticklabels on the right
+            self.cbars[pos].ax.tick_params('y', labelleft=False,
+                                           labelright=True)
 
     def finish_update(self):
         self._just_drawn.clear()
@@ -3501,6 +3543,8 @@ class CLabel(TextBase, Formatoption):
                 cbar.ax.yaxis.set_label_position('left')
             elif pos == 'ft':
                 cbar.ax.xaxis.set_label_position('top')
+            elif pos == 'r':
+                cbar.ax.yaxis.set_label_position('right')
 
 
 class VCLabel(CLabel):
@@ -3776,8 +3820,15 @@ class CTickProps(CbarOptions, TickPropsBase):
 
         if float('.'.join(mpl.__version__.split('.')[:2])) >= 1.5:
             value.pop('visible', None)
+        posnames = ['top', 'bottom'] if self.axisname == 'x' else [
+            'left', 'right']
+        label_positions = dict(zip(
+            map('label{}'.format, posnames),
+            [True, False] if self.position in ['t', 'ft', 'l', 'fl'] else
+            [False, True]))
+        label_positions.update(**value)
         self.colorbar.ax.tick_params(
-            self.axisname, which=self.which, reset=True, **value)
+            self.axisname, which=self.which, reset=True, **label_positions)
 
 
 class ArrowSize(Formatoption):
@@ -4414,6 +4465,116 @@ class Legend(DictFormatoption):
             self.legend.remove()
 
 
+class MeanCalculator(Formatoption):
+    """
+    Determine how the error is visualized
+
+    Possible types
+    --------------
+    'mean'
+        Calculate the weighted mean
+    'median'
+        Calculate the weighted median (i.e. the 50th percentile)
+    float between 0 and 100
+        Calculate the given quantile
+
+    See Also
+    --------
+    err_calc: Determines how to calculate the error
+    """
+
+    priority = START
+
+    name = 'Mean calculation'
+
+    group = 'data'
+
+    data_dependent = True
+
+    requires_replot = True
+
+    def update(self, value):
+        for i, arr in enumerate(self.iter_data):
+            if value == 'mean':
+                data = arr.psy.fldmean()
+            elif value == 'median':
+                data = arr.psy.fldpctl(50)
+            else:
+                data = arr.psy.fldpctl(value)
+            data.psy.arr_name = arr.psy.arr_name
+            self.set_data(data, i)
+
+
+class ErrorCalculator(Formatoption):
+    """
+    Calculation of the error
+
+    This formatoption is used to calculate the error range.
+
+    Possible types
+    --------------
+    None
+        Do not calculate any error range
+    float
+        A float between 0 and 50. This will represent the distance from the
+        median (i.e. the 50th percentile). A value of 45 will hence correspond
+        to the 5th and 95th percentile
+    list of 2 floats between 0 and 100
+        Two floats where the first corresponds to the minimum and the second
+        to the maximum percentile
+    str
+        A string with 'std' in it. Then we will use the standard deviation. Any
+        number in this string, e.g. '3.5std' will serve as a multiplier
+        (in this case 3.5 times the standard deviation).
+
+    See Also
+    --------
+    mean: Determines how the line is calculated
+    """
+
+    priority = START
+
+    name = 'Mean calculation'
+
+    group = 'data'
+
+    children = ['mean']
+
+    data_dependent = True
+
+    requires_replot = True
+
+    def update(self, value):
+        if value is None:
+            return
+        if isstring(value):
+            use_std = True
+            m = re.search(r'\d+\.?\d*', value)
+            if m:
+                multiplier = float(m.group())
+            else:
+                multiplier = 1
+        else:
+            use_std = False
+        for i, (arr, mean) in enumerate(zip(self.iter_raw_data,
+                                            self.iter_data)):
+            mean = mean.to_dataset()
+            if use_std:
+                err = multiplier * arr.psy.fldstd()
+                mean[value] = err.variable
+                data = mean[[arr.name, value]].psy.to_array()
+            else:
+                err = arr.psy.fldpctl(value)
+                names = list(map('pctl{:1.3g}'.format, value))
+                mean[names[0]] = err.variable[0]
+                mean[names[1]] = err.variable[1]
+                data = mean[[arr.name] + names].psy.to_array()
+            data.psy.arr_name = arr.psy.arr_name
+            data.attrs.update(arr.attrs)
+            data.name = arr.name
+            self.set_data(data, i)
+
+
 docstrings.delete_types('LimitBase.possible_types', 'no_None', 'None')
 
 
@@ -4839,6 +5000,10 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
     #: might have.
     allowed_vars = 1
 
+    #: The number of allowed dimensions in the for the visualization. If
+    #: the array is unstructured, one dimension will be subtracted
+    allowed_dims = 1
+
     transpose = Transpose('transpose')
     axiscolor = AxisColor('axiscolor')
     grid = Grid('grid')
@@ -4885,13 +5050,14 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
                 checks[i] = False
                 messages[i] = 'At least one variable name is required!'
             elif ((not isstring(n) and len(n) > cls.allowed_vars) and
-                  len(d) != (1 - len(n))):
+                  len(d) != (cls.allowed_dims - len(n))):
                 checks[i] = False
                 messages[i] = 'Only %i names are allowed per array!' % (
                     cls.allowed_vars)
-            elif len(d) == 0 or len(d) > 1:
+            elif len(d) != cls.allowed_dims:
                 checks[i] = False
-                messages[i] = 'Only 1-dimensional arrays are allowed!'
+                messages[i] = 'Only %i-dimensional arrays are allowed!' % (
+                    cls.allowed_dims)
         return checks, messages
 
 
@@ -5047,6 +5213,8 @@ class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
 
 class DensityPlotter(Simple2DPlotter):
     """A plotter to visualize the density of points in a 2-dimensional grid"""
+
+    allowed_vars = 1
 
     allowed_dims = 1
 
@@ -5275,3 +5443,14 @@ class CombinedSimplePlotter(CombinedBase, Simple2DPlotter,
     vplot = CombinedVectorPlot('vplot', index_in_list=1, cmap='vcmap',
                                bounds='vbounds')
     density = Density('density', plot='vplot', index_in_list=1)
+
+
+class FldmeanPlotter(LinePlotter):
+
+    _rcparams_string = ["plotter.fldmean."]
+
+    allowed_dims = 3
+
+    err_calc = ErrorCalculator('err_calc')
+    mean = MeanCalculator('mean')
+    coord = None

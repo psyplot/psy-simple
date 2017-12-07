@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 from psyplot.utils import _TempBool
 from psy_simple.plotters import (
     LinePlotter, Simple2DPlotter, BarPlotter, ViolinPlotter,
-    SimpleVectorPlotter, CombinedSimplePlotter, DensityPlotter)
+    SimpleVectorPlotter, CombinedSimplePlotter, DensityPlotter,
+    FldmeanPlotter)
 import psyplot.project as psy
 import test_base as tb
 import _base_testing as bt
@@ -1678,7 +1679,8 @@ class CombinedSimplePlotterTest2D(tb.TestBase2D, CombinedSimplePlotterTest):
 
 
 class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
-    """Test :class:`psyplot.plotter.maps.CombinedPlotter` class for icon grid
+    """Test :class:`psy_simple.plotters.CombinedSimplePlotter` class for icon
+    grid
     """
 
     grid_type = 'icon'
@@ -1777,7 +1779,7 @@ class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
 
 
 class DensityPlotterTest(bt.PsyPlotTestCase):
-    """Test of the :class:`psyplot.plotters.simple.DensityPlotter` class"""
+    """Test of the :class:`psy_simple.plotters.DensityPlotter` class"""
 
     @classmethod
     def setUpClass(cls):
@@ -1870,7 +1872,7 @@ class DensityPlotterTest(bt.PsyPlotTestCase):
 
 
 class DensityPlotterTestKDE(DensityPlotterTest):
-    """Test of the :class:`psyplot.plotters.simple.DensityPlotter` class
+    """Test of the :class:`psy_simple.plotters.DensityPlotter` class
     with kde plot"""
 
     @classmethod
@@ -1881,6 +1883,270 @@ class DensityPlotterTestKDE(DensityPlotterTest):
     @unittest.skip('Not implemented for KDE plots!')
     def test_normed(self):
         pass
+
+
+class FldmeanPlotterTest(LinePlotterTest):
+    """Test of the :class:`psy_simple.plotters.FldmeanPlotter` class"""
+
+    plot_type = 'fldmean'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = open_dataset(cls.ncfile)
+        cls.data = InteractiveList.from_dataset(
+            cls.ds, t=[0, 1], name=cls.var, auto_update=True)
+        cls.plotter = FldmeanPlotter(cls.data)
+        cls.create_dirs()
+
+    def plot(self, **kwargs):
+        name = kwargs.pop('name', self.var)
+        return psy.plot.fldmean(
+            self.ncfile, name=name, t=[0, 1], **kwargs)
+
+    @classmethod
+    def tearDown(cls):
+        cls.data.psy.update(todefault=True, replot=True)
+
+    @unittest.skip("Coord formatoption not provided!")
+    def test_coord(self):
+        return
+
+    def _label_test(self, key, label_func, has_time=False):
+        kwargs = {key: "Test plot for %(name)s"}
+        self.update(**kwargs)
+        self.assertEqual(
+            label_func().get_text(),
+            u"Test plot for " + self.var)
+
+    def test_legend(self, *args):
+        """Test legend and legendlabels formatoption"""
+        args = iter(args)
+        self.update(legend=False)
+        self.assertIsNone(self.plotter.ax.legend_)
+        self.update(legend={
+            'loc': 'upper center', 'bbox_to_anchor': (0.5, -0.05), 'ncol': 2})
+        self.compare_figures(next(args, self.get_ref_file('legend')))
+        self.update(legendlabels='%m')
+        self.assertAlmostArrayEqual(
+            [float(t.get_text()) for t in plt.gca().legend_.get_texts()],
+            [da.expand_dims('time').time.to_index().month[0]
+             for da in self.data])
+
+    def test_xticks(self):
+        """Test xticks, xticklabels, xtickprops formatoptions"""
+        self.update(xticks=['data', 2])
+        ax = plt.gca()
+        if isinstance(self.data, InteractiveList):
+            data = self.data[0]
+        else:
+            data = self.data
+
+        lev = data.lev.values[::-1]
+
+        self.assertEqual(list(ax.get_xticks()),
+                         list(lev[::2]))
+        self.update(xticks=['mid', 2])
+
+        self.assertEqual(
+            list(ax.get_xticks()), list(
+                (lev[:-1] + lev[1:]) / 2.)[::2])
+        self.update(xticks='rounded')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(20000.0, 100000.0, 11, endpoint=True).tolist())
+        self.update(xticks='roundedsym')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(-100000, 100000, 10, endpoint=True).tolist())
+        self.update(xticks='minmax')
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                lev.min(), lev.max(),
+                11, endpoint=True).tolist())
+        self.update(xticks='sym')
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                -lev.max(), lev.max(),
+                10, endpoint=True).tolist())
+
+    def test_ticksize(self):
+        """Tests ticksize formatoption"""
+        self.update(ticksize=24)
+        ax = self.plotter.ax
+        self.assertTrue(all(t.get_size() == 24 for t in chain(
+            ax.get_xticklabels(), ax.get_yticklabels())))
+        self.update(
+            ticksize={'major': 12, 'minor': 10}, xtickprops={'pad': 7.0})
+        self.assertTrue(all(t.get_size() == 12 for t in chain(
+            ax.get_xticklabels(), ax.get_yticklabels())))
+        self.assertTrue(all(
+            t.get_size() == 10 for t in ax.get_xticklabels(minor=True)))
+
+    def test_xlabel(self):
+        """Test xlabel formatoption"""
+        self.update(xlabel='{desc}')
+        label = self.plotter.ax.xaxis.get_label()
+        self.assertEqual(label.get_text(), 'pressure [Pa]')
+        self.update(labelsize=22, labelweight='bold',
+                    labelprops={'ha': 'left'})
+        self.assertEqual(label.get_size(), 22)
+        self.assertEqual(label.get_weight(), bold)
+        self.assertEqual(label.get_ha(), 'left')
+
+    def test_ylim(self, test_pctls=False):
+        super(FldmeanPlotterTest, self).test_ylim(test_pctls)
+
+
+class FldmeanPlotterTest(LinePlotterTest):
+    """Test of the :class:`psy_simple.plotters.FldmeanPlotter` class"""
+
+    plot_type = 'fldmean'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = open_dataset(cls.ncfile)
+        cls.data = InteractiveList.from_dataset(
+            cls.ds, t=[0, 1], name=cls.var, auto_update=True)
+        cls.plotter = FldmeanPlotter(cls.data)
+        cls.create_dirs()
+
+    def plot(self, **kwargs):
+        name = kwargs.pop('name', self.var)
+        return psy.plot.fldmean(
+            self.ncfile, name=name, t=[0, 1], **kwargs)
+
+    @classmethod
+    def tearDown(cls):
+        cls.data.psy.update(todefault=True, replot=True)
+
+    @unittest.skip("Coord formatoption not provided!")
+    def test_coord(self):
+        return
+
+    def _label_test(self, key, label_func, has_time=False):
+        kwargs = {key: "Test plot for %(name)s"}
+        self.update(**kwargs)
+        self.assertEqual(
+            label_func().get_text(),
+            u"Test plot for " + self.var)
+
+    def test_legend(self, *args):
+        """Test legend and legendlabels formatoption"""
+        args = iter(args)
+        self.update(legend=False)
+        self.assertIsNone(self.plotter.ax.legend_)
+        self.update(legend={
+            'loc': 'upper center', 'bbox_to_anchor': (0.5, -0.05), 'ncol': 2})
+        self.compare_figures(next(args, self.get_ref_file('legend')))
+        self.update(legendlabels='%m')
+        self.assertAlmostArrayEqual(
+            [float(t.get_text()) for t in plt.gca().legend_.get_texts()],
+            [da.expand_dims('time').time.to_index().month[0]
+             for da in self.data])
+
+    def test_xticks(self):
+        """Test xticks, xticklabels, xtickprops formatoptions"""
+        self.update(xticks=['data', 2])
+        ax = plt.gca()
+        if isinstance(self.data, InteractiveList):
+            data = self.data[0]
+        else:
+            data = self.data
+
+        lev = data.lev.values[::-1]
+
+        self.assertEqual(list(ax.get_xticks()),
+                         list(lev[::2]))
+        self.update(xticks=['mid', 2])
+
+        self.assertEqual(
+            list(ax.get_xticks()), list(
+                (lev[:-1] + lev[1:]) / 2.)[::2])
+        self.update(xticks='rounded')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(20000.0, 100000.0, 11, endpoint=True).tolist())
+        self.update(xticks='roundedsym')
+        self.assertEqual(
+            list(ax.get_xticks()),
+            np.linspace(-100000, 100000, 10, endpoint=True).tolist())
+        self.update(xticks='minmax')
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                lev.min(), lev.max(),
+                11, endpoint=True).tolist())
+        self.update(xticks='sym')
+        self.assertEqual(
+            list(ax.get_xticks()), np.linspace(
+                -lev.max(), lev.max(),
+                10, endpoint=True).tolist())
+
+    def test_ticksize(self):
+        """Tests ticksize formatoption"""
+        self.update(ticksize=24)
+        ax = self.plotter.ax
+        self.assertTrue(all(t.get_size() == 24 for t in chain(
+            ax.get_xticklabels(), ax.get_yticklabels())))
+        self.update(
+            ticksize={'major': 12, 'minor': 10}, xtickprops={'pad': 7.0})
+        self.assertTrue(all(t.get_size() == 12 for t in chain(
+            ax.get_xticklabels(), ax.get_yticklabels())))
+        self.assertTrue(all(
+            t.get_size() == 10 for t in ax.get_xticklabels(minor=True)))
+
+    def test_xlabel(self):
+        """Test xlabel formatoption"""
+        self.update(xlabel='{desc}')
+        label = self.plotter.ax.xaxis.get_label()
+        self.assertEqual(label.get_text(), 'pressure [Pa]')
+        self.update(labelsize=22, labelweight='bold',
+                    labelprops={'ha': 'left'})
+        self.assertEqual(label.get_size(), 22)
+        self.assertEqual(label.get_weight(), bold)
+        self.assertEqual(label.get_ha(), 'left')
+
+    def test_ylim(self, test_pctls=False):
+        super(FldmeanPlotterTest, self).test_ylim(test_pctls)
+
+
+class IconFldmeanPlotterTest(bt.PsyPlotTestCase):
+
+    plot_type = 'fldmean'
+
+    grid_type = 'icon'
+
+    ncfile = os.path.join(bt.test_dir, 'icon_test.nc')
+
+    var = 't2m'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ds = open_dataset(cls.ncfile)
+        cls.data = InteractiveList.from_dataset(
+            cls.ds, z=[0, 1], name=cls.var, auto_update=True)
+        cls.plotter = FldmeanPlotter(cls.data)
+        cls.create_dirs()
+
+    def ref_plot(self, close=True):
+        """Basic reference plot"""
+        sp = psy.plot.fldmean(self.ncfile, name=self.var, z=[0, 1])
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('basic')))
+        if close:
+            sp.close(True, True)
+
+    @classmethod
+    def tearDown(cls):
+        cls.data.psy.update(todefault=True, replot=True)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(IconFldmeanPlotterTest, cls).tearDownClass()
+        cls.ds.close()
+        plt.close(cls.plotter.ax.get_figure().number)
+
+    def test_plot(self):
+        """Test whether it can be plotted"""
+        self.compare_figures(self.get_ref_file('basic'))
 
 
 tests2d = [LinePlotterTest2D, Simple2DPlotterTest2D]

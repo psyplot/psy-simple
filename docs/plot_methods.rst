@@ -10,7 +10,7 @@ accessed through
 .. ipython::
 
     In [1]: import psyplot.project as psy
-    
+
     In [2]: psy.plot.lineplot
 
 .. autosummary::
@@ -23,3 +23,4 @@ accessed through
     ~psyplot.project.plot.combined
     ~psyplot.project.plot.density
     ~psyplot.project.plot.barplot
+    ~psyplot.project.plot.fldmean

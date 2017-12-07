@@ -451,6 +451,38 @@ class ValidateList(object):
         return l
 
 
+def validate_err_calc(val):
+    """Validation function for the
+    :attr:`psy_simple.plotter.FldmeanPlotter.err_calc` formatoption"""
+    try:
+        val = validate_float(val)
+    except (ValueError, TypeError):
+        pass
+    else:
+        if val <= 100 and val >= 0:
+            return val
+        raise ValueError("Percentiles for the error calculation must lie "
+                         "between 0 and 100, not %s" % val)
+    try:
+        val = ValidateList(float, 2)(val)
+    except (ValueError, TypeError):
+        pass
+    else:
+        if all((v <= 100 and v >= 0) for v in val):
+            return val
+        raise ValueError("Percentiles for the error calculation must lie "
+                         "between 0 and 100, not %s" % val)
+    try:
+        val = validate_str(val)
+    except ValueError:
+        pass
+    else:
+        if 'std' not in val:
+            raise ValueError(
+                'A string for the error calculation must contain std!')
+    return val
+
+
 class DictValValidator(object):
     """A validation class for formatoptions that expect dictionaries as values
     """
@@ -596,6 +628,13 @@ rcParams = RcParams(defaultParams={
              'prefer_list': True,
              'default_slice': None,
              'summary': 'Make a line plot of one-dimensional data'},
+         'fldmean': {
+             'module': 'psy_simple.plotters',
+             'plotter_name': 'FldmeanPlotter',
+             'prefer_list': True,
+             'default_slice': None,
+             'summary': 'Calculate and plot the mean over x- and y-dimensions'
+             },
          'density': {
              'module': 'psy_simple.plotters',
              'plotter_name': 'DensityPlotter',
@@ -867,13 +906,25 @@ rcParams = RcParams(defaultParams={
     'plotter.simple.legend': [
         True, validate_legend, 'fmt key to draw a legend'],
 
+    # FldmeanPlotter
+    'plotter.fldmean.mean': [
+        'mean', try_and_error(
+            ValidateInStrings('mean', ['mean', 'median'], True),
+            validate_float),
+        "The calculation result, either the 'mean', 'median' or a percentile"],
+    'plotter.fldmean.err_calc': [
+        'std', validate_err_calc,
+        "The error calculation method, either the 'std' or a minimum "
+        "and maximum percentile"],
+
     # Plot2D
     'plotter.plot2d.interp_bounds': [
         None, validate_bool_maybe_none,
         'Switch to interpolate the bounds for 2D plots'],
     'plotter.plot2d.plot': [
         'mesh', try_and_error(validate_none, ValidateInStrings(
-            '2d plot', ['mesh', 'contourf', 'tri', 'tricontourf'], True)),
+            '2d plot', ['mesh', 'contourf', 'contour',
+                        'tri', 'tricontourf', 'tricontour'], True)),
         'fmt key to specify the plot type of 2D scalar plots'],
     'plotter.plot2d.plot.min_circle_ratio': [
         0.05, validate_float,
