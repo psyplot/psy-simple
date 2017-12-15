@@ -717,14 +717,12 @@ class ValueMaskBase(Formatoption):
     def update(self, value):
         if value is None:
             pass
-        elif isinstance(self.data, InteractiveList):
-            for i, data in enumerate(self.data):
-                self.data[i] = self._mask_data(data, value)
         else:
-            self.data = self._mask_data(self.data, value)
+            for i, data in enumerate(self.iter_data):
+                self.set_data(self._mask_data(data, value), i)
 
     def _mask_data(self, data, value):
-        data = data.copy(True)
+        data = data.copy(True).load()
         data.values[~np.isnan(data.values)] = self.mask_func(
             data.values[~np.isnan(data.values)], value)
         return data
