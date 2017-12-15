@@ -16,6 +16,7 @@ from matplotlib.rcsetup import (
     ValidateInStrings, validate_int, validate_legend_loc,
     validate_nseq_float, validate_colorlist)
 from psy_simple import __version__ as plugin_version
+import xarray as xr
 
 
 def get_versions(requirements=True):
@@ -230,6 +231,12 @@ def validate_axiscolor(value):
     except:
         value = dict(zip(possible_keys, repeat(validate(value))))
     return value
+
+
+def validate_dataarray(val):
+    if not isinstance(val, xr.DataArray):
+        raise ValueError("Require xarray.DataArray, not %r" % type(val))
+    return val
 
 
 def validate_marker(val):
@@ -801,7 +808,8 @@ rcParams = RcParams(defaultParams={
 
     # density plotter
     'plotter.density.coord': [
-        None, try_and_error(validate_none, validate_str, validate_stringlist),
+        None, try_and_error(validate_none, validate_dataarray,
+                            validate_str, validate_stringlist),
         'Alternative x-coordinate to use for DensityPlotter'],
     'plotter.density.xrange': [
         'minmax', validate_limits, 'The histogram limits of the density plot'],
@@ -828,7 +836,8 @@ rcParams = RcParams(defaultParams={
 
     # SimplePlot
     'plotter.line.coord': [
-        None, try_and_error(validate_none, validate_str, validate_stringlist),
+        None, try_and_error(validate_none, validate_dataarray,
+                            validate_str, validate_stringlist),
         'Alternative x-coordinate to use for LinePlotter'],
     'plotter.line.plot': [
         '-', validate_lineplot,
@@ -848,7 +857,8 @@ rcParams = RcParams(defaultParams={
     'plotter.line.erroralpha': [
         0.15, validate_alpha, 'The alpha value of the error range'],
     'plotter.bar.coord': [
-        None, try_and_error(validate_none, validate_str, validate_stringlist),
+        None, try_and_error(validate_none, validate_dataarray,
+                            validate_str, validate_stringlist),
         'Alternative x-coordinate to use for BarPlotter'],
     'plotter.bar.widths': [
         'equal', ValidateInStrings('spacing', ['equal', 'data'], True),

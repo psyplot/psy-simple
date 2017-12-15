@@ -105,6 +105,8 @@ class AlternativeXCoord(Formatoption):
         Use the default
     str
         The name of the variable to use in the base dataset
+    xarray.DataArray
+        An alternative variable with the same shape as the displayed array
 
     Examples
     --------
@@ -154,10 +156,25 @@ class AlternativeXCoord(Formatoption):
 
     data_dependent = True
 
+    #: Bool. If True, this Formatoption directly uses the raw_data, otherwise
+    #: use the normal data
+    use_raw_data = True
+
+    @property
+    def data_iterator(self):
+        return self.iter_raw_data if self.use_raw_data else self.iter_data
+
     def update(self, value):
         if value is not None:
-            for i, da in enumerate(self.iter_raw_data):
+            for i, da in enumerate(self.data_iterator):
                 self.set_data(self.replace_coord(i), i)
+
+    def diff(self, value):
+        try:
+            return ~((np.shape(value) == np.shape(self.value)) &
+                     np.all(value == self.value))
+        except TypeError:
+            return True
 
     def replace_coord(self, i):
         """Replace the coordinate for the data array at the given position
@@ -171,7 +188,7 @@ class AlternativeXCoord(Formatoption):
         Returns
         xarray.DataArray
             The data array with the replaced coordinate"""
-        da = next(islice(self.iter_raw_data, i, i+1))
+        da = next(islice(self.data_iterator, i, i+1))
         name, coord = self.get_alternative_coord(da, i)
         other_coords = {key: da.coords[key]
                         for key in set(da.coords).difference(da.dims)}
@@ -180,11 +197,23 @@ class AlternativeXCoord(Formatoption):
         return ret
 
     def get_alternative_coord(self, da, i):
+        if isinstance(self.value, xr.DataArray):
+            return self.value.name, self.value.variable
         alternative_name = next(islice(cycle(safe_list(self.value)), i, i+1))
         coord_da = InteractiveList.from_dataset(
             da.psy.base, name=alternative_name, dims=da.psy.idims)[0]
         coord = xr.Variable((coord_da.name, ), coord_da, coord_da.attrs)
         return coord_da.name, coord
+
+
+class AlternativeXCoordPost(AlternativeXCoord):
+    # The same as the :class:`AlternativeXCoord, but it uses the
+    # :attr:`psyplot.plotter.Formatoption.data` attribute as a src, not the
+    # :attr:`psyplot.plotter.Formatoption.raw_data`
+
+    __doc__ = AlternativeXCoord.__doc__
+
+    use_raw_data = False
 
 
 class Grid(Formatoption):
@@ -5453,4 +5482,12 @@ class FldmeanPlotter(LinePlotter):
 
     err_calc = ErrorCalculator('err_calc')
     mean = MeanCalculator('mean')
-    coord = None
+
+    # We reimplement the masking formatoption to make sure, that they are
+    # called after the mean calculation
+    maskgeq = MaskGeq('maskgeq', additional_children=['err_calc'])
+    maskleq = MaskLeq('maskleq', additional_children=['err_calc'])
+    maskgreater = MaskGreater('maskgreater', additional_children=['err_calc'])
+    maskless = MaskLess('maskless', additional_children=['err_calc'])
+    maskbetween = MaskBetween('maskbetween', additional_children=['err_calc'])
+    coord = AlternativeXCoordPost('coord', additional_children=['err_calc'])
