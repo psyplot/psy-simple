@@ -3104,8 +3104,8 @@ class DataGrid(Formatoption):
         ybounds = self.ybounds
         xbounds = self.xbounds
         if xbounds.ndim == 2:
-            warn('[%s] - The visualization of a datagrid is not implemented for '
-                 'circumpolar grids' % self.logger.name)
+            warn('[%s] - The visualization of a datagrid is not implemented '
+                 'for circumpolar grids' % self.logger.name)
         else:
             try:
                 value.setdefault('transform', self.transform.projection)
@@ -3116,9 +3116,8 @@ class DataGrid(Formatoption):
                 self.ax.vlines(xbounds, ybounds.min(), ybounds.max(), **value)]
 
     def update(self, value):
-        if value is None:
-            self.remove()
-        else:
+        self.remove()
+        if value is not None:
             if self.decoder.is_triangular(self.raw_data):
                 self._triplot(value)
             else:
@@ -3199,7 +3198,7 @@ class XTicks2D(XTicks):
             return data[0]
         try:
             return xr.concat(data)
-        except:
+        except Exception:
             self.logger.debug(
                 'Failed to concatenate the data, returning first object!',
                 exc_info=True)
@@ -3223,7 +3222,7 @@ class YTicks2D(YTicks):
             return data[0]
         try:
             return xr.concat(data)
-        except:
+        except Exception:
             self.logger.debug(
                 'Failed to concatenate the data, returning first object!',
                 exc_info=True)

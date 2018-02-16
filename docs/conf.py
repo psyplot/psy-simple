@@ -210,7 +210,7 @@ intersphinx_mapping = {
     'xarray': ('http://xarray.pydata.org/en/stable/', None),
     'cartopy': ('http://scitools.org.uk/cartopy/docs/latest/', None),
     'mpl_toolkits': ('http://matplotlib.org/basemap/', None),
-    'psyplot': ('https://psyplot.readthedocs.io/en/v1.0.0.dev0', None),
+    'psyplot': ('https://psyplot.readthedocs.io/en/dev', None),
     'psy_maps': (
         'https://psyplot.readthedocs.io/projects/psy-maps/en/latest/', None),
     'psy_reg': ('https://psyplot.readthedocs.io/projects/psy-reg/en/latest/',
