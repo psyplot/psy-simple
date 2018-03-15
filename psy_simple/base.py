@@ -2,11 +2,13 @@ import six
 from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
+from functools import partial
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psyplot.docstring import docstrings, safe_modulo, dedents, dedent
 from psyplot.data import InteractiveList
+from psyplot import utils
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)
@@ -174,6 +176,11 @@ class TextBase(object):
         self._enhanced_attrs = self.plotter.get_enhanced_attrs(*args, **kwargs)
         return self._enhanced_attrs
 
+    def get_fmt_widget(self, parent, project):
+        """Create a combobox with the attributes"""
+        from psy_simple.widgets.texts import LabelWidget
+        return LabelWidget(parent, self, project)
+
 
 docstrings.params['fontweights'] = dedents("""
     float
@@ -252,6 +259,13 @@ def label_weight(base, label_name=None, children=[], parents=[],
             for text in getattr(self, base.key).texts:
                 text.set_weight(value)
 
+        def get_fmt_widget(self, parent, project):
+            """Get a widget with the different font weights"""
+            from psy_simple.widgets.texts import FontWeightWidget
+            return FontWeightWidget(
+                parent, self, next(iter(getattr(self, base.key).texts), None),
+                base)
+
     return LabelWeight(base.key + 'weight')
 
 
@@ -305,7 +319,15 @@ def label_size(base, label_name=None, children=[], parents=[],
             for text in getattr(self, base.key).texts:
                 text.set_size(value)
 
+        def get_fmt_widget(self, parent, project):
+            """Get a widget with the different font weights"""
+            from psy_simple.widgets.texts import FontSizeWidget
+            return FontSizeWidget(
+                parent, self, next(iter(getattr(self, base.key).texts), None),
+                base)
+
     return LabelSize(base.key + 'size')
+
 
 docstrings.keep_params('label_weight.parameters', 'base', 'label_name')
 
@@ -404,6 +426,13 @@ def label_props(base, label_name=None, children=[], parents=[],
             for text in getattr(self, base.key).texts:
                 text.update(fontprops)
             self._todefault = False
+
+        def get_fmt_widget(self, parent, project):
+            """Get a widget with the different font weights"""
+            from psy_simple.widgets.texts import FontPropertiesWidget
+            return FontPropertiesWidget(
+                parent, self, next(iter(getattr(self, base.key).texts), None),
+                base)
 
     return LabelProps(base.key + 'props')
 

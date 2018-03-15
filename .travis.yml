@@ -2,6 +2,7 @@ language: generic
 env:
   global:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
+    - QT_VERSION=""
     - secure: "QocbcpzKkTWjFW8xKiws6W9cQrw+E+wY6dbH+IX7qnBw1OenPkInqMbquyNhmktPPEsnKfcZODDfHeXmvZYEdtTBWac1xMhT/ql4XiiEZY31JvXKsIRo/F6hcbVWjRFgl8vndv7IGiDaQAUys6VQ0yoS/0RRyIIzgzxb0mqedlZqGwc+hS50qXJSLM7TCgf8aFf7rrBK/I638Hq6GziAV8Zrg7dR+6CkaIkV9Lorz+suk/VcZSu1r1PCV4v54siY55FQhya/faEb4NPr5LGgtlLJ4v2trDxyc1jZTCbQtYm/rgpNP8KFMRHHPwlHBSjRHKdGiGnBwdPMKn7C//q0f/45ipnvVB439ku225juLO/ciq73FikOzmvlRCA+/FkR5QPdOhTmXLxrnvz5vKbaEoFncrwZwmh8cnAsCGEWly8RF2wieN1TeREMoDYi0AW5HO1E0tjcjN6ELBJUiw8WnxD0UufNHxUv0uv3g0Xug4JMQqj4qeNdvu1LL+XcqB4M/vnfgw9aZu0yU0PwBphg/xYzr+cMOxmds6SS9VYtYYL+HqQTuEWdlo4Vgk0gw9zfBL38Wxs+u4hcUYkpok0Nt+GTYm8wuQwKyCVbuEz17RLEIez62XWgN8nskFA4IrVDoC2/ADRWAg1cr2Z98aq0bpKOgXcXaBhtAhTofEhJE2o="
 matrix:
     include:
@@ -9,6 +10,7 @@ matrix:
         - env:
             - PYTHON_VERSION=3.6
             - MPL_VERSION=2.2
+            - QT_VERSION=5
           os: linux
         - env:
             - PYTHON_VERSION=3.6
@@ -37,6 +39,7 @@ matrix:
         - env:
             - PYTHON_VERSION=2.7
             - MPL_VERSION=2.1
+            - QT_VERSION=4
           os: linux
         - env:
             - PYTHON_VERSION=2.7
@@ -133,6 +136,12 @@ install:
   # NOTE: Remove this when psyplot is stable enough
   - git clone "https://github.com/Chilipp/psyplot.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot.git"
   - cd psyplot && python setup.py install && cd .. && rm -rf psyplot
+  # install psyplot-gui if desired
+  - if [[ "$QT_VERSION" != "" ]]; then
+        git clone "https://github.com/Chilipp/psyplot-gui.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot-gui.git";
+        conda env update -n $ENVKEY -f "psyplot-gui/tests/envs/environment_py${PYTHON_VERSION}_qt${QT_VERSION}.yml" &&
+        cd psyplot-gui && python setup.py install && cd .. && rm -rf psyplot-gui;
+    fi
   # install coveralls
   - pip install coveralls pytest-xdist pytest-cov
   # install psyplot
@@ -148,12 +157,13 @@ install:
   - psyplot -aV
   # export the token to make it available for the deploy
   - export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE
+  - if [[ $QT_VERSION == "" ]]; then export IGNORE='--ignore=tests/widgets'; fi
 
 script:
   # create the necessary references
-  - py.test -v --ref --cov=psy_simple && python ci/check_ref_deploy.py
+  - py.test -v --ref --cov=psy_simple $IGNORE && python ci/check_ref_deploy.py
   # run the tests
-  - py.test -v -n $NCORES --cov-append --cov=psy_simple
+  - py.test -v -n $NCORES --cov-append --cov=psy_simple $IGNORE
 
 after_success:
   - coveralls
