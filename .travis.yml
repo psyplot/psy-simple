@@ -157,13 +157,16 @@ install:
   - psyplot -aV
   # export the token to make it available for the deploy
   - export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE
-  - if [[ $QT_VERSION == "" ]]; then export IGNORE='--ignore=tests/widgets'; fi
 
 script:
   # create the necessary references
-  - py.test -v --ref --cov=psy_simple $IGNORE && python ci/check_ref_deploy.py
+  - py.test -v --ref --cov=psy_simple --ignore=tests/widgets && python ci/check_ref_deploy.py
   # run the tests
-  - py.test -v -n $NCORES --cov-append --cov=psy_simple $IGNORE
+  - py.test -v -n $NCORES --cov-append --cov=psy_simple --ignore=tests/widgets
+  # test GUI widgets
+  - if [[ $QT_VERSION == "" ]]; then
+        py.test -v --cov-append --cov=psy_simple tests/widgets;
+    fi
 
 after_success:
   - coveralls
