@@ -140,7 +140,7 @@ install:
   - if [[ "$QT_VERSION" != "" ]]; then
         git clone "https://github.com/Chilipp/psyplot-gui.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot-gui.git";
         conda env update -n $ENVKEY -f "psyplot-gui/tests/envs/environment_py${PYTHON_VERSION}_qt${QT_VERSION}.yml" &&
-        cd psyplot-gui && python setup.py install && cd .. && rm -rf psyplot-gui;
+        cd psyplot-gui && python setup.py install --no-deps && cd .. && rm -rf psyplot-gui;
     fi
   # install coveralls
   - pip install coveralls pytest-xdist pytest-cov
@@ -164,7 +164,7 @@ script:
   # run the tests
   - py.test -v -n $NCORES --cov-append --cov=psy_simple --ignore=tests/widgets
   # test GUI widgets
-  - if [[ $QT_VERSION == "" ]]; then
+  - if [[ $QT_VERSION != "" ]]; then
         py.test -v --cov-append --cov=psy_simple tests/widgets;
     fi
 
