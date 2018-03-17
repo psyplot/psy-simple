@@ -3,7 +3,6 @@
 
 This module contains PyQt widgets that can be used to modify label
 formatoptions (e.g. title, xlabel, titleprops, etc.) in the psyplot GUI."""
-import yaml
 from psyplot_gui.compat.qtcompat import (
     QWidget, QComboBox, QHBoxLayout, QPushButton, QLabel, QtGui, with_qt5,
     QToolButton, QIcon, Qt)
@@ -23,22 +22,41 @@ else:
     from PyQt4.QtGui import QSpinBox, QFontDialog, QColorDialog
 
 
-weights_mpl2qt = OrderedDict([
-    ('ultralight', QtGui.QFont.ExtraLight),
-    ('light', QtGui.QFont.Light),
-    ('normal', QtGui.QFont.Normal),
-    ('regular', QtGui.QFont.Normal),
-    ('book', QtGui.QFont.Normal),
-    ('medium', QtGui.QFont.Medium),
-    ('roman', QtGui.QFont.Medium),
-    ('semibold', QtGui.QFont.DemiBold),
-    ('demibold', QtGui.QFont.DemiBold),
-    ('demi', QtGui.QFont.DemiBold),
-    ('bold', QtGui.QFont.Bold),
-    ('heavy', QtGui.QFont.Bold),
-    ('extra bold', QtGui.QFont.ExtraBold),
-    ('black', QtGui.QFont.Black),
-    ])
+if with_qt5:
+    weights_mpl2qt = OrderedDict([
+        ('ultralight', QtGui.QFont.ExtraLight),
+        ('light', QtGui.QFont.Light),
+        ('normal', QtGui.QFont.Normal),
+        ('regular', QtGui.QFont.Normal),
+        ('book', QtGui.QFont.Normal),
+        ('medium', QtGui.QFont.Medium),
+        ('roman', QtGui.QFont.Medium),
+        ('semibold', QtGui.QFont.DemiBold),
+        ('demibold', QtGui.QFont.DemiBold),
+        ('demi', QtGui.QFont.DemiBold),
+        ('bold', QtGui.QFont.Bold),
+        ('heavy', QtGui.QFont.Bold),
+        ('extra bold', QtGui.QFont.ExtraBold),
+        ('black', QtGui.QFont.Black),
+        ])
+else:
+    weights_mpl2qt = OrderedDict([
+        ('ultralight', QtGui.QFont.Light),
+        ('light', QtGui.QFont.Light),
+        ('normal', QtGui.QFont.Normal),
+        ('regular', QtGui.QFont.Normal),
+        ('book', QtGui.QFont.Normal),
+        ('medium', QtGui.QFont.Normal),
+        ('roman', QtGui.QFont.Normal),
+        ('semibold', QtGui.QFont.DemiBold),
+        ('demibold', QtGui.QFont.DemiBold),
+        ('demi', QtGui.QFont.DemiBold),
+        ('bold', QtGui.QFont.Bold),
+        ('heavy', QtGui.QFont.Bold),
+        ('extra bold', QtGui.QFont.Black),
+        ('black', QtGui.QFont.Black),
+        ])
+
 
 weights_qt2mpl = OrderedDict(
     map(reversed, utils.unique_everseen(weights_mpl2qt.items(),
@@ -54,8 +72,8 @@ class DictCombo(QComboBox):
         self.addItems(
             [''] +
             [(key + ': ' + str(val))[:40] for key, val in attrs.items()])
-        self.currentTextChanged.connect(
-            self.insert_modulo if modulo_style else self.insert_bracketed)
+        func = self.insert_modulo if modulo_style else self.insert_bracketed
+        self.currentTextChanged.connect(func)
 
     def insert_modulo(self, s):
         self.fmt_widget.insert_obj(
