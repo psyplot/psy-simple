@@ -63,6 +63,35 @@ weights_qt2mpl = OrderedDict(
                                         key=lambda t: t[1])))
 
 
+def mpl_weight2qt(weight):
+    """Convert a weight from matplotlib definition to a Qt weight
+
+    Parameters
+    ----------
+    weight: int or string
+        Either an integer between 1 and 1000 or a string out of
+        :attr:`weights_mpl2qt`
+
+    Returns
+    -------
+    int
+        One type of the PyQt5.QtGui.QFont.Weight"""
+    try:
+        weight = weights_mpl2qt[weight]
+    except KeyError:
+        try:
+            weight = float(weight) / 10
+        except (ValueError, TypeError):
+            weight = QtGui.QFont.Normal
+        else:
+            try:
+                weight = min(filter(lambda w: w >= weight, weights_qt2mpl),
+                             key=lambda w: abs(w - weight))
+            except ValueError:
+                weight = QtGui.QFont.Normal
+    return weight
+
+
 class DictCombo(QComboBox):
     """A combobox that inserts keys into the formatoption"""
 
@@ -163,7 +192,7 @@ class FontWeightWidget(QWidget):
         try:
             weight = int(weight)
         except ValueError:
-            pass
+            spin_box.setValue(mpl_weight2qt(weight) * 10)
         else:
             spin_box.setValue(weight)
         spin_box.valueChanged.connect(parent.set_obj)
@@ -173,6 +202,8 @@ class FontWeightWidget(QWidget):
         combo.addItems(list(weights_mpl2qt))
         if weight in weights_mpl2qt:
             combo.setCurrentText(weight)
+        else:
+            combo.setCurrentText(weights_qt2mpl[mpl_weight2qt(weight)])
         combo.currentTextChanged.connect(parent.set_obj)
         hbox.addWidget(combo)
 
@@ -323,7 +354,7 @@ class FontPropertiesWidget(QWidget):
         PyQt5.QtGui.QFont
             The QFont object"""
         size = int(artist.get_size())
-        weight = weights_mpl2qt[artist.get_weight()]
+        weight = mpl_weight2qt(artist.get_weight())
         italic = artist.get_style() == 'italic'
         for family in artist.get_family():
             if family in ['sans-serif', 'cursive', 'monospace', 'serif']:
