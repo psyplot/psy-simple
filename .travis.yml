@@ -166,7 +166,7 @@ script:
   - py.test -v -n $NCORES --cov-append --cov=psy_simple --ignore=tests/widgets
   # test GUI widgets
   - 'if [[ $QT_VERSION != "" ]]; then
-        echo "backend : module://psyplot_gui.backend" > matplotlibrc
+        echo "backend : module://psyplot_gui.backend" > matplotlibrc;
         coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
         coverage report;
     fi'
