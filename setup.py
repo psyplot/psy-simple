@@ -59,6 +59,10 @@ setup(name='psy-simple',
       install_requires=[
           'psyplot',
       ],
+      package_data={'psy_simple': [
+          osp.join('psy_simple', 'widgets', 'icons', '*.png'),
+          ]},
+      include_package_data=True,
       tests_require=['pytest'],
       cmdclass={'test': PyTest},
       entry_points={'psyplot': ['plugin=psy_simple.plugin',
