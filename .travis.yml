@@ -160,12 +160,12 @@ install:
 
 script:
   # create the necessary references
-  - py.test -v --ref --cov=psy_simple --ignore=tests/widgets && python ci/check_ref_deploy.py
+  - coverage run --source=psy_simple setup.py test -a "-v --ref --ignore=tests/widgets"
   # run the tests
   - py.test -v -n $NCORES --cov-append --cov=psy_simple --ignore=tests/widgets
   # test GUI widgets
   - if [[ $QT_VERSION != "" ]]; then
-        py.test -v --cov-append --cov=psy_simple tests/widgets;
+        coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets";
     fi
 
 after_success:
