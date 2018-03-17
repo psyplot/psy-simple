@@ -39,11 +39,11 @@ matrix:
         - env:
             - PYTHON_VERSION=2.7
             - MPL_VERSION=2.1
-            - QT_VERSION=4
           os: linux
         - env:
             - PYTHON_VERSION=2.7
             - MPL_VERSION=2.0
+            - QT_VERSION=4
           os: linux
         - env:
             - PYTHON_VERSION=2.7
