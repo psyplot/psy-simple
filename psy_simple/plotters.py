@@ -2531,8 +2531,47 @@ class CMap(Formatoption):
 
     name = 'Colormap'
 
+    connections = ['bounds', 'cbar']  # necessary for get_fmt_widget
+
+    def get_cmap(self, arr=None, cmap=None, N=None):
+        """Get the :class:`matplotlib.colors.Colormap` for plotting
+
+        Parameters
+        ----------
+        arr: np.ndarray
+            The array to plot
+        cmap: str or matplotlib.colors.Colormap
+            The colormap to use. If None, the :attr:`value` of this
+            formatoption is used
+        N: int
+            The number of colors in the colormap. If None, the norm of the
+            :attr:`bounds` formatoption is used and, if necessary, the
+            given array `arr`
+
+        Returns
+        -------
+        matplotlib.colors.Colormap
+            The colormap returned by :func:`psy_simple.colors.get_cmap`"""
+        N = N or None
+        if cmap is None:
+            cmap = self.value
+        if N is None:
+            try:
+                N = self.bounds.norm.Ncmap
+            except AttributeError:
+                if arr is not None and self.bounds.norm is not None:
+                    N = len(np.unique(self.bounds.norm(arr.ravel())))
+        if N is not None:
+            return get_cmap(cmap, N)
+        return get_cmap(cmap)
+
     def update(self, value):
         pass  # the colormap is set when plotting
+
+    def get_fmt_widget(self, parent, project):
+        """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
+        from psy_simple.widgets.colors import CMapFmtWidget
+        return CMapFmtWidget(parent, self, project)
 
 
 class MissColor(Formatoption):
@@ -2661,6 +2700,8 @@ class Bounds(DataTicksCalculator):
 
     name = 'Boundaries of the color map'
 
+    connections = ['cmap', 'cbar']  # necessary for get_fmt_widget
+
     @property
     def value2share(self):
         """The normalization instance"""
@@ -2678,6 +2719,11 @@ class Bounds(DataTicksCalculator):
             self.bounds = value
             self.norm = mpl.colors.BoundaryNorm(
                 value, len(value) - 1)
+
+    def get_fmt_widget(self, parent, project):
+        """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
+        from psy_simple.widgets.colors import BoundsFmtWidget
+        return BoundsFmtWidget(parent, self, project)
 
 
 def format_coord_func(ax, ref):
@@ -2857,11 +2903,7 @@ class Plot2D(Formatoption):
         if self.decoder.is_triangular(self.raw_data):
             return self._tripcolor()
         arr = self.array
-        try:
-            N = self.bounds.norm.Ncmap
-        except AttributeError:
-            N = len(np.unique(self.bounds.norm(arr.ravel())))
-        cmap = get_cmap(self.cmap.value, N)
+        cmap = self.cmap.get_cmap(arr)
         if hasattr(self, '_plot'):
             self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
             # for cartopy, we have to consider the wrapped collection if the
@@ -2893,11 +2935,7 @@ class Plot2D(Formatoption):
                 self.levels.key):
             self.remove()
         arr = self.array
-        try:
-            N = self.bounds.norm.Ncmap
-        except AttributeError:
-            N = len(np.unique(self.bounds.norm(arr.ravel())))
-        cmap = get_cmap(self.cmap.value, N)
+        cmap = self.cmap.get_cmap(arr)
         filled = self.value not in ['contour', 'tricontour']
         if hasattr(self, '_plot'):
             self._plot.set_cmap(cmap)
@@ -2930,11 +2968,10 @@ class Plot2D(Formatoption):
         triangles = self.triangles
         arr = None
         try:
-            N = self.bounds.norm.Ncmap
+            self.bounds.norm.Ncmap
         except AttributeError:
             arr = self.array
-            N = len(np.unique(self.bounds.norm(arr.ravel())))
-        cmap = get_cmap(self.cmap.value, N)
+        cmap = self.cmap.get_cmap(arr)
         if hasattr(self, '_plot'):
             self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
         else:
@@ -5398,8 +5435,9 @@ class CombinedBase(ScalarCombinedBase):
                                  dependencies=['vclabel'])
     vclabelprops = label_props(vclabel, 'Vector colorbar label',
                                dependencies=['vclabel'])
-    vcmap = CMap('vcmap', index_in_list=1)
-    vbounds = VectorBounds('vbounds', index_in_list=1)
+    vcmap = CMap('vcmap', index_in_list=1, bounds='vbounds', cbar='vcbar')
+    vbounds = VectorBounds('vbounds', index_in_list=1, cmap='vcmap',
+                           cbar='vcbar')
     vcticks = VectorCTicks('vcticks', cbar='vcbar', plot='vplot',
                            bounds='vbounds', index_in_list=1)
     vcticklabels = CTickLabels('vcticklabels', cbar='vcbar', index_in_list=1)

@@ -6,7 +6,7 @@ formatoptions (e.g. title, xlabel, titleprops, etc.) in the psyplot GUI."""
 from psyplot_gui.compat.qtcompat import (
     QWidget, QComboBox, QHBoxLayout, QPushButton, QLabel, QtGui, with_qt5,
     QToolButton, QIcon, Qt)
-from psy_simple.widgets import get_icon
+from psy_simple.widgets import get_icon, Switch2FmtButton
 from warnings import warn
 import matplotlib as mpl
 import matplotlib.colors as mcol
@@ -150,13 +150,15 @@ class LabelWidget(QWidget):
         attr_combo = DictCombo(attrs, parent)
         hbox.addWidget(attr_combo)
 
-        # add a button to change to the properties formatoption
-        props = getattr(fmto.plotter, fmto.key + 'props', None)
-        if props is not None:
-            self.btn_properties = button = QPushButton('Font properties')
-            button.clicked.connect(partial(parent.set_fmto,
-                                           parent.get_name(props)))
-            hbox.addWidget(button)
+        fmtos = [
+            # add a button to change to the properties formatoption
+            getattr(fmto.plotter, fmto.key + 'props', None),
+            getattr(fmto.plotter, fmto.key + 'size', None),
+            getattr(fmto.plotter, fmto.key + 'weight', None)
+            ]
+        fmtos = list(filter(None, fmtos))
+        if fmtos:
+            hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
         self.setLayout(hbox)
 
@@ -209,18 +211,14 @@ class FontWeightWidget(QWidget):
 
         # add a button to change to the properties formatoption
         if base is not None:
-            props = getattr(fmto.plotter, base.key + 'props', None)
-            if props is not None:
-                button = QPushButton('Font properties')
-                button.clicked.connect(partial(parent.set_fmto,
-                                               parent.get_name(props)))
-                hbox.addWidget(button)
+            fmtos = [
+                base,
+                getattr(fmto.plotter, base.key + 'props', None),
+                getattr(fmto.plotter, base.key + 'size', None),
+                ]
+            fmtos = list(filter(None, fmtos))
+            hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
-            # add a button to change to the base formatoption
-            button = QPushButton(base.name or base.key)
-            button.clicked.connect(partial(parent.set_fmto,
-                                           parent.get_name(base)))
-            hbox.addWidget(button)
         self.setLayout(hbox)
 
 
@@ -254,18 +252,14 @@ class FontSizeWidget(QWidget):
 
         # add a button to change to the properties formatoption
         if base is not None:
-            props = getattr(fmto.plotter, base.key + 'props', None)
-            if props is not None:
-                button = QPushButton('Font properties')
-                button.clicked.connect(partial(parent.set_fmto,
-                                               parent.get_name(props)))
-                hbox.addWidget(button)
+            fmtos = [
+                base,
+                getattr(fmto.plotter, base.key + 'props', None),
+                getattr(fmto.plotter, base.key + 'weight', None),
+                ]
+            fmtos = list(filter(None, fmtos))
+            hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
-            # add a button to change to the base formatoption
-            button = QPushButton(base.name or base.key)
-            button.clicked.connect(partial(parent.set_fmto,
-                                           parent.get_name(base)))
-            hbox.addWidget(button)
         self.setLayout(hbox)
 
 
@@ -291,8 +285,6 @@ class FontPropertiesWidget(QWidget):
         else:
             self.current_color = QtGui.QColor(Qt.black)
         self.fmto_name = fmto.name or fmto.key
-
-        hbox.addStretch(0)
 
         # choose font button
         button = QPushButton('Choose font')
@@ -333,10 +325,13 @@ class FontPropertiesWidget(QWidget):
 
         if base is not None:
             # add a button to change to the base formatoption
-            button = QPushButton(base.name or base.key)
-            button.clicked.connect(partial(parent.set_fmto,
-                                           parent.get_name(base)))
-            hbox.addWidget(button)
+            fmtos = [
+                base,
+                getattr(fmto.plotter, base.key + 'size', None),
+                getattr(fmto.plotter, base.key + 'weight', None),
+                ]
+            fmtos = list(filter(None, fmtos))
+            hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
         self.setLayout(hbox)
 

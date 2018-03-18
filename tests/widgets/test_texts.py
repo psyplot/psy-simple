@@ -28,8 +28,7 @@ class TitleFmtWidgetTest(bt.PsyPlotGuiTestCase):
         """Test changes"""
         self.fmt_widget.fmto = self.plotter.title
         self.assertIsInstance(self.fmt_widget.fmt_widget, pswt.LabelWidget)
-        QTest.mouseClick(self.fmt_widget.fmt_widget.btn_properties,
-                         Qt.LeftButton)
+        self.fmt_widget.fmto = self.plotter.titleprops
         self.assertIsInstance(self.fmt_widget.fmt_widget,
                               pswt.FontPropertiesWidget)
         self.fmt_widget.fmto = self.plotter.titleweight

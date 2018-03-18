@@ -17,16 +17,17 @@ class TestShowColormaps(unittest.TestCase):
 
     def test_all(self):
         """Test the display of all colormaps"""
-        psyc.show_colormaps()
-        self.assertEqual(plt.get_fignums(), [1])
-        self.assertGreater(len(plt.gcf().axes), 15)
+        fig = psyc.show_colormaps(use_qt=False)
+        self.assertEqual(fig.number, 1)
+        self.assertGreater(len(fig.axes), 15)
 
     def test_some(self):
         """Test the display of a selection of colormaps"""
         cmap = plt.get_cmap('Reds')
-        psyc.show_colormaps('jet', cmap, 'red_white_blue')
-        self.assertEqual(plt.get_fignums(), [1])
-        self.assertEqual(len(plt.gcf().axes), 3)
+        fig = psyc.show_colormaps(['jet', cmap, 'red_white_blue'],
+                                  use_qt=False)
+        self.assertEqual(fig.number, 1)
+        self.assertEqual(len(fig.axes), 3)
 
     @unittest.skipIf(
         six.PY2 or (bt.sns_version is not None and bt.sns_version < '0.8'),
@@ -34,9 +35,9 @@ class TestShowColormaps(unittest.TestCase):
     def test_warning_similar(self):
         """Test the display of a warning of a slightly misspelled cmap"""
         with self.assertWarnsRegex(UserWarning, 'Similar colormaps'):
-            psyc.show_colormaps('jett')
-        self.assertEqual(plt.get_fignums(), [1])
-        self.assertEqual(len(plt.gcf().axes), 0)
+            fig = psyc.show_colormaps('jett', use_qt=False)
+        self.assertEqual(fig.number, 1)
+        self.assertEqual(len(fig.axes), 0)
 
     @unittest.skipIf(
         six.PY2 or (bt.sns_version is not None and bt.sns_version < '0.8'),
@@ -45,9 +46,9 @@ class TestShowColormaps(unittest.TestCase):
         """Test the display of a warning of a completely unknown cmap"""
         with self.assertWarnsRegex(UserWarning,
                                    'Run function without arguments'):
-            psyc.show_colormaps('asdfkj')
-        self.assertEqual(plt.get_fignums(), [1])
-        self.assertEqual(len(plt.gcf().axes), 0)
+            fig = psyc.show_colormaps('asdfkj', use_qt=False)
+        self.assertEqual(fig.number, 1)
+        self.assertEqual(len(fig.axes), 0)
 
 
 if __name__ == '__main__':

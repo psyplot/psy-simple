@@ -13,6 +13,8 @@ from itertools import chain
 from warnings import warn
 from psyplot.docstring import docstrings
 from psyplot import rcParams
+from psyplot.data import safe_list
+import psyplot
 
 
 _cmapnames = {  # names of self defined colormaps (see get_cmap function below)
@@ -196,8 +198,33 @@ def get_cmap(name, lut=None):
         return cmap
 
 
+def _get_cmaps(names):
+    """Filter the given `names` for colormaps"""
+    import matplotlib.pyplot as plt
+    available_cmaps = list(
+        chain(plt.cm.cmap_d, _cmapnames, rcParams['colors.cmaps']))
+    names = list(names)
+    wrongs = []
+    for arg in (arg for arg in names if (not isinstance(arg, Colormap) and
+                                         arg not in available_cmaps)):
+        if isinstance(arg, str):
+            similarkeys = get_close_matches(arg, available_cmaps)
+        if similarkeys != []:
+            warn("Colormap %s not found in standard colormaps.\n"
+                 "Similar colormaps are %s." % (arg, ', '.join(similarkeys)))
+        else:
+            warn("Colormap %s not found in standard colormaps.\n"
+                 "Run function without arguments to see all colormaps" % arg)
+        names.remove(arg)
+        wrongs.append(arg)
+    if not names and not wrongs:
+        names = sorted(m for m in available_cmaps if not m.endswith("_r"))
+    return names
+
+
+@docstrings.get_sectionsf('show_colormaps')
 @docstrings.dedent
-def show_colormaps(*args, **kwargs):
+def show_colormaps(names=[], N=10, show=True, use_qt=None):
     """Function to show standard colormaps from pyplot
 
     Parameters
@@ -210,15 +237,28 @@ def show_colormaps(*args, **kwargs):
     show: bool, optional
         Default: True. If True, show the created figure at the end with
         pyplot.show(block=False)
+    use_qt: bool
+        If True, use the
+        :class:`psy_simple.widgets.color.ColormapDialog.show_colormaps`, if
+        False use a matplotlib implementation based on [1]_. If None, use
+        the Qt implementation if it is running in the psyplot GUI.
 
-    Notes
-    -----
-    This function has been taken from [1]_ and enhanced in November 2014.
+    Returns
+    -------
+    psy_simple.widgets.color.ColormapDialog or matplitlib.figure.Figure
+        Depending on `use_qt`, either an instance of the
+        :class:`psy_simple.widgets.color.ColormapDialog` or the
+        :class:`matplotlib.figure.Figure`
 
     References
     ----------
     .. [1] http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html
     """
+    names = safe_list(names)
+    if use_qt or (use_qt is None and psyplot.with_gui):
+        from psy_simple.widgets.colors import ColormapDialog
+        from psyplot_gui.main import mainwindow
+        return ColormapDialog.show_colormap(names, N, show, parent=mainwindow)
     import matplotlib.pyplot as plt
     # This example comes from the Cookbook on www.scipy.org.  According to the
     # history, Andrew Straw did the conversion from an old page, but it is
@@ -227,41 +267,18 @@ def show_colormaps(*args, **kwargs):
     # Get a list of the colormaps in matplotlib.  Ignore the ones that end with
     # '_r' because these are simply reversed versions of ones that don't end
     # with '_r'
-    available_cmaps = list(
-        chain(plt.cm.cmap_d, _cmapnames, rcParams['colors.cmaps']))
-    args = list(args)
-    wrongs = []
-    for arg in (arg for arg in args if (not isinstance(arg, Colormap) and
-                                        arg not in available_cmaps)):
-        if isinstance(arg, str):
-            similarkeys = get_close_matches(arg, available_cmaps)
-        if similarkeys != []:
-            warn("Colormap %s not found in standard colormaps.\n"
-                 "Similar colormaps are %s." % (arg, ', '.join(similarkeys)))
-        else:
-            warn("Colormap %s not found in standard colormaps.\n"
-                 "Run function without arguments to see all colormaps" % arg)
-        args.remove(arg)
-        wrongs.append(arg)
-    if not args and not wrongs:
-        args = sorted(m for m in available_cmaps if not m.endswith("_r"))
-    nargs = len(args) + 1
+    cmaps = _get_cmaps(names)
+    nargs = len(cmaps) + 1
     fig = plt.figure(figsize=(5, 10))
     fig.subplots_adjust(top=0.99, bottom=0.01, left=0.2, right=0.99)
-    N = kwargs.pop('N', 11)
-    show = kwargs.pop('show', True)
-    if kwargs:
-        raise TypeError(
-            'show_colormaps() got an unexpected keyword argument %s' % (
-                kwargs.keys[0]))
-
-    for i, m in enumerate(args):
+    for i, m in enumerate(cmaps):
         ax = plt.subplot(nargs, 1, i+1)
         plt.axis("off")
-        plt.pcolormesh(a, cmap=get_cmap(m, N))
+        plt.pcolormesh(a, cmap=get_cmap(m, N + 1))
         pos = list(ax.get_position().bounds)
         fig.text(pos[0] - 0.01, pos[1], m, fontsize=10,
                  horizontalalignment='right')
     fig.canvas.set_window_title("Figure %i: Predefined colormaps" % fig.number)
     if show:
         plt.show(block=False)
+    return fig

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Module defining the base class for the gui test"""
+import six
 import os
 import os.path as osp
+import numpy as np
 import unittest
 
 os.environ['PSYPLOT_PLUGINS'] = 'yes:psy_simple.plugin'
@@ -92,3 +94,36 @@ class PsyPlotGuiTestCase(unittest.TestCase):
         str
             The complete path to the given file"""
         return osp.join(osp.dirname(__file__), fname)
+
+    def assertAlmostArrayEqual(self, actual, desired, rtol=1e-07, atol=0,
+                               msg=None, **kwargs):
+        """Asserts that the two given arrays are almost the same
+
+        This method uses the :func:`numpy.testing.assert_allclose` function
+        to compare the two given arrays.
+
+        Parameters
+        ----------
+        actual : array_like
+            Array obtained.
+        desired : array_like
+            Array desired.
+        rtol : float, optional
+            Relative tolerance.
+        atol : float, optional
+            Absolute tolerance.
+        equal_nan : bool, optional.
+            If True, NaNs will compare equal.
+        msg : str, optional
+            The error message to be printed in case of failure.
+        verbose : bool, optional
+            If True, the conflicting values are appended to the error message.
+        """
+        try:
+            np.testing.assert_allclose(actual, desired, rtol=rtol, atol=atol,
+                                       err_msg=msg or '', **kwargs)
+        except AssertionError as e:
+            if six.PY2:
+                self.fail(e.message)
+            else:
+                self.fail(str(e))
