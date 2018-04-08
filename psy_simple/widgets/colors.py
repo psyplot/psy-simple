@@ -360,7 +360,7 @@ class ArrayFmtWidget(QWidget):
                 self.txt_step.setText('%1.4g' % steps[0])
                 combo.setCurrentIndex(0)
             else:
-                combo.setCurrentText(1)
+                combo.setCurrentIndex(1)
             self.sb_nsteps.setValue(len(array))
 
         self.toggle_txt_step(combo.currentText())
@@ -403,10 +403,8 @@ class ArrayFmtWidget(QWidget):
             except (ValueError, TypeError):
                 return
             arr = np.arange(vmin, vmax + 0.05 * step, step)
-            print(1, arr)
         else:
             arr = np.linspace(vmin, vmax, self.sb_nsteps.value())
-            print(2, arr)
         self.parent().set_obj(np.round(arr, 4).tolist())
 
 
