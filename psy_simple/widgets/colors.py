@@ -201,7 +201,7 @@ class ColormapDialog(QDialog):
         obj = cls(names, N, *args, **kwargs)
         vbox = obj.layout()
         buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, obj)
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=obj)
         buttons.button(QDialogButtonBox.Ok).setEnabled(False)
         vbox.addWidget(buttons)
         buttons.accepted.connect(obj.accept)
@@ -227,7 +227,7 @@ class ColormapDialog(QDialog):
         names = safe_list(names)
         obj = cls(names, N, *args, **kwargs)
         vbox = obj.layout()
-        buttons = QDialogButtonBox(QDialogButtonBox.Close, obj)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close, parent=obj)
         buttons.rejected.connect(obj.close)
         vbox.addWidget(buttons)
         if show:
