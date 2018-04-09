@@ -60,7 +60,7 @@ See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
 
     .. |conda| image:: https://anaconda.org/conda-forge/psy-simple/badges/version.svg
         :alt: conda
-        :target: https://conda.anaconda.org/conda-forge/psy-simple
+        :target: https://anaconda.org/conda-forge/psy-simple
 
     .. |supported-versions| image:: https://img.shields.io/pypi/pyversions/psy-simple.svg?style=flat
         :alt: Supported versions
