@@ -15,6 +15,7 @@ dependencies:
     - ipykernel
     - sphinx
     - psyplot
+    - psyplot-gui
     - pip:
         - autodocsumm
         - sphinx-nbexamples
