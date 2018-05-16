@@ -26,6 +26,7 @@ from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
 from psyplot.compat.pycompat import map, zip, range
 from psy_simple.plugin import validate_color, validate_float, safe_list
+from psyplot.utils import is_iterable
 
 
 def _get_index_vals(index):
@@ -5100,7 +5101,7 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
         -------
         %(Plotter.check_data.returns)s
         """
-        if isinstance(name, six.string_types):
+        if isinstance(name, six.string_types) or not is_iterable(name):
             name = [name]
             dims = [dims]
         N = len(name)
@@ -5111,11 +5112,12 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
         checks = [True] * N
         messages = [''] * N
         for i, (n, d) in enumerate(zip(name, dims)):
-            if len(n) == 0:
+            if n != 0 and not n:
                 checks[i] = False
                 messages[i] = 'At least one variable name is required!'
-            elif ((not isstring(n) and len(n) > cls.allowed_vars) and
-                  len(d) != (cls.allowed_dims - len(n))):
+            elif ((not isstring(n) and is_iterable(n) and
+                   len(n) > cls.allowed_vars) and
+                  len(d) != (cls.allowed_dims - len(safe_list(n)))):
                 checks[i] = False
                 messages[i] = 'Only %i names are allowed per array!' % (
                     cls.allowed_vars)
@@ -5207,7 +5209,7 @@ class Simple2DBase(Base2D):
         -------
         %(Plotter.check_data.returns)s
         """
-        if isinstance(name, six.string_types):
+        if isinstance(name, six.string_types) or not is_iterable(name):
             name = [name]
             dims = [dims]
             is_unstructured = [is_unstructured]
@@ -5223,7 +5225,7 @@ class Simple2DBase(Base2D):
             return [False], [
                 ('Number of provided unstructured information (%i) must '
                  'equal 1!') % (len(is_unstructured))]
-        if len(name[0]) == 0:
+        if name[0] != 0 and not name[0]:
             return [False], ['At least one variable name must be provided!']
         # unstructured arrays have only 1 dimension
         dimlen = cls.allowed_dims
@@ -5233,8 +5235,8 @@ class Simple2DBase(Base2D):
         #
         # if more than one array name is provided, the dimensions should be
         # one les than dimlen to have a 2D array
-        if (not isstring(name[0]) and len(name[0]) != 1 and
-                len(dims[0]) != dimlen - 1):
+        if (not isstring(name[0] and not is_iterable(name[0]))
+                and len(name[0]) != 1 and len(dims[0]) != dimlen - 1):
             return [False], ['Only one name is allowed per array!']
         # otherwise the number of dimensions must equal dimlen
         if len(dims[0]) != dimlen:
@@ -5330,7 +5332,7 @@ class BaseVectorPlotter(Base2D):
         -------
         %(Plotter.check_data.returns)s
         """
-        if isinstance(name, six.string_types):
+        if isinstance(name, six.string_types) or not is_iterable(name):
             name = [name]
             dims = [dims]
             is_unstructured = [is_unstructured]
@@ -5346,7 +5348,7 @@ class BaseVectorPlotter(Base2D):
             return [False], [
                 ('Number of provided unstructured information (%i) must '
                  'equal 1!') % (len(is_unstructured))]
-        if len(name[0]) == 0:
+        if name[0] != 0 and not name[0]:
             return [False], ['Two variable names must be provided!']
         # unstructured arrays have only 1 dimension
         dimlen = 1 if is_unstructured[0] else 2
@@ -5354,8 +5356,9 @@ class BaseVectorPlotter(Base2D):
         #
         # if more than one array name is provided, the dimensions should be
         # one les than dimlen to have a 2D array
-        if (((isstring(name[0]) or len(name[0]) == 1) and
-             len(dims[0]) != dimlen + 1) or len(name[0]) > 2):
+        if (((isstring(name[0] or not is_iterable(name[0])) or
+              len(name[0]) == 1) and len(dims[0]) != dimlen + 1) or
+                len(name[0]) > 2):
             return [False], [
                 ('Two variables (one for x- and one for y-direction) are '
                  'required!')]
@@ -5467,7 +5470,7 @@ class CombinedBase(ScalarCombinedBase):
         -------
         %(Plotter.check_data.returns)s
         """
-        if isinstance(name, six.string_types):
+        if isinstance(name, six.string_types) or not is_iterable(name):
             name = [name]
             dims = [dims]
             is_unstructured = [is_unstructured]
