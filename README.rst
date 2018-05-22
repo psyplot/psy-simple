@@ -23,7 +23,7 @@ psy-simple: The psyplot plugin for simple visualizations
     :alt: Travis
     :target: https://travis-ci.org/Chilipp/psy-simple
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/3jk6ea1n4a4dl6vk?svg=true
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/pv9kyd8obfrqp5wf?svg=true
     :alt: AppVeyor
     :target: https://ci.appveyor.com/project/Chilipp/psy-simple
 
