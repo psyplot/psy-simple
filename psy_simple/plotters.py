@@ -92,6 +92,26 @@ def round_to_05(n, exp=None, mode='s'):
                     np.sign(n)*nret*10.**exp)
 
 
+def convert_radian(coord, *variables):
+    """Convert the given coordinate from radian to degree
+
+    Parameters
+    ----------
+    coord: xr.Variable
+        The variable to transform
+    ``*variables``
+        The variables that are on the same unit.
+
+    Returns
+    -------
+    xr.Variable
+        The transformed variable if one of the given `variables` has units in
+        radian"""
+    if any(v.attrs.get('units') == 'radian' for v in variables):
+        return coord * 180. / np.pi
+    return coord
+
+
 class AlternativeXCoord(Formatoption):
     """
     Use an alternative variable as x-coordinate
@@ -2393,6 +2413,15 @@ class Xlim2D(Xlim):
                 return triangles.y[triangles.triangles].ravel()
             else:
                 return triangles.x[triangles.triangles].ravel()
+        elif (self.decoder.is_unstructured(data) and
+              xcoord.name == getattr(self.decoder, func)(data).name):
+            bounds = self.decoder.get_unstructured_coord_bounds(
+                xcoord, data.coords)
+            if bounds is None:
+                bounds = xcoord
+            if self.plotter.convert_radian:
+                bounds = convert_radian(bounds, xcoord, bounds)
+            return bounds.values.ravel()
         return self.decoder.get_plotbounds(xcoord)
 
 
@@ -2413,6 +2442,15 @@ class Ylim2D(Ylim):
                 return triangles.x[triangles.triangles].ravel()
             else:
                 return triangles.y[triangles.triangles].ravel()
+        elif (self.decoder.is_unstructured(data) and
+              ycoord.name == getattr(self.decoder, func)(data).name):
+            bounds = self.decoder.get_unstructured_coord_bounds(
+                ycoord, data.coords)
+            if bounds is None:
+                bounds = ycoord
+            if self.plotter.convert_radian:
+                bounds = convert_radian(bounds, ycoord, bounds)
+            return bounds.values.ravel()
         return self.decoder.get_plotbounds(self.transpose.get_y(self.data))
 
 
@@ -2781,6 +2819,8 @@ class InterpolateBounds(Formatoption):
         data
     """
 
+    priority = BEFOREPLOTTING
+
     def update(self, value):
         pass
 
@@ -2827,6 +2867,12 @@ class Plot2D(Formatoption):
         """The (masked) data array that is plotted"""
         arr = self.data.values
         return np.ma.masked_array(arr, mask=np.isnan(arr))
+
+    @property
+    def notnull_array(self):
+        """The data array that is plotted"""
+        arr = self.data.values
+        return arr[~np.isnan(arr)]
 
     @property
     def xbounds(self):
@@ -2879,7 +2925,8 @@ class Plot2D(Formatoption):
             'tricontourf': self._contourf,
             'contour': self._contourf,
             'tricontour': self._contourf,
-            'tri': self._tripcolor}
+            'tri': self._tripcolor,
+            'poly': self._polycolor}
         self._orig_format_coord = None
         self._kwargs = {}
 
@@ -2903,6 +2950,8 @@ class Plot2D(Formatoption):
     def _pcolormesh(self):
         if self.decoder.is_triangular(self.raw_data):
             return self._tripcolor()
+        elif self.decoder.is_unstructured(self.raw_data):
+            return self._polycolor()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
         if hasattr(self, '_plot'):
@@ -2946,10 +2995,8 @@ class Plot2D(Formatoption):
             xcoord = self.xcoord
             ycoord = self.ycoord
             if self.plotter.convert_radian:
-                if xcoord.attrs.get('units') == 'radian':
-                    xcoord = xcoord * 180. / np.pi
-                if ycoord.attrs.get('units') == 'radian':
-                    ycoord = ycoord * 180. / np.pi
+                xcoord = convert_radian(xcoord, xcoord)
+                ycoord = convert_radian(ycoord, ycoord)
             if (self.value in ['tricontourf', 'tricontour'] or
                     self.decoder.is_triangular(self.raw_data)):
                 pm = self.ax.tricontourf if filled else self.ax.tricontour
@@ -2981,6 +3028,51 @@ class Plot2D(Formatoption):
             self._plot = self.ax.tripcolor(
                 triangles, arr[~np.isnan(arr)], norm=self.bounds.norm,
                 cmap=cmap, rasterized=True, **self._kwargs)
+
+    @property
+    def unstructured_xbounds(self):
+        """The unstructured x-boundaries with shape (N, m) where m > 2"""
+        decoder = self.decoder
+        xcoord = self.xcoord
+        data = self.data
+        xbounds = decoder.get_unstructured_coord_bounds(
+            xcoord, data.coords, nans='skip', var=data)
+        if self.plotter.convert_radian:
+            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        return xbounds.values
+
+    @property
+    def unstructured_ybounds(self):
+        """The unstructured y-boundaries with shape (N, m) where m > 2"""
+        decoder = self.decoder
+        ycoord = self.ycoord
+        data = self.data
+        ybounds = decoder.get_unstructured_coord_bounds(
+            ycoord, data.coords, nans='skip', var=data)
+        if self.plotter.convert_radian:
+            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        return ybounds.values
+
+    def _polycolor(self):
+        from matplotlib.collections import PolyCollection
+        self.logger.debug('Retrieving bounds')
+        xbounds = self.unstructured_xbounds
+        ybounds = self.unstructured_ybounds
+        self.logger.debug('Retrieving data')
+        arr = self.notnull_array
+        cmap = self.cmap.get_cmap(arr)
+        if hasattr(self, '_plot'):
+            self.logger.debug('Updating plot')
+            self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
+        else:
+            self.logger.debug('Making plot with %i cells', arr.size)
+            self._plot = PolyCollection(
+                np.dstack([xbounds, ybounds]), array=arr,
+                norm=self.bounds.norm, rasterized=True, cmap=cmap,
+                **self._kwargs)
+            self.logger.debug('Adding collection to axes')
+            self.ax.add_collection(self._plot)
+        self.logger.debug('Done.')
 
     def remove(self):
         if hasattr(self, '_plot'):
@@ -3098,40 +3190,54 @@ class DataGrid(Formatoption):
     name = 'Grid of the data'
 
     @property
-    def array(self):
-        """The (masked) data array that is plotted"""
-        arr = self.data.values
-        return np.ma.masked_array(arr, mask=np.isnan(arr))
+    def xcoord(self):
+        """The x coordinate :class:`xarray.Variable`"""
+        return self.decoder.get_x(self.data, coords=self.data.coords)
+
+    @property
+    def ycoord(self):
+        """The y coordinate :class:`xarray.Variable`"""
+        return self.decoder.get_y(self.data, coords=self.data.coords)
 
     @property
     def xbounds(self):
         """Boundaries of the x-coordinate"""
-        data = self.data
-        coord = self.decoder.get_x(data, coords=data.coords)
-        return self.decoder.get_plotbounds(coord)
+        return self.decoder.get_plotbounds(self.xcoord)
 
     @property
     def ybounds(self):
         """Boundaries of the y-coordinate"""
-        data = self.data
-        coord = self.decoder.get_y(data, coords=data.coords)
-        return self.decoder.get_plotbounds(coord)
+        return self.decoder.get_plotbounds(self.ycoord)
 
     @property
-    def triangles(self):
-        """The :class:`matplotlib.tri.Triangulation` instance containing the
-        spatial informations"""
+    def unstructured_xbounds(self):
+        """The unstructured x-boundaries with shape (N, m) where m > 2"""
         decoder = self.decoder
-        return decoder.get_triangles(
-            next(six.itervalues(self.data.psy.base_variables)),
-            self.data.coords, copy=True,
-            convert_radian=self.plotter.convert_radian)
+        xcoord = self.xcoord
+        data = self.data
+        xbounds = decoder.get_unstructured_coord_bounds(xcoord, data.coords)
+        if self.plotter.convert_radian:
+            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        return xbounds.values
 
-    def _triplot(self, value):
-        if isinstance(value, dict):
-            self._artists = self.ax.triplot(self.triangles, **value)
-        else:
-            self._artists = self.ax.triplot(self.triangles, value)
+    @property
+    def unstructured_ybounds(self):
+        """The unstructured y-boundaries with shape (N, m) where m > 2"""
+        decoder = self.decoder
+        ycoord = self.ycoord
+        data = self.data
+        ybounds = decoder.get_unstructured_coord_bounds(ycoord, data.coords)
+        if self.plotter.convert_radian:
+            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        return ybounds.values
+
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        %(Formatoption.parameters)s"""
+        super(DataGrid, self).__init__(*args, **kwargs)
+        self._kwargs = {}
 
     def _rectilinear_plot(self, value):
         if not isinstance(value, dict):
@@ -3139,6 +3245,8 @@ class DataGrid(Formatoption):
                 ['linestyle', 'marker', 'color'],
                 matplotlib.axes._base._process_plot_format(value)))
             del value['marker']
+        else:
+            value = value.copy()
         ybounds = self.ybounds
         xbounds = self.xbounds
         if xbounds.ndim == 2:
@@ -3153,11 +3261,24 @@ class DataGrid(Formatoption):
                 self.ax.hlines(ybounds, xbounds.min(), xbounds.max(), **value),
                 self.ax.vlines(xbounds, ybounds.min(), ybounds.max(), **value)]
 
+    def _polyplot(self, value):
+        xbounds = self.unstructured_xbounds
+        ybounds = self.unstructured_ybounds
+        n = len(xbounds)
+        xbounds = np.c_[xbounds, xbounds[:, :1], [[np.nan]] * n]
+        ybounds = np.c_[ybounds, ybounds[:, :1], [[np.nan]] * n]
+        if isinstance(value, dict):
+            self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
+                                         **value.items())
+        else:
+            self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
+                                         value)
+
     def update(self, value):
         self.remove()
         if value is not None:
-            if self.decoder.is_triangular(self.raw_data):
-                self._triplot(value)
+            if self.decoder.is_unstructured(self.raw_data):
+                self._polyplot(value)
             else:
                 self._rectilinear_plot(value)
 
@@ -5235,7 +5356,7 @@ class Simple2DBase(Base2D):
         #
         # if more than one array name is provided, the dimensions should be
         # one les than dimlen to have a 2D array
-        if (not isstring(name[0] and not is_iterable(name[0]))
+        if (not isstring(name[0]) and not is_iterable(name[0])
                 and len(name[0]) != 1 and len(dims[0]) != dimlen - 1):
             return [False], ['Only one name is allowed per array!']
         # otherwise the number of dimensions must equal dimlen

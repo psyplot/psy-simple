@@ -933,7 +933,7 @@ rcParams = RcParams(defaultParams={
         'Switch to interpolate the bounds for 2D plots'],
     'plotter.plot2d.plot': [
         'mesh', try_and_error(validate_none, ValidateInStrings(
-            '2d plot', ['mesh', 'contourf', 'contour',
+            '2d plot', ['mesh', 'contourf', 'contour', 'poly',
                         'tri', 'tricontourf', 'tricontour'], True)),
         'fmt key to specify the plot type of 2D scalar plots'],
     'plotter.plot2d.plot.min_circle_ratio': [
