@@ -3269,7 +3269,7 @@ class DataGrid(Formatoption):
         ybounds = np.c_[ybounds, ybounds[:, :1], [[np.nan]] * n]
         if isinstance(value, dict):
             self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
-                                         **value.items())
+                                         **value)
         else:
             self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
                                          value)
