@@ -3071,7 +3071,7 @@ class Plot2D(Formatoption):
                 norm=self.bounds.norm, rasterized=True, cmap=cmap,
                 **self._kwargs)
             self.logger.debug('Adding collection to axes')
-            self.ax.add_collection(self._plot)
+            self.ax.add_collection(self._plot, autolim=False)
         self.logger.debug('Done.')
 
     def remove(self):
@@ -3091,7 +3091,7 @@ class Plot2D(Formatoption):
         data = self.data
         xcoord = self.xcoord
         ycoord = self.ycoord
-        if self.decoder.is_triangular(self.raw_data):
+        if self.decoder.is_unstructured(self.raw_data):
             x, y, z = self.get_xyz_tri(xcoord, x, ycoord, y, data)
         elif xcoord.ndim == 1:
             x, y, z = self.get_xyz_1d(xcoord, x, ycoord, y, data)
