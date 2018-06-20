@@ -1039,7 +1039,7 @@ class IconTestMixin(object):
         """Test xlabel formatoption"""
         self.update(xlabel='{desc}')
         label = self.plotter.ax.xaxis.get_label()
-        self.assertEqual(label.get_text(), 'center longitude [radian]')
+        self.assertIn('longitude [radian]', label.get_text())
         self.update(labelsize=22, labelweight='bold',
                     labelprops={'ha': 'left'})
         self.assertEqual(label.get_size(), 22)
@@ -1050,7 +1050,7 @@ class IconTestMixin(object):
         """Test ylabel formatoption"""
         self.update(ylabel='{desc}')
         label = self.plotter.ax.yaxis.get_label()
-        self.assertEqual(label.get_text(), 'center latitude [radian]')
+        self.assertIn('latitude [radian]', label.get_text())
         self.update(labelsize=22, labelweight='bold',
                     labelprops={'ha': 'left'})
         self.assertEqual(label.get_size(), 22)
@@ -1066,16 +1066,19 @@ class IconTestMixin(object):
         else:
             data = self.data
 
-        lon = data.clon.values
+        try:
+            lon = data.clon.values
+        except AttributeError:
+            lon = data.elon.values
 
         self.update(xticks='rounded')
         self.assertEqual(
             list(ax.get_xticks()),
-            np.linspace(-1, 1, 11, endpoint=True).tolist())
+            np.linspace(-3, 3.5, 11, endpoint=True).tolist())
         self.update(xticks='roundedsym')
         self.assertEqual(
             list(ax.get_xticks()),
-            np.linspace(-1, 1, 10, endpoint=True).tolist())
+            np.linspace(-3.5, 3.5, 10, endpoint=True).tolist())
         self.update(xticks='minmax')
         self.assertEqual(
             list(ax.get_xticks()), np.linspace(
@@ -1102,16 +1105,42 @@ class IconSimplePlotterTest(IconTestMixin, Simple2DPlotterTest):
         """Test bounds formatoption"""
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(260, 310, 11, endpoint=True).tolist())
+            np.linspace(240, 310, 11, endpoint=True).tolist())
         self.update(bounds='minmax')
-        bounds = [261.2, 265.78, 270.36, 274.94, 279.52, 284.1, 288.68,
-                  293.26, 297.85, 302.43, 307.01]
+        bounds = [243.76, 250.04, 256.31, 262.58, 268.85, 275.12, 281.39,
+                  287.66, 293.94, 300.21, 306.48]
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
         self.update(bounds=['rounded', 5, 5, 95])
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(275, 305, 5, endpoint=True).tolist())
+            np.linspace(255, 305, 5, endpoint=True).tolist())
+
+
+class IconEdgeSimplePlotterTest(IconTestMixin, Simple2DPlotterTest):
+    """Icon edge grid test :class:`psy_simple.plotters.Simple2DPlotter` class
+    """
+
+    grid_type = 'icon_edge'
+
+    masking_val = 280
+
+    ncfile = os.path.join(bt.test_dir, 'icon_edge_test.nc')
+
+    def test_bounds(self):
+        """Test bounds formatoption"""
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(240, 310, 11, endpoint=True).tolist())
+        self.update(bounds='minmax')
+        bounds = [242.48, 249.06, 255.64, 262.21, 268.79, 275.37, 281.94,
+                  288.52, 295.1, 301.67, 308.25]
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
+        self.update(bounds=['rounded', 5, 5, 95])
+        self.assertEqual(
+            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+            np.linspace(255, 305, 5, endpoint=True).tolist())
 
 
 class IconSimplePlotterContourTest(IconSimplePlotterTest):
@@ -1388,14 +1417,14 @@ class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
             np.linspace(0, 15, 11, endpoint=True).tolist())
         self.update(bounds='minmax')
-        bounds = [0.04, 1.32, 2.61, 3.89, 5.17, 6.45, 7.73, 9.01, 10.29, 11.57,
-                  12.85]
+        bounds = [0.08, 1.18, 2.28, 3.38, 4.48, 5.59, 6.69, 7.79, 8.89, 9.99,
+                  11.09]
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
         self.update(bounds=['rounded', 5, 5, 95])
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.round(np.linspace(0.5, 10.0, 5, endpoint=True), 2).tolist())
+            np.round(np.linspace(0.5, 9.0, 5, endpoint=True), 2).tolist())
 
 
 def _do_from_both(func):
@@ -1745,16 +1774,16 @@ class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
         # test bounds of scalar field
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(260, 310, 11, endpoint=True).tolist())
+            np.linspace(240, 310, 11, endpoint=True).tolist())
         self.update(bounds='minmax')
-        bounds = [261.2, 265.78, 270.36, 274.94, 279.52, 284.1, 288.68,
-                  293.26, 297.85, 302.43, 307.01]
+        bounds = [243.76, 250.04, 256.31, 262.58, 268.85, 275.12, 281.39,
+                  287.66, 293.94, 300.21, 306.48]
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds)
         self.update(bounds=['rounded', 5, 5, 95])
         self.assertEqual(
             np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(275, 305, 5, endpoint=True).tolist())
+            np.linspace(255, 305, 5, endpoint=True).tolist())
 
         # test vector bounds
         self.update(color='absolute')
@@ -1762,14 +1791,14 @@ class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
             np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
             np.linspace(0, 15, 11, endpoint=True).tolist())
         self.update(vbounds='minmax')
-        bounds = [0.04, 1.32, 2.61, 3.89, 5.17, 6.45, 7.73, 9.01, 10.29, 11.57,
-                  12.85]
+        bounds = [0.08, 1.18, 2.28, 3.38, 4.48, 5.59, 6.69, 7.79, 8.89, 9.99,
+                  11.09]
         self.assertEqual(
             np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(), bounds)
         self.update(vbounds=['rounded', 5, 5, 95])
         self.assertEqual(
             np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
-            np.round(np.linspace(0.5, 10.0, 5, endpoint=True), 2).tolist())
+            np.round(np.linspace(0.5, 9.0, 5, endpoint=True), 2).tolist())
 
 
     @property
