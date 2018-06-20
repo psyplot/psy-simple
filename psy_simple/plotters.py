@@ -2925,7 +2925,7 @@ class Plot2D(Formatoption):
             'tricontourf': self._contourf,
             'contour': self._contourf,
             'tricontour': self._contourf,
-            'tri': self._tripcolor,
+            'tri': self._polycolor,
             'poly': self._polycolor}
         self._orig_format_coord = None
         self._kwargs = {}
@@ -2942,15 +2942,17 @@ class Plot2D(Formatoption):
                     self.connections, self.dependencies, [self.key])):
             self.remove()
         if self.value is not None:
+            if self.value == 'tri':
+                warn("The 'tri' value is depreceated and will be removed "
+                     "in the future. Use 'poly' instead!",
+                     DeprecationWarning)
             self._plot_funcs[self.value]()
             if self._orig_format_coord is None:
                 self._orig_format_coord = self.ax.format_coord
                 self.ax.format_coord = self.format_coord
 
     def _pcolormesh(self):
-        if self.decoder.is_triangular(self.raw_data):
-            return self._tripcolor()
-        elif self.decoder.is_unstructured(self.raw_data):
+        if self.decoder.is_unstructured(self.raw_data):
             return self._polycolor()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
@@ -3012,23 +3014,6 @@ class Plot2D(Formatoption):
                 x, y, arr, levels, norm=self.bounds.norm,
                 cmap=cmap, **self._kwargs)
 
-    def _tripcolor(self):
-        triangles = self.triangles
-        arr = None
-        try:
-            self.bounds.norm.Ncmap
-        except AttributeError:
-            arr = self.array
-        cmap = self.cmap.get_cmap(arr)
-        if hasattr(self, '_plot'):
-            self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
-        else:
-            if arr is None:
-                arr = self.array
-            self._plot = self.ax.tripcolor(
-                triangles, arr[~np.isnan(arr)], norm=self.bounds.norm,
-                cmap=cmap, rasterized=True, **self._kwargs)
-
     @property
     def unstructured_xbounds(self):
         """The unstructured x-boundaries with shape (N, m) where m > 2"""
@@ -3069,7 +3054,7 @@ class Plot2D(Formatoption):
             self._plot = PolyCollection(
                 np.dstack([xbounds, ybounds]), array=arr,
                 norm=self.bounds.norm, rasterized=True, cmap=cmap,
-                **self._kwargs)
+                edgecolors='none', antialiaseds=False, **self._kwargs)
             self.logger.debug('Adding collection to axes')
             self.ax.add_collection(self._plot, autolim=False)
         self.logger.debug('Done.')
