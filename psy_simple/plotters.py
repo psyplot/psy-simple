@@ -2404,19 +2404,10 @@ class Xlim2D(Xlim):
         xcoord = self.transpose.get_x(self.data)
         func = 'get_x' if not self.transpose.value else 'get_y'
         data = next(self.iter_data)
-        if (self.decoder.is_triangular(data) and
+        if (self.decoder.is_unstructured(data) and
                 xcoord.name == getattr(self.decoder, func)(data).name):
-            raw = next(six.itervalues(data.psy.base_variables))
-            triangles = self.decoder.get_triangles(
-                raw, data.coords, convert_radian=self.plotter.convert_radian)
-            if self.transpose.value:
-                return triangles.y[triangles.triangles].ravel()
-            else:
-                return triangles.x[triangles.triangles].ravel()
-        elif (self.decoder.is_unstructured(data) and
-              xcoord.name == getattr(self.decoder, func)(data).name):
-            bounds = self.decoder.get_unstructured_coord_bounds(
-                xcoord, data.coords)
+            bounds = self.decoder.get_unstructured_bounds(
+                data, axis='x', coords=data.coords)
             if bounds is None:
                 bounds = xcoord
             if self.plotter.convert_radian:
@@ -2433,19 +2424,10 @@ class Ylim2D(Ylim):
         ycoord = self.transpose.get_y(self.data)
         func = 'get_x' if self.transpose.value else 'get_y'
         data = next(self.iter_data)
-        if (self.decoder.is_triangular(data) and
+        if (self.decoder.is_unstructured(data) and
                 ycoord.name == getattr(self.decoder, func)(data).name):
-            raw = next(six.itervalues(data.psy.base_variables))
-            triangles = self.decoder.get_triangles(
-                raw, data.coords, convert_radian=self.plotter.convert_radian)
-            if self.transpose.value:
-                return triangles.x[triangles.triangles].ravel()
-            else:
-                return triangles.y[triangles.triangles].ravel()
-        elif (self.decoder.is_unstructured(data) and
-              ycoord.name == getattr(self.decoder, func)(data).name):
-            bounds = self.decoder.get_unstructured_coord_bounds(
-                ycoord, data.coords)
+            bounds = self.decoder.get_unstructured_bounds(
+                data, axis='y', coords=data.coords)
             if bounds is None:
                 bounds = ycoord
             if self.plotter.convert_radian:
@@ -2636,15 +2618,6 @@ class MissColor(Formatoption):
 
     update_after_plot = True
 
-    @property
-    def triangles(self):
-        """The :class:`matplotlib.tri.Triangulation` instance containing the
-        spatial informations"""
-        decoder = self.decoder
-        return decoder.get_triangles(
-            self.data, self.data.coords, copy=True, nans='only',
-            convert_radian=self.plotter.convert_radian)
-
     def update(self, value):
         if self.plotter.replot:
             self.remove()
@@ -2653,38 +2626,12 @@ class MissColor(Formatoption):
         elif value is not None and self.plot.value == 'contourf':
             warn('[%s] - The miss_color formatoption is not supported for '
                  'filled contour plots!' % self.logger.name)
-        if not self.decoder.is_unstructured(self.data):
-            mappable = self.plot.mappable
-            if value is not None:
-                mappable.get_cmap().set_bad(value)
-            else:
-                mappable.get_cmap().set_bad(alpha=0)
-            mappable.changed()
+        mappable = self.plot.mappable
+        if value is not None:
+            mappable.get_cmap().set_bad(value)
         else:
-            # The miss_color for triangular plots does not work here,
-            # therefore we have to do a little workaround by making a plot
-            # filled with 0 and the necessary colormap
-            from matplotlib.tri import TriAnalyzer
-            if value is None:
-                return
-            cmap = mcol.LinearSegmentedColormap.from_list(
-                'dummy', [value, value], N=2)
-            if hasattr(self, '_miss_color_plot'):
-                self._miss_color_plot.set_cmap(cmap)
-            else:
-                triangles = self.triangles
-                mratio = rcParams['plotter.plot2d.plot.min_circle_ratio']
-                if mratio:
-                    triangles.set_mask(
-                        TriAnalyzer(triangles).get_flat_tri_mask(mratio))
-                try:
-                    transform = self.transform.projection
-                except AttributeError:
-                    transform = None
-                self._miss_color_plot = self.ax.tripcolor(
-                    triangles, np.zeros(len(triangles.triangles)),
-                    rasterized=True, cmap=cmap, transform=transform,
-                    zorder=self.plot.mappable.zorder - 0.2, facecolor=value)
+            mappable.get_cmap().set_bad(alpha=0)
+        mappable.changed()
 
     def remove(self):
         if hasattr(self, '_miss_color_plot'):
@@ -2899,15 +2846,6 @@ class Plot2D(Formatoption):
         return self.decoder.get_y(self.data, coords=self.data.coords)
 
     @property
-    def triangles(self):
-        """The :class:`matplotlib.tri.Triangulation` instance containing the
-        spatial informations"""
-        decoder = self.decoder
-        return decoder.get_triangles(
-            self.data, self.data.coords, copy=True, nans='skip',
-            convert_radian=self.plotter.convert_radian)
-
-    @property
     def mappable(self):
         """Returns the mappable that can be used for colorbars"""
         return self._plot
@@ -3020,8 +2958,8 @@ class Plot2D(Formatoption):
         decoder = self.decoder
         xcoord = self.xcoord
         data = self.data
-        xbounds = decoder.get_unstructured_coord_bounds(
-            xcoord, data.coords, nans='skip', var=data)
+        xbounds = decoder.get_unstructured_bounds(
+            data, coords=data.coords, axis='x')
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
         return xbounds.values
@@ -3032,8 +2970,8 @@ class Plot2D(Formatoption):
         decoder = self.decoder
         ycoord = self.ycoord
         data = self.data
-        ybounds = decoder.get_unstructured_coord_bounds(
-            ycoord, data.coords, nans='skip', var=data)
+        ybounds = decoder.get_unstructured_bounds(
+            data, coords=data.coords, axis='y')
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
         return ybounds.values
@@ -3044,7 +2982,7 @@ class Plot2D(Formatoption):
         xbounds = self.unstructured_xbounds
         ybounds = self.unstructured_ybounds
         self.logger.debug('Retrieving data')
-        arr = self.notnull_array
+        arr = self.array
         cmap = self.cmap.get_cmap(arr)
         if hasattr(self, '_plot'):
             self.logger.debug('Updating plot')
@@ -3200,7 +3138,8 @@ class DataGrid(Formatoption):
         decoder = self.decoder
         xcoord = self.xcoord
         data = self.data
-        xbounds = decoder.get_unstructured_coord_bounds(xcoord, data.coords)
+        xbounds = decoder.get_unstructured_bounds(data, coords=data.coords,
+                                                  axis='x')
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
         return xbounds.values
@@ -3211,7 +3150,8 @@ class DataGrid(Formatoption):
         decoder = self.decoder
         ycoord = self.ycoord
         data = self.data
-        ybounds = decoder.get_unstructured_coord_bounds(ycoord, data.coords)
+        ybounds = decoder.get_unstructured_bounds(data, coords=data.coords,
+                                                  axis='y')
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
         return ybounds.values
@@ -3297,13 +3237,6 @@ class SimplePlot2D(Plot2D):
             return super(SimplePlot2D, self).array
 
     @property
-    def triangles(self):
-        triangles = super(SimplePlot2D, self).triangles
-        if self.transpose.value:
-            triangles.x, triangles.y = triangles.y, triangles.x
-        return triangles
-
-    @property
     def xbounds(self):
         return self.decoder.get_plotbounds(self.transpose.get_x(
             self.data))
@@ -3324,6 +3257,18 @@ class SimplePlot2D(Plot2D):
         if self.transpose.value:
             return super(SimplePlot2D, self).xcoord
         return super(SimplePlot2D, self).ycoord
+
+    @property
+    def unstructured_xbounds(self):
+        if self.transpose.value:
+            return super(SimplePlot2D, self).unstructured_ybounds
+        return super(SimplePlot2D, self).unstructured_xbounds
+
+    @property
+    def unstructured_ybounds(self):
+        if self.transpose.value:
+            return super(SimplePlot2D, self).unstructured_xbounds
+        return super(SimplePlot2D, self).unstructured_ybounds
 
 
 class XTicks2D(XTicks):
@@ -5139,7 +5084,7 @@ class Base2D(Plotter):
     """Base plotter for 2-dimensional plots
     """
 
-    #: Boolean that is True if triangles with units in radian should be
+    #: Boolean that is True if coordinates with units in radian should be
     #: converted to degrees
     convert_radian = False
 
