@@ -2990,7 +2990,7 @@ class Plot2D(Formatoption):
         else:
             self.logger.debug('Making plot with %i cells', arr.size)
             self._plot = PolyCollection(
-                np.dstack([xbounds, ybounds]), array=arr,
+                np.dstack([xbounds, ybounds]), array=arr.ravel(),
                 norm=self.bounds.norm, rasterized=True, cmap=cmap,
                 edgecolors='none', antialiaseds=False, **self._kwargs)
             self.logger.debug('Adding collection to axes')
