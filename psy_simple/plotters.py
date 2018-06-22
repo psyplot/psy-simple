@@ -2406,7 +2406,7 @@ class Xlim2D(Xlim):
         data = next(self.iter_data)
         if (self.decoder.is_unstructured(data) and
                 xcoord.name == getattr(self.decoder, func)(data).name):
-            bounds = self.decoder.get_unstructured_bounds(
+            bounds = self.decoder.get_cell_node_coord(
                 data, axis='x', coords=data.coords)
             if bounds is None:
                 bounds = xcoord
@@ -2426,7 +2426,7 @@ class Ylim2D(Ylim):
         data = next(self.iter_data)
         if (self.decoder.is_unstructured(data) and
                 ycoord.name == getattr(self.decoder, func)(data).name):
-            bounds = self.decoder.get_unstructured_bounds(
+            bounds = self.decoder.get_cell_node_coord(
                 data, axis='y', coords=data.coords)
             if bounds is None:
                 bounds = ycoord
@@ -2953,24 +2953,24 @@ class Plot2D(Formatoption):
                 cmap=cmap, **self._kwargs)
 
     @property
-    def unstructured_xbounds(self):
+    def cell_nodes_x(self):
         """The unstructured x-boundaries with shape (N, m) where m > 2"""
         decoder = self.decoder
         xcoord = self.xcoord
         data = self.data
-        xbounds = decoder.get_unstructured_bounds(
+        xbounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='x')
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
         return xbounds.values
 
     @property
-    def unstructured_ybounds(self):
+    def cell_nodes_y(self):
         """The unstructured y-boundaries with shape (N, m) where m > 2"""
         decoder = self.decoder
         ycoord = self.ycoord
         data = self.data
-        ybounds = decoder.get_unstructured_bounds(
+        ybounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='y')
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
@@ -2979,8 +2979,8 @@ class Plot2D(Formatoption):
     def _polycolor(self):
         from matplotlib.collections import PolyCollection
         self.logger.debug('Retrieving bounds')
-        xbounds = self.unstructured_xbounds
-        ybounds = self.unstructured_ybounds
+        xbounds = self.cell_nodes_x
+        ybounds = self.cell_nodes_y
         self.logger.debug('Retrieving data')
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
@@ -3133,25 +3133,25 @@ class DataGrid(Formatoption):
         return self.decoder.get_plotbounds(self.ycoord)
 
     @property
-    def unstructured_xbounds(self):
+    def cell_nodes_x(self):
         """The unstructured x-boundaries with shape (N, m) where m > 2"""
         decoder = self.decoder
         xcoord = self.xcoord
         data = self.data
-        xbounds = decoder.get_unstructured_bounds(data, coords=data.coords,
-                                                  axis='x')
+        xbounds = decoder.get_cell_node_coord(
+            data, coords=data.coords, axis='x')
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
         return xbounds.values
 
     @property
-    def unstructured_ybounds(self):
+    def cell_nodes_y(self):
         """The unstructured y-boundaries with shape (N, m) where m > 2"""
         decoder = self.decoder
         ycoord = self.ycoord
         data = self.data
-        ybounds = decoder.get_unstructured_bounds(data, coords=data.coords,
-                                                  axis='y')
+        ybounds = decoder.get_cell_node_coord(
+            data, coords=data.coords, axis='y')
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
         return ybounds.values
@@ -3164,48 +3164,18 @@ class DataGrid(Formatoption):
         super(DataGrid, self).__init__(*args, **kwargs)
         self._kwargs = {}
 
-    def _rectilinear_plot(self, value):
-        if not isinstance(value, dict):
-            value = dict(zip(
-                ['linestyle', 'marker', 'color'],
-                matplotlib.axes._base._process_plot_format(value)))
-            del value['marker']
-        else:
-            value = value.copy()
-        ybounds = self.ybounds
-        xbounds = self.xbounds
-        if xbounds.ndim == 2:
-            warn('[%s] - The visualization of a datagrid is not implemented '
-                 'for circumpolar grids' % self.logger.name)
-        else:
-            try:
-                value.setdefault('transform', self.transform.projection)
-            except AttributeError:
-                pass
-            self._artists = [
-                self.ax.hlines(ybounds, xbounds.min(), xbounds.max(), **value),
-                self.ax.vlines(xbounds, ybounds.min(), ybounds.max(), **value)]
-
-    def _polyplot(self, value):
-        xbounds = self.unstructured_xbounds
-        ybounds = self.unstructured_ybounds
-        n = len(xbounds)
-        xbounds = np.c_[xbounds, xbounds[:, :1], [[np.nan]] * n]
-        ybounds = np.c_[ybounds, ybounds[:, :1], [[np.nan]] * n]
-        if isinstance(value, dict):
-            self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
-                                         **value)
-        else:
-            self._artists = self.ax.plot(xbounds.ravel(), ybounds.ravel(),
-                                         value)
-
     def update(self, value):
         self.remove()
         if value is not None:
-            if self.decoder.is_unstructured(self.raw_data):
-                self._polyplot(value)
+            xb = self.cell_nodes_x
+            yb = self.cell_nodes_y
+            n = len(xb)
+            xb = np.c_[xb, xb[:, :1], [[np.nan]] * n].ravel()
+            yb = np.c_[yb, yb[:, :1], [[np.nan]] * n].ravel()
+            if isinstance(value, dict):
+                self._artists = self.ax.plot(xb, yb, **value)
             else:
-                self._rectilinear_plot(value)
+                self._artists = self.ax.plot(xb, yb, value)
 
     def remove(self):
         if not hasattr(self, '_artists'):
@@ -3259,16 +3229,16 @@ class SimplePlot2D(Plot2D):
         return super(SimplePlot2D, self).ycoord
 
     @property
-    def unstructured_xbounds(self):
+    def cell_nodes_x(self):
         if self.transpose.value:
-            return super(SimplePlot2D, self).unstructured_ybounds
-        return super(SimplePlot2D, self).unstructured_xbounds
+            return super(SimplePlot2D, self).cell_nodes_y
+        return super(SimplePlot2D, self).cell_nodes_x
 
     @property
-    def unstructured_ybounds(self):
+    def cell_nodes_y(self):
         if self.transpose.value:
-            return super(SimplePlot2D, self).unstructured_xbounds
-        return super(SimplePlot2D, self).unstructured_ybounds
+            return super(SimplePlot2D, self).cell_nodes_x
+        return super(SimplePlot2D, self).cell_nodes_y
 
 
 class XTicks2D(XTicks):
