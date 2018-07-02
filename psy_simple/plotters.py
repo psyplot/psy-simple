@@ -766,7 +766,7 @@ class YTicks(DtTicksBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = super(XTicks, self).data
+        data = super(YTicks, self).data
         if isinstance(data, InteractiveList):
             df = InteractiveList(map(select_array, data)).to_dataframe()
         else:
@@ -931,17 +931,77 @@ class YTickLabels(TickLabels):
         return self.ax.yaxis
 
 
+class BarXTicks(XTicks):
+
+    __doc__ = XTicks.__doc__
+
+    dependencies = XTicks.dependencies + ['categorical']
+
+    def update(self, value):
+        import matplotlib.ticker as mtick
+        if self.categorical.is_categorical and not self.transpose.value:
+            self.default_locators['major'] = mtick.FixedLocator(
+                np.unique(self.array))
+            self.default_locators['minor'] = mtick.NullLocator()
+        else:
+            self.default_locators = self._orig_default_locators.copy()
+        return super(BarXTicks, self).update(value)
+
+    def set_default_locators(self):
+        super(BarXTicks, self).set_default_locators()
+        self._orig_default_locators = self.default_locators.copy()
+
+    @property
+    def array(self):
+        if self.transpose.val_ue:
+            return np.concatenate(
+                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
+        else:
+            return np.concatenate(
+                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data])
+
+
+class BarYTicks(YTicks):
+
+    __doc__ = YTicks.__doc__
+
+    dependencies = YTicks.dependencies + ['categorical']
+
+    def update(self, value):
+        import matplotlib.ticker as mtick
+        if self.categorical.is_categorical and self.transpose.value:
+            self.default_locators['major'] = mtick.FixedLocator(
+                np.unique(self.array))
+            self.default_locators['minor'] = mtick.NullLocator()
+        else:
+            self.default_locators = self._orig_default_locators.copy()
+        return super(BarYTicks, self).update(value)
+
+    def set_default_locators(self):
+        super(BarYTicks, self).set_default_locators()
+        self._orig_default_locators = self.default_locators.copy()
+
+    @property
+    def array(self):
+        if self.transpose.value:
+            return np.concatenate(
+                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data])
+        else:
+            return np.concatenate(
+                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
+
+
 class BarXTickLabels(XTickLabels):
 
     __doc__ = XTickLabels.__doc__
 
-    dependencies = XTickLabels.dependencies + ['plot', 'widths']
+    dependencies = XTickLabels.dependencies + ['plot', 'categorical']
 
     def set_stringformatter(self, s):
         if not self.transpose.value and self.plot.value is not None:
             index = self.data.to_dataframe().index
             if index.is_all_dates:
-                if self.widths.value == 'equal':
+                if self.categorical.is_categorical:
                     xticks = self.ax.get_xticks(self.which == 'minor')
                     arr = list(map(lambda t: t.toordinal(),
                                    to_datetime(index[xticks.astype(int)])))
@@ -956,13 +1016,13 @@ class BarYTickLabels(YTickLabels):
 
     __doc__ = YTickLabels.__doc__
 
-    dependencies = YTickLabels.dependencies + ['plot']
+    dependencies = YTickLabels.dependencies + ['plot', 'categorical']
 
     def set_stringformatter(self, s):
         if self.transpose.value and self.plot.value is not None:
             index = self.data.to_dataframe().index
             if index.is_all_dates:
-                if self.widths.value == 'equal':
+                if self.categorical.is_categorical:
                     yticks = self.ax.get_yticks(self.which == 'minor')
                     arr = list(map(lambda t: t.toordinal(),
                                    to_datetime(index[yticks.astype(int)])))
@@ -1529,7 +1589,7 @@ class LineColors(Formatoption):
                     np.linspace(0., 1., len(list(self.iter_data)),
                                 endpoint=True)))
             except (ValueError, TypeError, KeyError):
-                self.color_cycle = cycle(value)
+                self.color_cycle = cycle(safe_list(value))
         if changed:
             self.colors = [
                 next(self.color_cycle) for arr in self.iter_data]
@@ -1846,13 +1906,49 @@ class BarWidths(Formatoption):
         Each bar will have the same width (the default)
     'data'
         Each bar will have the width as specified by the boundaries
+    float
+        The width for each bar
+
+    See Also
+    --------
+    categorical
     """
 
     priority = BEFOREPLOTTING
 
+    name = 'Width of the bars'
+
     def update(self, value):
         # Does nothing, the work is done in the :class:`BarPlot` formatoption
         pass
+
+
+class CategoricalBars(Formatoption):
+    """
+    The location of each bar
+
+    Possible types
+    --------------
+    None
+        If None, use a categorical plotting if the widths are ``'equal'``,
+        otherwise, not
+    bool
+        If True, use a categorical plotting
+
+    See Also
+    --------
+    widths
+    """
+
+    priority = BEFOREPLOTTING
+
+    name = 'Categorical or non-categorical plotting'
+
+    dependencies = ['widths']
+
+    def update(self, value):
+        widths = self.widths.value
+        self.is_categorical = (value is None and widths == 'equal') or value
 
 
 class BarAlpha(Formatoption):
@@ -1865,6 +1961,8 @@ class BarAlpha(Formatoption):
         A value between 0 (opaque) and 1 invisible"""
 
     priority = BEFOREPLOTTING
+
+    name = 'Transparency of the bars'
 
     def update(self, value):
         pass
@@ -1892,7 +1990,7 @@ class BarPlot(Formatoption):
 
     children = ['color', 'transpose', 'alpha']
 
-    dependencies = ['widths']
+    dependencies = ['widths', 'categorical']
 
     name = 'Bar plot type'
 
@@ -1913,82 +2011,73 @@ class BarPlot(Formatoption):
         if hasattr(self, '_plot'):
             self.remove()
         if self.value is not None:
-            widths = self.widths.value
-            if widths == 'equal':
-                self._pandas_plot()
-            elif widths == 'data':
-                self._mpl_plot()
-            else:
-                raise NotImplementedError(
-                    'The %s widths value is not implemented!' % (widths, ))
-
-    def _pandas_plot(self):
-        if isinstance(self.data, InteractiveList):
-            df = self.data.to_dataframe()
-        else:
-            df = self.data.to_series()
-        colors = self.color.colors
-        old_containers = self.ax.containers[:]
-        if self.transpose.value:
-            df.plot(kind='barh', color=colors, ax=self.ax, rot=0,
-                    legend=False, grid=False, alpha=self.alpha.value,
-                    stacked=self.value == 'stacked', **self._kwargs)
-        else:
-            df.plot(kind='bar', color=colors, ax=self.ax, rot=0,
-                    legend=False, grid=False, alpha=self.alpha.value,
-                    stacked=self.value == 'stacked', **self._kwargs)
-        self._plot = [container for container in self.ax.containers
-                      if container not in old_containers]
+            ax = self.ax
+            # for a transposed plot, we use the barh plot method of the axes
+            pm = ax.barh if self.transpose.value else ax.bar
+            alpha = self.alpha.value
+            if not self.value:
+                self._plot = [
+                    pm(*self.get_xys(arr), facecolor=c, alpha=alpha,
+                       align='edge')
+                    for arr, c in zip(self.iter_data, self.color.colors)]
+                if self._set_date:
+                    if self.transpose.value:
+                        ax.yaxis_date()
+                    else:
+                        ax.xaxis_date()
+            else:  # make a stacked plot
+                if isinstance(self.data, InteractiveList):
+                    df = self.data.to_dataframe()
+                else:
+                    df = self.data.to_series().to_frame()
+                x, y, s = self.get_xys(df.iloc[:, 0].to_xarray())
+                self._plot = containers = []
+                for i, (col, c) in enumerate(zip(df.columns,
+                                                 self.color.colors)):
+                    if not i:
+                        containers.append(
+                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha))
+                    elif self.transpose.value:
+                        containers.append(
+                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
+                               left=df.iloc[:, :i].sum(axis=1)))
+                    else:
+                        containers.append(
+                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
+                               bottom=df.iloc[:, :i].sum(axis=1)))
 
     def get_xys(self, arr):
-        x = _infer_interval_breaks(arr.coords[arr.dims[0]].values)
+        width = self.widths.value
         y = arr.values
-        is_datelike = arr.indexes[arr.dims[0]].is_all_dates
-        s = x[1:] - x[:-1]
-        if is_datelike:
-            # convert to datetime
-            x = to_datetime(x)
-            # calculate widths in days
-            s = to_timedelta(s).total_seconds() / 86400.
-            self._set_date = True
-        else:
-            self._set_date = False
-        return x[:-1], y, s
-
-    def _mpl_plot(self):
-        ax = self.ax
-        # for a transposed plot, we use the barh plot method of the axes
-        pm = ax.barh if self.transpose.value else ax.bar
-        alpha = self.alpha.value
-        if not self.value:
-            self._plot = [
-                pm(*self.get_xys(arr), facecolor=c, alpha=alpha,
-                   align='edge')
-                for arr, c in zip(self.iter_data, self.color.colors)]
-            if self._set_date:
-                if self.transpose.value:
-                    ax.yaxis_date()
-                else:
-                    ax.xaxis_date()
-        else:  # make a stacked plot
-            if isinstance(self.data, InteractiveList):
-                df = self.data.to_dataframe()
+        if self.categorical.is_categorical:
+            x = np.arange(len(y))
+            if width == 'data':
+                self.logger.warn(
+                    "Cannot use 'data'-based bar width for categorical plots!")
+                width = 0.5
+            elif width == 'equal':
+                width = 0.5  # pandas default value
+        elif width == 'data':
+            x = _infer_interval_breaks(arr.coords[arr.dims[0]].values)
+            is_datelike = arr.indexes[arr.dims[0]].is_all_dates
+            s = x[1:] - x[:-1]
+            if is_datelike:
+                # convert to datetime
+                x = to_datetime(x)
+                # calculate widths in days
+                s = to_timedelta(s).total_seconds() / 86400.
+                self._set_date = True
             else:
-                df = self.data.to_series()
-            x, y, s = self.get_xys(df.iloc[:, 0].to_xarray())
-            self._plot = containers = []
-            for i, (col, c) in enumerate(zip(df.columns, self.color.colors)):
-                if not i:
-                    containers.append(
-                        pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha))
-                elif self.transpose.value:
-                    containers.append(
-                        pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
-                           left=df.iloc[:, :i].sum(axis=1)))
-                else:
-                    containers.append(
-                        pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
-                           bottom=df.iloc[:, :i].sum(axis=1)))
+                self._set_date = False
+            x = x[:-1]
+            width = s
+        else:
+            if width == 'equal':
+                # Use half of the smalles step
+                x = _infer_interval_breaks(arr.coords[arr.dims[0]].values)
+                width = np.abs(np.diff(x)).min() / 2
+            x = arr.coords[arr.dims[0]].values
+        return x, y, width
 
 
 class ViolinXTicks(XTicks):
@@ -2375,22 +2464,23 @@ class BarXlim(ViolinXlim):
     # xlim class for bar plotter
     __doc__ = Xlim.__doc__
 
-    dependencies = ViolinXlim.dependencies + ['widths']
+    dependencies = ViolinXlim.dependencies + ['categorical']
 
     @property
     def array(self):
+        categorical = self.categorical.is_categorical
         if self.transpose.value and self.plot.value == 'stacked':
             df = self.data.to_dataframe()
             return np.array([min([0, df.values.min()]), df.sum(axis=1).max()])
-        elif self.widths.value == 'equal' and not self.transpose.value:
+        elif categorical and not self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])
-        elif self.widths.value == 'data':
+        elif not categorical:
             return _infer_interval_breaks(Xlim.array.fget(self))
         return super(BarXlim, self).array
 
     def _round_min_max(self, *args, **kwargs):
-        if self.widths.value == 'data':
+        if not self.categorical.is_categorical:
             return Xlim._round_min_max(self, *args, **kwargs)
         else:
             return super(BarXlim, self)._round_min_max(*args, **kwargs)
@@ -2457,24 +2547,25 @@ class BarYlim(ViolinYlim):
     # ylim class for bar plotter
     __doc__ = Ylim.__doc__
 
-    dependencies = ViolinYlim.dependencies + ['widths']
+    dependencies = ViolinYlim.dependencies + ['categorical']
 
     @property
     def array(self):
+        categorical = self.categorical.is_categorical
         if not self.transpose.value and self.plot.value == 'stacked':
             df = self.data.to_dataframe()
             return np.array([min(0, df.values.min()), df.sum(axis=1).max()])
-        elif self.widths.value == 'equal' and self.transpose.value:
+        elif categorical and self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])
-        elif self.widths.value == 'data' and self.transpose.value:
+        elif not categorical and self.transpose.value:
             return _infer_interval_breaks(Ylim.array.fget(self))
-        elif self.widths.value == 'data':
+        elif not categorical:
             return Ylim.array.fget(self)
         return super(BarYlim, self).array
 
     def _round_min_max(self, *args, **kwargs):
-        if self.widths.value == 'data':
+        if not self.categorical.is_categorical:
             return Ylim._round_min_max(self, *args, **kwargs)
         else:
             return super(BarYlim, self)._round_min_max(*args, **kwargs)
@@ -5191,9 +5282,12 @@ class BarPlotter(SimplePlotterBase):
     coord = AlternativeXCoord('coord')
     widths = BarWidths('widths')
     alpha = BarAlpha('alpha')
+    categorical = CategoricalBars('categorical')
     plot = BarPlot('plot')
     xlim = BarXlim('xlim')
     ylim = BarYlim('ylim')
+    xticks = BarXTicks('xticks')
+    yticks = BarYTicks('yticks')
     xticklabels = BarXTickLabels('xticklabels')
     yticklabels = BarYTickLabels('yticklabels')
     xlabel = BarXlabel('xlabel')
