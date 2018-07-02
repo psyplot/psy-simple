@@ -1,3 +1,12 @@
+v1.2.0
+======
+Added
+-----
+* The ``plot2d`` plotmethod now also supports unstructured data of any shape
+  (see `issue#6 <https://github.com/Chilipp/psyplot/issues/6>`__)
+* Added a ``categorical`` formatoption to the ``barplot`` plot method to allow
+  a switch between categorical and non-categorical plots
+
 v1.1.0
 ======
 Added
