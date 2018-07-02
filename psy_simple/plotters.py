@@ -953,7 +953,7 @@ class BarXTicks(XTicks):
 
     @property
     def array(self):
-        if self.transpose.val_ue:
+        if self.transpose.value:
             return np.concatenate(
                 [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
         else:
