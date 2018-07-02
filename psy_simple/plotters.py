@@ -2030,6 +2030,10 @@ class BarPlot(Formatoption):
                     df = self.data.to_dataframe()
                 else:
                     df = self.data.to_series().to_frame()
+                try:
+                    df.index = df.index.get_level_values(0)
+                except AttributeError:
+                    pass
                 x, y, s = self.get_xys(df.iloc[:, 0].to_xarray())
                 self._plot = containers = []
                 for i, (col, c) in enumerate(zip(df.columns,
