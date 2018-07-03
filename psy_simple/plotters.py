@@ -935,6 +935,8 @@ class BarXTicks(XTicks):
 
     __doc__ = XTicks.__doc__
 
+    connections = XTicks.connections + ['xlim']
+
     dependencies = XTicks.dependencies + ['categorical']
 
     def update(self, value):
@@ -953,7 +955,11 @@ class BarXTicks(XTicks):
 
     @property
     def array(self):
-        if self.transpose.value:
+        if self.transpose.value and self.plot.value == 'stacked':
+            df = self.data.to_dataframe()
+            return np.concatenate(
+                [[min([0, df.values.min()])], df.sum(axis=1).values])
+        elif self.transpose.value:
             return np.concatenate(
                 [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
         else:
@@ -964,6 +970,8 @@ class BarXTicks(XTicks):
 class BarYTicks(YTicks):
 
     __doc__ = YTicks.__doc__
+
+    connections = YTicks.connections + ['ylim']
 
     dependencies = YTicks.dependencies + ['categorical']
 
@@ -983,7 +991,11 @@ class BarYTicks(YTicks):
 
     @property
     def array(self):
-        if self.transpose.value:
+        if not self.transpose.value and self.plot.value == 'stacked':
+            df = self.data.to_dataframe()
+            return np.concatenate(
+                [[min([0, df.values.min()])], df.sum(axis=1).values])
+        elif self.transpose.value:
             return np.concatenate(
                 [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data])
         else:
@@ -1684,6 +1696,8 @@ class LinePlot(Formatoption):
     ``'areax'``
         To make a transposed area plot (filled between x=0 and x), see
         :func:`matplotlib.pyplot.fill_betweenx`
+    ``'stacked'``
+        Make a stacked plot
     str or list of str
         The line style string to use (['solid' | 'dashed', 'dashdot', 'dotted'
         | (offset, on-off-dash-seq) | '-' | '--' | '-.' | ':' | 'None' | ' ' |
@@ -1711,11 +1725,48 @@ class LinePlot(Formatoption):
     def make_plot(self):
         if hasattr(self, '_plot'):
             self.remove()
-        if self.value is not None:
-            self._plot = list(filter(None, chain.from_iterable(starmap(
-                self.plot_arr, zip(
-                    self.iter_data, self.color.colors,
-                    cycle(safe_list(self.value)), self.marker.markers)))))
+        value = self.value
+        if value is not None:
+            if value == 'stacked':
+                self._stacked_plot()
+            else:
+                self._plot = list(filter(None, chain.from_iterable(starmap(
+                    self.plot_arr, zip(
+                        self.iter_data, self.color.colors,
+                        cycle(safe_list(self.value)), self.marker.markers)))))
+
+    def _stacked_plot(self):
+        transpose = self.transpose.value
+        data = self.data
+        if isinstance(data, InteractiveList):
+            data = InteractiveList([arr[0] if arr.ndim == 2 else arr
+                                    for arr in data])
+            df = data.to_dataframe()
+        else:
+            df = data.to_series().to_frame()
+        index = self._get_index(df)
+        if not isinstance(index, DatetimeIndex):
+            try:
+                x = np.asarray(index.values).astype(float)
+            except ValueError:
+                x = np.arange(index.values.size)
+        else:
+            x = index.to_pydatetime()
+        base = np.zeros_like(df.iloc[:, 0])
+        self._plot = []
+        for (col, s), c in zip(df.items(), self.color.colors):
+            pm = self.ax.fill_betweenx if transpose else \
+                self.ax.fill_between
+            y = np.where(s.isnull(), 0, s.values)
+            self._plot.append(pm(x, base, base + y, facecolor=c))
+            base += y
+
+    def _get_index(self, df):
+        if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
+            index = df.index.get_level_values(0)
+        else:
+            index = df.index
+        return index
 
     def plot_arr(self, arr, c, ls, m):
         if ls is None:
@@ -1729,10 +1780,7 @@ class LinePlot(Formatoption):
             y = np.asarray(df.values).astype(float)
         except ValueError:
             y = np.arange(df.values.size)
-        if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
-            index = df.index.get_level_values(0)
-        else:
-            index = df.index
+        index = self._get_index(df)
         if not isinstance(index, DatetimeIndex):
             try:
                 x = np.asarray(index.values).astype(float)
@@ -2334,7 +2382,11 @@ class Xlim(LimitBase):
                 return arr.psy[0]
             return arr
         df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
-        if self.transpose.value:
+        if (self.transpose.value and self.plot.value == 'stacked'):
+            summed = df.sum(axis=1).values
+            arr = np.concatenate(
+                [[min(summed.min(), 0)], df.sum(axis=1).values])
+        elif self.transpose.value:
             arr = df.values[df.notnull().values]
         else:
             arr = _get_index_vals(df.index)
@@ -2393,7 +2445,11 @@ class Ylim(LimitBase):
                 return arr.psy[0]
             return arr
         df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
-        if self.transpose.value:
+        if (not self.transpose.value and self.plot.value == 'stacked'):
+            summed = df.sum(axis=1).values
+            arr = np.concatenate(
+                [[min(summed.min(), 0)], df.sum(axis=1).values])
+        elif self.transpose.value:
             arr = _get_index_vals(df.index)
         else:
             arr = df.values[df.notnull().values]
@@ -2475,7 +2531,8 @@ class BarXlim(ViolinXlim):
         categorical = self.categorical.is_categorical
         if self.transpose.value and self.plot.value == 'stacked':
             df = self.data.to_dataframe()
-            return np.array([min([0, df.values.min()]), df.sum(axis=1).max()])
+            return np.concatenate(
+                [[min([0, df.values.min()])], df.sum(axis=1).values])
         elif categorical and not self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])
@@ -2558,7 +2615,8 @@ class BarYlim(ViolinYlim):
         categorical = self.categorical.is_categorical
         if not self.transpose.value and self.plot.value == 'stacked':
             df = self.data.to_dataframe()
-            return np.array([min(0, df.values.min()), df.sum(axis=1).max()])
+            return np.concatenate(
+                [[min([0, df.values.min()])], df.sum(axis=1).values])
         elif categorical and self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])

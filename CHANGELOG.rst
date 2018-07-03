@@ -6,6 +6,7 @@ Added
   (see `issue#6 <https://github.com/Chilipp/psyplot/issues/6>`__)
 * Added a ``categorical`` formatoption to the ``barplot`` plot method to allow
   a switch between categorical and non-categorical plots
+* The lineplot method now also support ``'stacked'`` plots
 
 v1.1.0
 ======

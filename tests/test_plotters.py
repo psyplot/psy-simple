@@ -126,6 +126,21 @@ class LinePlotterTest(tb.BasePlotterTest):
         if close:
             sp.close(True, True)
 
+    def ref_plot_stacked(self, close=True):
+        """Create reference file for plot formatoption with ``'areax'``"""
+        sp = self.plot(plot='stacked')
+        sp.export(os.path.join(bt.ref_dir, self.get_ref_file('plot_stacked')))
+        if close:
+            sp.close(True, True)
+
+    def ref_plot_stacked_transposed(self, close=True):
+        """Create reference file for plot formatoption with ``'areax'``"""
+        sp = self.plot(plot='stacked', transpose=True)
+        sp.export(os.path.join(bt.ref_dir,
+                               self.get_ref_file('plot_stacked_transposed')))
+        if close:
+            sp.close(True, True)
+
     def test_plot_area(self, *args):
         """Test plot formatoption with ``'areax'``"""
         self.update(plot='area')
@@ -140,6 +155,18 @@ class LinePlotterTest(tb.BasePlotterTest):
         """Test excluding one specific line"""
         self.update(plot=['--', None])
         self.compare_figures(next(iter(args), self.get_ref_file('plot_None')))
+
+    def test_plot_stacked(self, *args):
+        """Test plot formatoption with ``'areax'``"""
+        self.update(plot='stacked')
+        self.compare_figures(next(iter(args),
+                                  self.get_ref_file('plot_stacked')))
+
+    def test_plot_stacked_transposed(self, *args):
+        """Test plot formatoption with ``'areax'``"""
+        self.update(plot='stacked', transpose=True)
+        self.compare_figures(
+            next(iter(args), self.get_ref_file('plot_stacked_transposed')))
 
     def test_coord(self):
         """Test whether we can use an alternative coordinate"""
@@ -518,6 +545,14 @@ class ViolinPlotterTest(LinePlotterTest):
     def ref_plot_None(self, *args):
         pass
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_stacked_transposed(self, close=True):
+        pass
+
     @unittest.skip('Test needs to be implemented')
     def test_xticks(self, *args):
         """
@@ -537,6 +572,14 @@ class ViolinPlotterTest(LinePlotterTest):
 
     @unittest.skip("No need for figure creation")
     def test_plot_None(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked_transposed(self, close=True):
         pass
 
     def test_color(self):
@@ -608,6 +651,14 @@ class BarPlotterTest(LinePlotterTest):
         pass
 
     @unittest.skip("No need for figure creation")
+    def ref_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_stacked_transposed(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
     def test_plot_area(self, *args):
         pass
 
@@ -617,6 +668,14 @@ class BarPlotterTest(LinePlotterTest):
 
     @unittest.skip("No need for figure creation")
     def test_plot_None(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked_transposed(self, close=True):
         pass
 
     def ref_plot(self, close=True):
@@ -864,6 +923,14 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
     def ref_plot_None(self, *args):
         pass
 
+    @unittest.skip("No need for figure creation")
+    def ref_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def ref_plot_stacked_transposed(self, close=True):
+        pass
+
     @unittest.skip("Not implemented for 2D-Plotter")
     def test_plot_area(self, *args):
         pass
@@ -874,6 +941,14 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
 
     @unittest.skip("No need for figure creation")
     def test_plot_None(self, *args):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked(self, close=True):
+        pass
+
+    @unittest.skip("No need for figure creation")
+    def test_plot_stacked_transposed(self, close=True):
         pass
 
     def test_ylabel(self):
