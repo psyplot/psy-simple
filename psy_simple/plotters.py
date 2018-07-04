@@ -2112,7 +2112,7 @@ class BarPlot(Formatoption):
                     pass
                 x, y, s = self.get_xys(df.iloc[:, 0].to_xarray())
                 self._plot = containers = []
-                base = np.zeros_like(x)
+                base = np.zeros_like(y)
                 for i, (col, c, plot) in enumerate(
                         zip(df.columns, self.color.colors,
                             cycle(slist(self.value)))):
@@ -2655,6 +2655,10 @@ class BarYlim(ViolinYlim):
 
     @property
     def array(self):
+        def select_array(arr):
+            if arr.ndim > 1:
+                return arr.psy[0]
+            return arr
         categorical = self.categorical.is_categorical
         if not self.transpose.value and 'stacked' in slist(self.plot.value):
             data = list(getattr(self.plot, 'plotted_data',
