@@ -25,7 +25,8 @@ from psy_simple.colors import get_cmap
 from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
 from psyplot.compat.pycompat import map, zip, range
-from psy_simple.plugin import validate_color, validate_float, safe_list
+from psy_simple.plugin import (
+    validate_color, validate_float, safe_list as slist)
 from psyplot.utils import is_iterable
 
 
@@ -220,7 +221,7 @@ class AlternativeXCoord(Formatoption):
     def get_alternative_coord(self, da, i):
         if isinstance(self.value, xr.DataArray):
             return self.value.name, self.value.variable
-        alternative_name = next(islice(cycle(safe_list(self.value)), i, i+1))
+        alternative_name = next(islice(cycle(slist(self.value)), i, i+1))
         coord_da = InteractiveList.from_dataset(
             da.psy.base, name=alternative_name, dims=da.psy.idims)[0]
         coord = xr.Variable((coord_da.name, ), coord_da, coord_da.attrs)
@@ -700,6 +701,8 @@ class XTicks(DtTicksBase):
 
     children = TicksBase.children + ['yticks']
 
+    dependencies = DtTicksBase.dependencies + ['plot']
+
     name = 'Location of the x-Axis ticks'
 
     @property
@@ -712,7 +715,9 @@ class XTicks(DtTicksBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = super(XTicks, self).data
+        data = getattr(self.plot, 'plotted_data', super(XTicks, self).data)
+        if not len(data):
+            data = super(XTicks, self).data
         if isinstance(data, InteractiveList):
             df = InteractiveList(map(select_array, data)).to_dataframe()
         else:
@@ -754,6 +759,8 @@ class YTicks(DtTicksBase):
     yticklabels, ticksize, tickweight, ytickprops
     xticks: for possible examples"""
 
+    dependencies = DtTicksBase.dependencies + ['plot']
+
     name = 'Location of the y-Axis ticks'
 
     @property
@@ -766,7 +773,9 @@ class YTicks(DtTicksBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = super(YTicks, self).data
+        data = getattr(self.plot, 'plotted_data', super(XTicks, self).data)
+        if not len(data):
+            data = super(XTicks, self).data
         if isinstance(data, InteractiveList):
             df = InteractiveList(map(select_array, data)).to_dataframe()
         else:
@@ -955,7 +964,7 @@ class BarXTicks(XTicks):
 
     @property
     def array(self):
-        if self.transpose.value and self.plot.value == 'stacked':
+        if self.transpose.value and 'stacked' in slist(self.plot.value):
             df = self.data.to_dataframe()
             return np.concatenate(
                 [[min([0, df.values.min()])], df.sum(axis=1).values])
@@ -991,7 +1000,7 @@ class BarYTicks(YTicks):
 
     @property
     def array(self):
-        if not self.transpose.value and self.plot.value == 'stacked':
+        if not self.transpose.value and 'stacked' in slist(self.plot.value):
             df = self.data.to_dataframe()
             return np.concatenate(
                 [[min([0, df.values.min()])], df.sum(axis=1).values])
@@ -1601,7 +1610,7 @@ class LineColors(Formatoption):
                     np.linspace(0., 1., len(list(self.iter_data)),
                                 endpoint=True)))
             except (ValueError, TypeError, KeyError):
-                self.color_cycle = cycle(safe_list(value))
+                self.color_cycle = cycle(slist(value))
         if changed:
             self.colors = [
                 next(self.color_cycle) for arr in self.iter_data]
@@ -1714,6 +1723,14 @@ class LinePlot(Formatoption):
 
     name = 'Line plot type'
 
+    @property
+    def plotted_data(self):
+        """The data that is shown to the user"""
+        return InteractiveList(
+            [arr for arr, val in zip(self.iter_data,
+                                     cycle(slist(self.value)))
+             if val is not None])
+
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
         self._kwargs = {}
@@ -1727,13 +1744,13 @@ class LinePlot(Formatoption):
             self.remove()
         value = self.value
         if value is not None:
-            if value == 'stacked':
+            if 'stacked' in value:
                 self._stacked_plot()
             else:
                 self._plot = list(filter(None, chain.from_iterable(starmap(
                     self.plot_arr, zip(
                         self.iter_data, self.color.colors,
-                        cycle(safe_list(self.value)), self.marker.markers)))))
+                        cycle(slist(self.value)), self.marker.markers)))))
 
     def _stacked_plot(self):
         transpose = self.transpose.value
@@ -1754,7 +1771,10 @@ class LinePlot(Formatoption):
             x = index.to_pydatetime()
         base = np.zeros_like(df.iloc[:, 0])
         self._plot = []
-        for (col, s), c in zip(df.items(), self.color.colors):
+        for (col, s), c, val in zip(df.items(), self.color.colors,
+                                    cycle(slist(self.value))):
+            if val is None:
+                continue
             pm = self.ax.fill_betweenx if transpose else \
                 self.ax.fill_between
             y = np.where(s.isnull(), 0, s.values)
@@ -2055,6 +2075,14 @@ class BarPlot(Formatoption):
             artist.remove()
         del self._plot
 
+    @property
+    def plotted_data(self):
+        """The data that is shown to the user"""
+        return InteractiveList(
+            [arr for arr, val in zip(self.iter_data,
+                                     cycle(slist(self.value)))
+             if val is not None])
+
     def make_plot(self):
         if hasattr(self, '_plot'):
             self.remove()
@@ -2063,7 +2091,7 @@ class BarPlot(Formatoption):
             # for a transposed plot, we use the barh plot method of the axes
             pm = ax.barh if self.transpose.value else ax.bar
             alpha = self.alpha.value
-            if not self.value:
+            if 'stacked' not in slist(self.value):
                 self._plot = [
                     pm(*self.get_xys(arr), facecolor=c, alpha=alpha,
                        align='edge')
@@ -2084,23 +2112,29 @@ class BarPlot(Formatoption):
                     pass
                 x, y, s = self.get_xys(df.iloc[:, 0].to_xarray())
                 self._plot = containers = []
-                for i, (col, c) in enumerate(zip(df.columns,
-                                                 self.color.colors)):
+                base = np.zeros_like(x)
+                for i, (col, c, plot) in enumerate(
+                        zip(df.columns, self.color.colors,
+                            cycle(slist(self.value)))):
+                    if not plot:
+                        continue
+                    y = df.iloc[:, i].values
+                    y = np.where(np.isnan(y), 0, y)
                     if not i:
                         containers.append(
-                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha))
+                            pm(x, y, s, facecolor=c, alpha=alpha))
                     elif self.transpose.value:
                         containers.append(
-                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
-                               left=df.iloc[:, :i].sum(axis=1)))
+                            pm(x, y, s, facecolor=c, alpha=alpha, left=base))
                     else:
                         containers.append(
-                            pm(x, df.iloc[:, i], s, facecolor=c, alpha=alpha,
-                               bottom=df.iloc[:, :i].sum(axis=1)))
+                            pm(x, y, s, facecolor=c, alpha=alpha, bottom=base))
+                    base += y
 
     def get_xys(self, arr):
         width = self.widths.value
         y = arr.values
+        self._set_date = False
         if self.categorical.is_categorical:
             x = np.arange(len(y))
             if width == 'data':
@@ -2119,8 +2153,6 @@ class BarPlot(Formatoption):
                 # calculate widths in days
                 s = to_timedelta(s).total_seconds() / 86400.
                 self._set_date = True
-            else:
-                self._set_date = False
             x = x[:-1]
             width = s
         else:
@@ -2335,7 +2367,7 @@ class LimitBase(DataTicksCalculator):
 
     def update(self, value):
         value = list(value)
-        value_lists = list(map(safe_list, value))
+        value_lists = list(map(slist, value))
         kwargs = {}
         for kw, l in zip(['percmin', 'percmax'], value_lists):
             if len(l) == 2:
@@ -2381,8 +2413,10 @@ class Xlim(LimitBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
-        if (self.transpose.value and self.plot.value == 'stacked'):
+        data = list(getattr(self.plot, 'plotted_data', self.iter_data)) or \
+            self.iter_data
+        df = InteractiveList(map(select_array, data)).to_dataframe()
+        if (self.transpose.value and 'stacked' in slist(self.plot.value)):
             summed = df.sum(axis=1).values
             arr = np.concatenate(
                 [[min(summed.min(), 0)], df.sum(axis=1).values])
@@ -2444,8 +2478,10 @@ class Ylim(LimitBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        df = InteractiveList(map(select_array, self.iter_data)).to_dataframe()
-        if (not self.transpose.value and self.plot.value == 'stacked'):
+        data = list(getattr(self.plot, 'plotted_data', self.iter_data)) or \
+            self.iter_data
+        df = InteractiveList(map(select_array, data)).to_dataframe()
+        if (not self.transpose.value and 'stacked' in slist(self.plot.value)):
             summed = df.sum(axis=1).values
             arr = np.concatenate(
                 [[min(summed.min(), 0)], df.sum(axis=1).values])
@@ -2528,11 +2564,18 @@ class BarXlim(ViolinXlim):
 
     @property
     def array(self):
+        def select_array(arr):
+            if arr.ndim > 1:
+                return arr.psy[0]
+            return arr
         categorical = self.categorical.is_categorical
-        if self.transpose.value and self.plot.value == 'stacked':
-            df = self.data.to_dataframe()
+        if self.transpose.value and 'stacked' in slist(self.plot.value):
+            data = list(getattr(self.plot, 'plotted_data',
+                                self.iter_data)) or self.iter_data
+            df = InteractiveList(map(select_array, data)).to_dataframe()
+            summed = df.sum(axis=1).values
             return np.concatenate(
-                [[min([0, df.values.min()])], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values])
         elif categorical and not self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])
@@ -2613,10 +2656,13 @@ class BarYlim(ViolinYlim):
     @property
     def array(self):
         categorical = self.categorical.is_categorical
-        if not self.transpose.value and self.plot.value == 'stacked':
-            df = self.data.to_dataframe()
+        if not self.transpose.value and 'stacked' in slist(self.plot.value):
+            data = list(getattr(self.plot, 'plotted_data',
+                                self.iter_data)) or self.iter_data
+            df = InteractiveList(map(select_array, data)).to_dataframe()
+            summed = df.sum(axis=1).values
             return np.concatenate(
-                [[min([0, df.values.min()])], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values])
         elif categorical and self.transpose.value:
             return np.array(
                 [-0.5, len(self.data.to_dataframe().index) - 0.5])
@@ -4697,7 +4743,7 @@ class Legend(DictFormatoption):
     def get_artists_and_labels(self):
         return self.plot._plot, [
             l for l, ls in zip(self.legendlabels.labels,
-                               cycle(safe_list(self.plot.value)))
+                               cycle(slist(self.plot.value)))
             if ls is not None]
 
     def remove(self):
@@ -4926,7 +4972,7 @@ class DataPrecision(Formatoption):
 
     def update(self, value):
         self.bins = [0, 0]
-        value = safe_list(value)
+        value = slist(value)
         if len(value) == 1:
             value = [value[0], value[0]]
         for i, val in enumerate(value):
@@ -5291,7 +5337,7 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
                 messages[i] = 'At least one variable name is required!'
             elif ((not isstring(n) and is_iterable(n) and
                    len(n) > cls.allowed_vars) and
-                  len(d) != (cls.allowed_dims - len(safe_list(n)))):
+                  len(d) != (cls.allowed_dims - len(slist(n)))):
                 checks[i] = False
                 messages[i] = 'Only %i names are allowed per array!' % (
                     cls.allowed_vars)

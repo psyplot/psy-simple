@@ -872,8 +872,7 @@ rcParams = RcParams(defaultParams={
         1.0, validate_float,
         'fmt key to control the transparency for the bar plots'],
     'plotter.bar.plot': [
-        'bar', try_and_error(validate_none, ValidateInStrings(
-            'plot', ['bar', 'stacked'], True)),
+        'bar', validate_lineplot,
         'fmt key to modify whether bar plots shall be stacked or not'],
     'plotter.violin.plot': [
         True, validate_bool_maybe_none,
