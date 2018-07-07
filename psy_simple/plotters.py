@@ -1747,10 +1747,14 @@ class LinePlot(Formatoption):
             if 'stacked' in value:
                 self._stacked_plot()
             else:
+                try:
+                    markers = self.marker.markers
+                except AttributeError:
+                    markers = repeat(None)
                 self._plot = list(filter(None, chain.from_iterable(starmap(
                     self.plot_arr, zip(
                         self.iter_data, self.color.colors,
-                        cycle(slist(self.value)), self.marker.markers)))))
+                        cycle(slist(self.value)), markers)))))
 
     def _stacked_plot(self):
         transpose = self.transpose.value
