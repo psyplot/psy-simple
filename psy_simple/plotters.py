@@ -1610,7 +1610,14 @@ class LineColors(Formatoption):
                     np.linspace(0., 1., len(list(self.iter_data)),
                                 endpoint=True)))
             except (ValueError, TypeError, KeyError):
-                self.color_cycle = cycle(slist(value))
+                try:
+                    # do not use safe_list, because it might be a generator
+                    validate_color(value)
+                except (ValueError, TypeError, AttributeError):
+                    pass
+                else:
+                    value = [value]
+                self.color_cycle = cycle(iter(value))
         if changed:
             self.colors = [
                 next(self.color_cycle) for arr in self.iter_data]
