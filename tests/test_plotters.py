@@ -746,7 +746,8 @@ class BarPlotterDataTest(BarPlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[BarPlotter().widths.default_key] = 'data'
+        plotter = BarPlotter()
+        rcParams[plotter.widths.default_key] = 'data'
         super(BarPlotterDataTest, cls).setUpClass()
 
     def test_ylim(self):
@@ -1074,7 +1075,8 @@ class Simple2DPlotterContourTest(Simple2DPlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[Simple2DPlotter().plot.default_key] = 'contourf'
+        plotter = Simple2DPlotter()
+        rcParams[plotter.plot.default_key] = 'contourf'
         super(Simple2DPlotterContourTest, cls).setUpClass()
 
     @unittest.skip('Extend keyword not implemented')
@@ -1224,7 +1226,8 @@ class IconSimplePlotterContourTest(IconSimplePlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[Simple2DPlotter().plot.default_key] = 'contourf'
+        plotter = Simple2DPlotter()
+        rcParams[plotter.plot.default_key] = 'contourf'
         super(IconSimplePlotterContourTest, cls).setUpClass()
 
     @unittest.skip('Extend keyword not implemented')
@@ -1322,7 +1325,8 @@ class SimpleVectorPlotterTest(Simple2DPlotterTest):
         cls.data = cls.data.psy.sel(lon=slice(0, 69.0), lat=slice(81.0, 34.0))
         cls.data.attrs['long_name'] = 'absolute wind speed'
         cls.data.name = 'wind'
-        rcParams[SimpleVectorPlotter().color.default_key] = 'absolute'
+        plotter = SimpleVectorPlotter()
+        rcParams[plotter.color.default_key] = 'absolute'
         cls.plotter = SimpleVectorPlotter(cls.data)
         cls.create_dirs()
         cls._color_fmts = cls.plotter.fmt_groups['colors']
@@ -1408,7 +1412,8 @@ class SimpleStreamVectorPlotterTest(SimpleVectorPlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[SimpleVectorPlotter().plot.default_key] = 'stream'
+        plotter = SimpleVectorPlotter()
+        rcParams[plotter.plot.default_key] = 'stream'
         return super(SimpleStreamVectorPlotterTest, cls).setUpClass()
 
     def get_ref_file(self, identifier):
@@ -1469,7 +1474,8 @@ class IconSimpleVectorPlotterTest(IconTestMixin, SimpleVectorPlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[SimpleVectorPlotter().color.default_key] = 'absolute'
+        plotter = SimpleVectorPlotter()
+        rcParams[plotter.color.default_key] = 'absolute'
         cls.ds = open_dataset(cls.ncfile)
         cls.data = ArrayList.from_dataset(
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True)[0]
@@ -1580,7 +1586,8 @@ class CombinedSimplePlotterTest(SimpleVectorPlotterTest):
     @classmethod
     def setUpClass(cls):
         cls.ds = open_dataset(cls.ncfile)
-        rcParams[CombinedSimplePlotter().vcmap.default_key] = 'winter'
+        plotter = CombinedSimplePlotter()
+        rcParams[plotter.vcmap.default_key] = 'winter'
         cls._data = ArrayList.from_dataset(
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True,
             prefer_list=True)[0]
@@ -1804,7 +1811,8 @@ class IconCombinedSimplePlotterTest(IconTestMixin, CombinedSimplePlotterTest):
     @classmethod
     def setUpClass(cls):
         cls.ds = open_dataset(cls.ncfile)
-        rcParams[CombinedSimplePlotter().vcmap.default_key] = 'winter'
+        plotter = CombinedSimplePlotter()
+        rcParams[plotter.vcmap.default_key] = 'winter'
         cls._data = ArrayList.from_dataset(
             cls.ds, t=0, z=0, name=[cls.var], auto_update=True,
             prefer_list=True)[0]
@@ -1991,7 +1999,8 @@ class DensityPlotterTestKDE(DensityPlotterTest):
 
     @classmethod
     def setUpClass(cls):
-        rcParams[DensityPlotter().density.default_key] = 'kde'
+        plotter = DensityPlotter()
+        rcParams[plotter.density.default_key] = 'kde'
         super(DensityPlotterTestKDE, cls).setUpClass()
 
     @unittest.skip('Not implemented for KDE plots!')
