@@ -2384,6 +2384,9 @@ class LimitBase(DataTicksCalculator):
             if len(l) == 2:
                 kwargs[kw] = l[1]
         vmin, vmax = self._calc_vmin_vmax(**kwargs)
+        if vmin == vmax:
+            vmax = vmax + 1
+            vmin = vmin - 1
         for key, func in self._calc_funcs.items():
             if key in value_lists[0] or key in value_lists[1]:
                 minmax = func(vmin, vmax)
