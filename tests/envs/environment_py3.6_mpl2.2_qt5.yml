@@ -1,0 +1,17 @@
+name: psyplot_py3.6_mpl2.2_qt5
+channels:
+    - conda-forge
+dependencies:
+    - python=3.6
+    - matplotlib=2.2
+    - dask
+    - xarray
+    - netCDF4
+    - seaborn
+    - qtconsole
+    - pyqt=5
+    - sphinx
+    - pip:
+        - pytest
+        - fasteners
+        - sphinx_rtd_theme

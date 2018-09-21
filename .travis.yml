@@ -120,6 +120,7 @@ install:
   # Useful for debugging any issues with conda
   - conda info -a
   - 'ENVKEY=py"${PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
+  - 'if [[ "$QT_VERSION" != "" ]]; then ENVKEY=${ENVKEY}_qt${QT_VERSION}; fi'
   - conda env create -f tests/envs/environment_$ENVKEY.yml
   - source activate psyplot_$ENVKEY
   # install python cdo bindings
@@ -139,7 +140,6 @@ install:
   # install psyplot-gui if desired
   - if [[ "$QT_VERSION" != "" ]]; then
         git clone "https://github.com/Chilipp/psyplot-gui.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot-gui.git";
-        conda env update -n psyplot_$ENVKEY -f "psyplot-gui/tests/envs/environment_py${PYTHON_VERSION}_qt${QT_VERSION}.yml" &&
         cd psyplot-gui && python setup.py install && cd .. && rm -rf psyplot-gui;
     fi
   # install coveralls
