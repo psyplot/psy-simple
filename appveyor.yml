@@ -6,6 +6,8 @@ environment:
     secure: if/KFvIyudicJz5Rf2DcM96xMItYbe5LSoYQ12jHPFcuvXmktD2zeE6DX8/pjOzn
 
   matrix:
+    - PYTHON_VERSION: "3.7"
+      MPL_VERSION: "3.0"
     - PYTHON_VERSION: "3.6"
       MPL_VERSION: "2.2"
     - PYTHON_VERSION: "3.6"
