@@ -5,6 +5,7 @@ dependencies:
     - python=3.7
     - matplotlib=3.0
     - dask
+    - pyqt
     - xarray
     - netCDF4
     - seaborn
