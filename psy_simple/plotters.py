@@ -412,8 +412,20 @@ class DataTicksCalculator(Formatoption):
         return ((arr[:-1] + arr[1:])/2.)[::step]
 
     def _calc_vmin_vmax(self, percmin=None, percmax=None):
+        def nanmin(arr):
+            try:
+                return np.nanmin(arr)
+            except TypeError:
+                return arr.min()
+
+        def nanmax(arr):
+            try:
+                return np.nanmax(arr)
+            except TypeError:
+                return arr.max()
+
         def minmax(arr):
-            return [arr.min(), arr.max()]
+            return [nanmin(arr), nanmax(arr)]
 
         def shared_arrays():
             for fmto in self.shared:
@@ -440,11 +452,11 @@ class DataTicksCalculator(Formatoption):
                     [self.array], shared_arrays()))))
         try:
             if not percmin:
-                vmin = arr.min()
+                vmin = nanmin(arr)
             else:
                 percentiles.append(percmin)
             if percmax is None or percmax == 100:
-                vmax = arr.max()
+                vmax = nanmax(arr)
             else:
                 percentiles.append(percmax)
         except ValueError:
@@ -3786,20 +3798,30 @@ class Cbar(Formatoption):
             kwargs['orientation'] = orientation
         self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)
         self._just_drawn.add(cbar)
+        self.set_label_pos(pos)
+
+    def set_label_pos(self, pos):
+        ax = self.cbars[pos].ax
         if pos == 'fl':
             # draw tick labels left
-            self.cbars[pos].ax.tick_params('y', labelleft=True,
-                                           labelright=False)
+            ax.tick_params('y', labelleft=True, labelright=False)
+            ax.yaxis.set_label_position('left')
+            ax.yaxis.tick_left()
         elif pos == 'ft':
             # draw ticklabels at the top
-            self.cbars[pos].ax.tick_params('x', labeltop=True,
-                                           labelbottom=False)
+            ax.tick_params('x', labeltop=True, labelbottom=False)
+            ax.xaxis.set_label_position('top')
+            ax.xaxis.tick_top()
         elif pos == 'r':
             # draw ticklabels on the right
-            self.cbars[pos].ax.tick_params('y', labelleft=False,
-                                           labelright=True)
+            ax.tick_params('y', labelleft=False, labelright=True)
+            ax.yaxis.set_label_position('right')
+            ax.yaxis.tick_right()
 
     def finish_update(self):
+        # Set the label position again in case this has been changed
+        for pos, cbar in self.cbars.items():
+            self.set_label_pos(pos)
         self._just_drawn.clear()
 
 
@@ -3843,12 +3865,6 @@ class CLabel(TextBase, Formatoption):
                     value, arr, attrs=self.get_enhanced_attrs(arr)))
             self.texts.append(getattr(
                 cbar.ax, self.axis_locations[pos] + 'axis').get_label())
-            if pos == 'fl':
-                cbar.ax.yaxis.set_label_position('left')
-            elif pos == 'ft':
-                cbar.ax.xaxis.set_label_position('top')
-            elif pos == 'r':
-                cbar.ax.yaxis.set_label_position('right')
 
 
 class VCLabel(CLabel):
