@@ -167,6 +167,9 @@ install:
   - psyplot -aV
   # export the token to make it available for the deploy
   - export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE
+  # add conda-forge channel for build
+  - conda config --add channels chilipp/label/$TRAVIS_BRANCH
+  - conda config --add channels conda-forge
 
 script:
   # create the necessary references
@@ -180,6 +183,7 @@ script:
         coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
         coverage report;
     fi'
+  - conda build ci/conda-recipe --python $PYTHON_VERSION
 
 before_script:
   - if [[ $TRAVIS_OS_NAME == "linux" && $QT_VERSION != "" ]]; then
@@ -190,6 +194,9 @@ before_script:
 
 after_success:
   - coveralls
+
+before_deploy:  # deactivate to use anaconda client
+  - conda deactivate
 
 deploy:
   - provider: script
