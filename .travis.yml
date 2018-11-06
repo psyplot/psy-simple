@@ -127,6 +127,8 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  # install conda build and anaconda-client for deploy
+  - conda install conda-build anaconda-client
   # Useful for debugging any issues with conda
   - conda info -a
   - 'ENVKEY=py"${PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
