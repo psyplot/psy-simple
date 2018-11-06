@@ -106,3 +106,7 @@
 	path = tests/reference_figures/darwin/py3.7/mpl3.0
 	url = https://github.com/Chilipp/psy-simple-references.git
 	branch = darwin_py3.7_mpl3.0
+[submodule "tests/reference_figures/win32/py3.7/mpl3.0"]
+	path = tests/reference_figures/win32/py3.7/mpl3.0
+	url = https://github.com/Chilipp/psy-simple-references.git
+	branch = win32_py3.7_mpl3.0
