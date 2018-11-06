@@ -185,7 +185,7 @@ script:
         coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
         coverage report;
     fi'
-  - conda build ci/conda-recipe --python $PYTHON_VERSION
+  - conda build ci/conda-recipe --python $PYTHON_VERSION --no-test
 
 before_script:
   - if [[ $TRAVIS_OS_NAME == "linux" && $QT_VERSION != "" ]]; then
