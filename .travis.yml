@@ -4,9 +4,15 @@ env:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
     - QT_VERSION=""
     - secure: "QocbcpzKkTWjFW8xKiws6W9cQrw+E+wY6dbH+IX7qnBw1OenPkInqMbquyNhmktPPEsnKfcZODDfHeXmvZYEdtTBWac1xMhT/ql4XiiEZY31JvXKsIRo/F6hcbVWjRFgl8vndv7IGiDaQAUys6VQ0yoS/0RRyIIzgzxb0mqedlZqGwc+hS50qXJSLM7TCgf8aFf7rrBK/I638Hq6GziAV8Zrg7dR+6CkaIkV9Lorz+suk/VcZSu1r1PCV4v54siY55FQhya/faEb4NPr5LGgtlLJ4v2trDxyc1jZTCbQtYm/rgpNP8KFMRHHPwlHBSjRHKdGiGnBwdPMKn7C//q0f/45ipnvVB439ku225juLO/ciq73FikOzmvlRCA+/FkR5QPdOhTmXLxrnvz5vKbaEoFncrwZwmh8cnAsCGEWly8RF2wieN1TeREMoDYi0AW5HO1E0tjcjN6ELBJUiw8WnxD0UufNHxUv0uv3g0Xug4JMQqj4qeNdvu1LL+XcqB4M/vnfgw9aZu0yU0PwBphg/xYzr+cMOxmds6SS9VYtYYL+HqQTuEWdlo4Vgk0gw9zfBL38Wxs+u4hcUYkpok0Nt+GTYm8wuQwKyCVbuEz17RLEIez62XWgN8nskFA4IrVDoC2/ADRWAg1cr2Z98aq0bpKOgXcXaBhtAhTofEhJE2o="
+    - secure: "kuj6VT7J4z/H28jh5lX7sY8Xb28U5FsXBB2N4lLJQKiGLk+5naO3wqxEOsVD6tXUk/Vie1uf0Qcqsnh5Qq1x9bA6a7YqedKrkm238So8qqJtoQQUsuX9Q+ZQK12QIn3C/ZO0h9scSu28jVl55eFpDWIwfEV7ZOWhrNNwsid5eToPSyOo5yw0XX/cTXnpOCCeFW4ZqJdzYXb8yD4zFM+Z7n8bwD01xSXdq756YI6RVyUWwy1wYRHii76vCZUHhSDaXsjSj9kCybdrQJtr4ah7Qt9+JrduMSU1sSyxw/+Qhr0XqG4si5BfE6M8TdkGSnE+6a7IZzp2b4Mso0QAGo+6qZJrhD9+lrFarnMSGVxZzwqW3P6TOXgzMSnM90khiF87vOfS5jzDhjfN8JvcdRSzCAMY4Uu1eFD5XFwJL7BkXYDSOuGMWmc2svTkogqu0MJauhcYBpPx/1+DwIdxEEqNQy0zmLoTHEQVNidlmz+bStocLU0ubx5NVqXe3dbEJhqIYKiXN9ZvDRtoY4cfD4QDdd6ISEiwV/RX1ErRlO+pUXQRZHvSVXcPCLZTZ1tM1fTa8m+f9YV93raFEcSOuGAL/Kvfr+26Ce4b8hsXS2piWTzty0pft7ciQ7/caAlaKBPhDEhmK2eYiQppKdI6fUXrezMsBl3DUNmXHsfs/IJVgaw="
 matrix:
     include:
         # linux environments
+        - env:
+            - PYTHON_VERSION=3.7
+            - MPL_VERSION=3.0
+            - QT_VERSION=5
+          os: linux
         - env:
             - PYTHON_VERSION=3.6
             - MPL_VERSION=2.2
@@ -54,6 +60,10 @@ matrix:
             - MPL_VERSION=1.4
           os: linux
         # osx environments
+        - env:
+            - PYTHON_VERSION=3.7
+            - MPL_VERSION=3.0
+          os: osx
         - env:
             - PYTHON_VERSION=3.6
             - MPL_VERSION=2.2
@@ -117,6 +127,8 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  # install conda build and anaconda-client for deploy
+  - conda install conda-build anaconda-client
   # Useful for debugging any issues with conda
   - conda info -a
   - 'ENVKEY=py"${PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
@@ -157,6 +169,9 @@ install:
   - psyplot -aV
   # export the token to make it available for the deploy
   - export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE
+  # add conda-forge channel for build
+  - conda config --add channels chilipp/label/$TRAVIS_BRANCH
+  - conda config --add channels conda-forge
 
 script:
   # create the necessary references
@@ -170,6 +185,7 @@ script:
         coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
         coverage report;
     fi'
+  - conda build ci/conda-recipe --python $PYTHON_VERSION --no-test
 
 before_script:
   - if [[ $TRAVIS_OS_NAME == "linux" && $QT_VERSION != "" ]]; then
@@ -180,6 +196,9 @@ before_script:
 
 after_success:
   - coveralls
+
+before_deploy:  # deactivate to use anaconda client
+  - conda deactivate
 
 deploy:
   - provider: script
@@ -193,4 +212,10 @@ deploy:
     skip_cleanup: true
     on:
       condition: "-e deploy_references"
+      all_branches: true
+  - provider: script
+    script: ci/deploy_anaconda.sh
+    skip_cleanup: true
+    on:
+      condition: '$MPL_VERSION == 3.0'
       all_branches: true

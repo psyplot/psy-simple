@@ -1,11 +1,12 @@
-name: psyplot_py2.7_mpl2.0
+name: psyplot_py3.7_mpl3.0
 channels:
     - conda-forge
 dependencies:
-    - python=2.7
-    - matplotlib=2.0
+    - python=3.7
+    - matplotlib=3.0
     - dask
-    - xarray<0.10.0
+    - pyqt
+    - xarray
     - netCDF4
     - seaborn
     - pip:
