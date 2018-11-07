@@ -197,9 +197,6 @@ before_script:
 after_success:
   - coveralls
 
-before_deploy:  # deactivate to use anaconda client
-  - conda deactivate
-
 deploy:
   - provider: script
     script: ci/update_reference_submodule.py
