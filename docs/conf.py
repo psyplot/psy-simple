@@ -79,6 +79,12 @@ if on_rtd:
 if not osp.exists(osp.join(osp.dirname(__file__), 'api')):
     spr.check_call(['bash', 'apigen.bash'])
 
+# HACK: Create an empty file called '<string>' to prevent
+# https://github.com/sphinx-doc/sphinx/issues/5614
+if not osp.exists('<string>'):
+    with open('<string>', 'w') as f:
+        pass
+
 # The cdo example would require the installation of climate data operators
 # which is a bit of an overkill
 example_gallery_config = dict(

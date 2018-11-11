@@ -57,6 +57,7 @@ docs/_build/
 docs/generated
 docs/examples/
 docs/index.doctree
+docs/<string>
 
 # test results
 *psyplot_testresults
