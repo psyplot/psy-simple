@@ -76,7 +76,7 @@ if on_rtd:
              ('-m ipykernel install --user --name python3 '
               '--display-name python3').split())
 
-if on_rtd or not osp.exists(osp.join(osp.dirname(__file__), 'api')):
+if not osp.exists(osp.join(osp.dirname(__file__), 'api')):
     spr.check_call(['bash', 'apigen.bash'])
 
 # The cdo example would require the installation of climate data operators

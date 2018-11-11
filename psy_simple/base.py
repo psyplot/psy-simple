@@ -2,13 +2,11 @@ import six
 from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
-from functools import partial
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from psyplot.docstring import docstrings, safe_modulo, dedents, dedent
 from psyplot.data import InteractiveList
-from psyplot import utils
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)
