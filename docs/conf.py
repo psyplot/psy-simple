@@ -69,7 +69,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # process the examples if they don't exist already
 process_examples = (
-    not osp.exists(osp.join(osp.dirname(__file__), 'examples')) or on_rtd)
+    not osp.exists(osp.join(osp.dirname(__file__), 'examples')))
 
 if on_rtd:
     spr.call([sys.executable] +
@@ -226,7 +226,7 @@ intersphinx_mapping = {
                 None),
 }
 if six.PY3:
-    intersphinx_mapping['python'] = ('https://docs.python.org/3.6/', None)
+    intersphinx_mapping['python'] = ('https://docs.python.org/3.7/', None)
 else:
     intersphinx_mapping['python'] = ('https://docs.python.org/2.7/', None)
 
