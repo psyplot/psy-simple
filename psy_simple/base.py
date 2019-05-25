@@ -3,15 +3,16 @@ from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
 import numpy as np
+import inspect
 import pandas as pd
 import matplotlib.pyplot as plt
-from psyplot.docstring import docstrings, safe_modulo, dedents, dedent
+from psyplot.docstring import docstrings, safe_modulo, dedent
 from psyplot.data import InteractiveList
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)
 
-docstrings.params['replace_note'] = dedents("""
+docstrings.params['replace_note'] = inspect.cleandoc("""
     You can insert any meta key from the :attr:`xarray.DataArray.attrs` via a
     string like ``'%%(key)s'``. Furthermore there are some special cases:
 
@@ -32,7 +33,7 @@ docstrings.params['replace_note'] = dedents("""
     '%s: ``%s``' % tuple(item) for item in six.iteritems(
         rcParams['texts.labels'])))
 
-docstrings.params['colors'] = dedents("""
+docstrings.params['colors'] = inspect.cleandoc("""
     The following color abbreviations are supported:
 
     ==========  ========
@@ -53,7 +54,7 @@ docstrings.params['colors'] = dedents("""
     RGBA tuples (``(0,1,0,1)``) or grayscale intensities as a string
     (``'0.8'``).""")
 
-docstrings.params['fontsizes'] = dedents("""
+docstrings.params['fontsizes'] = inspect.cleandoc("""
     float
         The absolute font size in points (e.g., 12)
     string
@@ -180,7 +181,7 @@ class TextBase(object):
         return LabelWidget(parent, self, project)
 
 
-docstrings.params['fontweights'] = dedents("""
+docstrings.params['fontweights'] = inspect.cleandoc("""
     float
         a float between 0 and 1000
     string
