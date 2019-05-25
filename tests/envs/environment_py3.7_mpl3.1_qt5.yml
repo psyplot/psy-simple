@@ -1,0 +1,17 @@
+name: psyplot_py3.7_mpl3.1_qt5
+channels:
+    - conda-forge
+dependencies:
+    - python=3.7
+    - matplotlib=3.1
+    - dask
+    - xarray
+    - netCDF4
+    - seaborn
+    - qtconsole
+    - pyqt=5
+    - sphinx
+    - pip:
+        - pytest
+        - fasteners
+        - sphinx_rtd_theme
