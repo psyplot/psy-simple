@@ -360,13 +360,13 @@ class LinePlotterTest(tb.BasePlotterTest):
                 list(range(2, 6)))
         plotter.update(xticks={'minor': 'week'}, xticklabels={'minor': '%d'},
                        xtickprops={'pad': 7.0})
-        ticks = plotter.ax.get_xticks(minor=True)
-        self.assertEqual(
-            ticks[(ticks >= 722487.75) & (ticks <= 722599.75)].tolist(),
-            [722487.75, 722494.75, 722501.75, 722508.75, 722515.75,
+        ticks = np.asarray(plotter.ax.get_xticks(minor=True))
+        self.assertLessEqual(
+            set(ticks[(ticks >= 722487.75) & (ticks <= 722599.75)].tolist()),
+            {722487.75, 722494.75, 722501.75, 722508.75, 722515.75,
              722522.75, 722529.75, 722536.75, 722543.75, 722550.75,
              722557.75, 722564.75, 722571.75, 722578.75, 722585.75,
-             722592.75, 722599.75])
+             722592.75, 722599.75})
         self.compare_figures(next(args, self.get_ref_file('xticks')))
         plotter.update(xticks={'major': None, 'minor': None})
         self.assertEqual(list(plotter.ax.get_xticks()),
