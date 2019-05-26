@@ -1,6 +1,7 @@
 import six
 import re
 from warnings import warn
+from psyplot.warning import PsyPlotRuntimeWarning
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
 from pandas import (
@@ -4525,6 +4526,14 @@ class VectorPlot(Formatoption):
 
     def _stream_plot(self):
         x, y, u, v = self._get_data()
+        dx = (x[-1] - x[0]) / (len(x) - 1)
+        dy = (y[-1] - y[0]) / (len(y) - 1)
+        if not np.allclose(np.diff(x), dx):
+            warn("Rescaling x to be equally spaced!", PsyPlotRuntimeWarning)
+            x = x[0] + np.zeros_like(x) + (np.arange(len(x)) * dx)
+        if not np.allclose(np.diff(y), dy):
+            warn("Rescaling y to be equally spaced!", PsyPlotRuntimeWarning)
+            y = y[0] + np.zeros_like(y) + (np.arange(len(y)) * dy)
         self._plot = self.ax.streamplot(x, y, u, v, **self._kwargs)
 
     def _get_data(self):
