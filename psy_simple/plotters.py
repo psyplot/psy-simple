@@ -3702,8 +3702,23 @@ class Cbar(Formatoption):
 
     def update_colorbar(self, pos):
         cbar = self.cbars[pos]
-        cbar.set_norm(self.plot.mappable.norm)
-        cbar.set_cmap(self.plot.mappable.cmap)
+        mappable = self.plot.mappable
+        if mpl.__version__ < '3.1':
+            cbar.set_norm(self.plot.mappable.norm)
+            cbar.set_cmap(self.plot.mappable.cmap)
+        else:  # change the colorbar and reconnect signals
+            old = cbar.mappable
+            cbar.update_normal(mappable)
+            if not getattr(mappable, 'colorbar_cid', False):
+                if getattr(old, 'colorbar_cid', False):
+                    old.callbacksSM.disconnect(old.colorbar_cid)
+                    old.colorbar = None
+                    old.colorbar_cid = None
+                cid = mappable.callbacksSM.connect(
+                    'changed', cbar.on_mappable_changed)
+                mappable.colorbar = cbar
+                mappable.colorbar_cid = cid
+            cbar.update_normal(cbar.mappable)
         cbar.draw_all()
 
     def remove(self, positions='all'):
