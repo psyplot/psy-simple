@@ -9,5 +9,7 @@ dependencies:
     - xarray
     - netCDF4
     - seaborn
+    # temporary HACK for statsmodels 0.9 incompatibility with scipy 1.3
+    - scipy<1.3.*
     - pip:
         - pytest
