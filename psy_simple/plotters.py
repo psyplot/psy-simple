@@ -1,6 +1,7 @@
 import six
 import re
 from warnings import warn
+from psyplot.warning import PsyPlotRuntimeWarning
 from abc import abstractproperty, abstractmethod
 from itertools import chain, starmap, cycle, islice, repeat
 from pandas import (
@@ -3701,8 +3702,23 @@ class Cbar(Formatoption):
 
     def update_colorbar(self, pos):
         cbar = self.cbars[pos]
-        cbar.set_norm(self.plot.mappable.norm)
-        cbar.set_cmap(self.plot.mappable.cmap)
+        mappable = self.plot.mappable
+        if mpl.__version__ < '3.1':
+            cbar.set_norm(self.plot.mappable.norm)
+            cbar.set_cmap(self.plot.mappable.cmap)
+        else:  # change the colorbar and reconnect signals
+            old = cbar.mappable
+            cbar.update_normal(mappable)
+            if not getattr(mappable, 'colorbar_cid', False):
+                if getattr(old, 'colorbar_cid', False):
+                    old.callbacksSM.disconnect(old.colorbar_cid)
+                    old.colorbar = None
+                    old.colorbar_cid = None
+                cid = mappable.callbacksSM.connect(
+                    'changed', cbar.on_mappable_changed)
+                mappable.colorbar = cbar
+                mappable.colorbar_cid = cid
+            cbar.update_normal(cbar.mappable)
         cbar.draw_all()
 
     def remove(self, positions='all'):
@@ -4525,6 +4541,14 @@ class VectorPlot(Formatoption):
 
     def _stream_plot(self):
         x, y, u, v = self._get_data()
+        dx = (x[-1] - x[0]) / (len(x) - 1)
+        dy = (y[-1] - y[0]) / (len(y) - 1)
+        if not np.allclose(np.diff(x), dx):
+            warn("Rescaling x to be equally spaced!", PsyPlotRuntimeWarning)
+            x = x[0] + np.zeros_like(x) + (np.arange(len(x)) * dx)
+        if not np.allclose(np.diff(y), dy):
+            warn("Rescaling y to be equally spaced!", PsyPlotRuntimeWarning)
+            y = y[0] + np.zeros_like(y) + (np.arange(len(y)) * dy)
         self._plot = self.ax.streamplot(x, y, u, v, **self._kwargs)
 
     def _get_data(self):
