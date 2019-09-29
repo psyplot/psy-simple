@@ -442,20 +442,39 @@ class ValidateList(object):
         ValueError"""
         try:
             if self.dtype is None:
-                l = self.listtype(l)
+                validated = self.listtype(l)
             else:
-                l = self.listtype(map(self.dtype, l))
+                try:
+                    len(self.dtype)
+                except TypeError:
+                    validated = self.listtype(map(self.dtype, l))
+                else:
+                    validated = self.listtype()
+                    for val in l:
+                        valid = False
+                        for dtype in self.dtype:
+                            try:
+                                validated.append(dtype(val))
+                            except (TypeError, ValueError):
+                                pass
+                            else:
+                                valid = True
+                                break
+                        if not valid:
+                            raise ValueError(
+                                f"{val} cannot be converted to any of the "
+                                f"given data types: {self.dtype}!")
+
         except TypeError:
             if self.dtype is None:
-                raise ValueError(
-                    "Could not convert to list!")
+                raise ValueError("Could not convert to list!")
             else:
                 raise ValueError(
                     "Could not convert to list of type %s!" % str(self.dtype))
-        if self.length is not None and len(l) != self.length:
+        if self.length is not None and len(validated) != self.length:
             raise ValueError('List with length %i is required! Not %i!' % (
-                self.length, len(l)))
-        return l
+                self.length, len(validated)))
+        return validated
 
 
 def validate_err_calc(val):
@@ -816,8 +835,8 @@ rcParams = RcParams(defaultParams={
     'plotter.density.yrange': [
         'minmax', validate_limits, 'The histogram limits of the density plot'],
     'plotter.density.precision': [
-        0, try_and_error(validate_float, ValidateList(float, 2),
-                         validate_str, ValidateList(str, 2)),
+        0, try_and_error(validate_float, ValidateList((float, str), 2),
+                         validate_str),
         'The precision of the data to make sure that the bin width is not '
         'below this value'],
     'plotter.density.bins': [
@@ -825,7 +844,8 @@ rcParams = RcParams(defaultParams={
         'The bins in x- and y-direction of the density plot'],
     'plotter.density.normed': [
         None, try_and_error(validate_none, ValidateInStrings(
-            'normed', ['area', 'counts'], True)),
+            'normed', ['area', 'counts', 'x', 'y', 'col', 'column', 'columns',
+                       'row', 'rows'], True)),
         'The normalization of the density histogram'],
     'plotter.density.density': [
         'hist', ValidateInStrings('density', ['hist', 'kde'], True)],
@@ -978,6 +998,9 @@ rcParams = RcParams(defaultParams={
     'plotter.plot2d.datagrid': [
         None, try_and_error(validate_none, validate_dict, validate_str),
         'fmt key to plot the lines of the data grid'],
+    'plotter.plot2d.mask_datagrid': [
+        True, validate_bool,
+        'fmt key to mask cells with NaN when plotting the data grid'],
 
     # VectorPlot
     'plotter.vector.plot': [

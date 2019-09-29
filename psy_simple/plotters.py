@@ -3320,6 +3320,27 @@ class ContourLevels(Bounds):
         super(ContourLevels, self).update(value)
 
 
+class MaskDataGrid(Formatoption):
+    """Mask the datagrid where the array is NaN
+
+    This boolean formatoption enables to mask the grid of the :attr:`datagrid`
+    formatoption where the data is NaN
+
+    Possible types
+    --------------
+    bool
+        Either True, to not display the data grid for cells with NaN, or False
+
+    See Also
+    --------
+    datagrid"""
+
+    def update(self, value):
+        """dummy, since this fmt is considered in the :class:`DataGrid ` fmt"""
+        pass
+
+
+
 class DataGrid(Formatoption):
     """
     Show the grid of the data
@@ -3336,9 +3357,17 @@ class DataGrid(Formatoption):
     dict
         any keyword arguments that are passed to the plotting function (
         :func:`matplotlib.pyplot.triplot` for triangular grids and
-        :func:`matplotlib.pyplot.hlines` for rectilinear grids)"""
+        :func:`matplotlib.pyplot.hlines` for rectilinear grids)
+
+    See Also
+    --------
+    mask_datagrid: To display cells with NaN"""
 
     children = ['transform']
+
+    dependencies = ['mask_datagrid']
+
+    connections = ['plot']
 
     name = 'Grid of the data'
 
@@ -3372,7 +3401,11 @@ class DataGrid(Formatoption):
             data, coords=data.coords, axis='x')
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
-        return xbounds.values
+        if self.mask_datagrid.value:
+            mask = ~np.isnan(self.plot.array).ravel()
+            return xbounds.values[mask]
+        else:
+            return xbounds.values
 
     @property
     def cell_nodes_y(self):
@@ -3384,7 +3417,11 @@ class DataGrid(Formatoption):
             data, coords=data.coords, axis='y')
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
-        return ybounds.values
+        if self.mask_datagrid.value:
+            mask = ~np.isnan(self.plot.array).ravel()
+            return ybounds.values[mask]
+        else:
+            return ybounds.values
 
     def __init__(self, *args, **kwargs):
         """
@@ -5012,9 +5049,9 @@ class DataPrecision(Formatoption):
         If 0, this formatoption has no effect at all. Otherwise it is assumed
         to be the precision of the data
     str
-        One of ``{'scott' | 'silverman'}``. If the :attr:`density` formatoption
-        is set to ``'kde'``, this describes the method how to calculate the
-        bandwidth"""
+        One of ``{'scott' | 'silverman'}``. This uses the statsmodels package
+        to estimate the bandwidth of the data that is then used in the
+        histogram or KDE plot"""
 
     priority = START
 
@@ -5028,17 +5065,22 @@ class DataPrecision(Formatoption):
 
     data_dependent = True
 
+    def estimate_bw(self, method, values, data_range=None):
+        import statsmodels.nonparametric.api as smnp
+        bw_func = getattr(smnp.bandwidths, "bw_" + method)
+        if data_range is not None:
+            vmin, vmax = sorted(data_range)
+            values = values[(values >= vmin) & (values <= vmax)]
+        if not len(values):
+            raise ValueError("No values found within the given range of "
+                             f"{data_range}!")
+        return bw_func(values)
+
     def update(self, value):
         self.bins = [0, 0]
         value = slist(value)
         if len(value) == 1:
             value = [value[0], value[0]]
-        for i, val in enumerate(value):
-            if isstring(val) and self.density.value != 'kde':
-                warn("[%s] - Cannot assign a string to the precision if the "
-                     "density estimation method is not 'kde' but '%s'" % (
-                         self.logger.name, self.density.value))
-                value[i] = 0
         self.prec = value
         for i, prec in enumerate(value):
             if prec == 0:
@@ -5051,6 +5093,8 @@ class DataPrecision(Formatoption):
             else:
                 data = da[da.notnull()].values
                 r = self.yrange.range
+            if isstring(prec):
+                prec = self.prec[i] = self.estimate_bw(prec, data, r)
             if r is not None:
                 dmin, dmax = r
             else:
@@ -5124,6 +5168,10 @@ class NormedHist2D(Formatoption):
         area
             To make the normalization basen on the total number of counts and
             area (the default behaviour of :func:`numpy.histogram2d`)
+        x, col, column or columns
+            To normalize every column
+        y, row or rows
+            To normalize every row
 
     See Also
     --------
@@ -5158,8 +5206,14 @@ class NormedHist2D(Formatoption):
         x = da.coords[da.dims[0]].values
         counts, xedges, yedges = np.histogram2d(
             x, y, normed=normed, **kwargs)
-        if self.value == 'counts':
+        if self.value == 'counts':  # normalize such that all values sum to one
             counts = counts / counts.sum().astype(float)
+        elif self.value in ['x', 'col', 'column', 'columns']:
+            # normalize such that every column sums to one
+            counts = counts / counts.sum(axis=1, keepdims=True).astype(float)
+        elif self.value in ['y', 'row', 'rows']:
+            # normalize such that every row sums to one
+            counts = counts / counts.sum(axis=1, keepdims=True).astype(float)
         return counts, xedges, yedges
 
 
@@ -5334,6 +5388,7 @@ class Base2D(Plotter):
     cticksize = CTickSize('cticksize')
     ctickweight = CTickWeight('ctickweight')
     ctickprops = CTickProps('ctickprops')
+    mask_datagrid = MaskDataGrid('mask_datagrid')
     datagrid = DataGrid('datagrid', index_in_list=0)
 
 
