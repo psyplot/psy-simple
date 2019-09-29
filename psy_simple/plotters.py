@@ -1929,6 +1929,8 @@ class ErrorPlot(Formatoption):
                         vals = self._get_x_values(data)
                         self.plot_fill(vals, min_range, max_range,
                                        next(colors), zorder=line.zorder)
+                else:
+                    next(colors)
 
     def _get_x_values(self, df):
         if isinstance(df.index, MultiIndex) and len(df.index.names) == 1:
