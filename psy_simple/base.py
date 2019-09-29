@@ -379,10 +379,10 @@ def label_props(base, label_name=None, children=[], parents=[],
         --------
         %s, %s, %s""" % (label_name, base.key, base.key + 'size',
                          base.key + 'weight')
-        children = [base.key, base.key + 'size', base.key + 'weight'] + \
-            cl_children
+        children = cl_children
         parents = cl_parents
-        dependencies = cl_dependencies
+        dependencies = [base.key, base.key + 'size', base.key + 'weight'] + \
+            cl_dependencies
 
         group = 'labels'
 
