@@ -48,6 +48,7 @@ install:
   - ps: Remove-Item -Recurse -Force psyplot
   - pip install coveralls
   - python setup.py install
+  - "IF NOT DEFINED APPVEYOR_REPO_TAG_NAME (SET GIT_BRANCH=%APPVEYOR_REPO_BRANCH%)"
   # export the environment for debugging
   - conda env export -n psyplot_%ENVKEY%
   # print versions of all the important requirements
@@ -59,9 +60,18 @@ build: false
 test_script:
   - coverage run --source=psy_simple setup.py test -a "-v --ref --ignore=tests/widgets" && python ci/check_ref_deploy.py
   - coverage run -a --source=psy_simple setup.py test -a "-v --ignore=tests/widgets"
+  - conda build ci/conda-recipe --python %PYTHON_VERSION%
 
 after_test:
   - coverage report
   # deploy references
   - if exist deploy_references python ci\update_reference_submodule.py
   - if exist deploy_references ci\update_submodules.py
+
+
+before_deploy:
+  - activate base
+  - conda install conda-build anaconda-client
+
+deploy_script:
+  - cmd: "python ci\\deploy_anaconda.py"

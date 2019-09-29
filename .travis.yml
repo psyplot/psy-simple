@@ -96,6 +96,7 @@ install:
         git clone "https://github.com/Chilipp/psyplot-gui.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot-gui.git";
         cd psyplot-gui && python setup.py install && cd .. && rm -rf psyplot-gui;
     fi
+  - if [[ $TRAVIS_TAG == "" ]]; then export GIT_BRANCH=$TRAVIS_BRANCH; fi
   # install coveralls
   - pip install coveralls pytest-xdist pytest-cov
   # install psyplot
@@ -127,7 +128,12 @@ script:
         coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
         coverage report;
     fi'
-  - conda build ci/conda-recipe --python $PYTHON_VERSION --no-test
+  - conda build ci/conda-recipe --python $PYTHON_VERSION
+  # deploy here (don't use travis deploy because it requires homebrew)
+  - if [[ $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_REPO_SLUG == "Chilipp/psy-simple" && $DEPLOY_CONDA == "true" ]]; then
+        conda activate base;
+        ci/deploy_anaconda.py;
+    fi
 
 before_script:
   - if [[ $TRAVIS_OS_NAME == "linux" && $QT_VERSION != "" ]]; then
@@ -152,15 +158,3 @@ deploy:
     on:
       condition: "-e deploy_references"
       all_branches: true
-  - provider: script
-    script: ci/deploy_anaconda.sh
-    skip_cleanup: true
-    on:
-      condition: '$DEPLOY_CONDA == true'
-      all_branches: true
-  - provider: script
-    script: ci/deploy_anaconda.sh
-    skip_cleanup: true
-    on:
-      condition: '$DEPLOY_CONDA == true'
-      tags: true

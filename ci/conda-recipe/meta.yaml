@@ -1,21 +1,22 @@
 {% set name = "psy-simple" %}
-{% set version = "1.2.0" %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: {{ name|lower }}
-  version: {{ version }}
+  version: {{ data.get('version') }}
 
 source:
   path: ../../
 
 build:
-  number: 0
-  script: python setup.py install --single-version-externally-managed --record record.txt
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
+  string: py{{ environ.get('CONDA_PY') }}_{{ environ.get('GIT_BUILD_STR', '') }}{% if environ.get('GIT_BRANCH') %}_{{ environ.get('GIT_BRANCH') }}{% endif %}
+  script: python -m pip install . --no-deps --ignore-installed -vvv
 
 requirements:
   build:
   - python
-  - setuptools
+  - pip
   run:
   - python
   - psyplot
@@ -23,6 +24,7 @@ requirements:
 test:
   imports:
   - psy_simple
+  - psy_simple.plotters
 
 about:
   home: https://github.com/Chilipp/psy-simple
