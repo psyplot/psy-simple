@@ -28,8 +28,6 @@ config = {"test": {
     }}
 
 pyqt_patt = re.compile("pyqt=.")
-
-config = {"test": {"commands": ["codecov"]}}
 if any(pyqt_patt.match(pkg) for pkg in args.packages):
 
     config["test"]["commands"].insert(
