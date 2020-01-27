@@ -22,8 +22,10 @@ for pkg in args.packages:
     else:
         packages.append(pkg)
 
-with open(output, 'w') as f:
-    yaml.dump({"test": {"requires": packages}}, f)
+config = {"test": {
+    "requires": packages,
+    "commands": ["codecov"]
+    }}
 
 pyqt_patt = re.compile("pyqt=.")
 
@@ -33,6 +35,7 @@ if any(pyqt_patt.match(pkg) for pkg in args.packages):
     config["test"]["commands"].insert(
         0, "pytest --cov=psy_simple --cov-append -v tests/widgets")
     config["test"]["imports"] = ["psy_simple.widgets"]
+    config["test"]["requires"].append("psyplot-gui")
 
-with open(output, 'a') as f:
+with open(output, 'w') as f:
     yaml.dump(config, f)
