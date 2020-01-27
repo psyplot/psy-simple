@@ -539,7 +539,7 @@ class DictValValidator(object):
         if isinstance(value, dict) and value and all(
                 isinstance(key, six.string_types) for key in value):
             failed_key = False
-            for key, val in six.iteritems(value):
+            for key, val in list(six.iteritems(value)):
                 try:
                     new_key = self.key_validator(key)
                 except ValueError:
