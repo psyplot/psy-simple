@@ -96,6 +96,8 @@ install:
     # unset the global CONDA_REPO_TOKEN variable because it is not needed
     # during the tests. This decreases the vulnerability
     - unset_secure
+    - 'touch matplotlibrc'
+    - 'export MATPLOTLIBRC=`pwd`/matplotlibrc'
     - |
         echo ""
         echo "Configuring conda."
