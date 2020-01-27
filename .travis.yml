@@ -135,25 +135,6 @@ script:
           ci/deploy_anaconda.py;
       fi
 
-script:
-  # create the necessary references
-  - coverage run --source=psy_simple setup.py test -a "-v --ref --ignore=tests/widgets" &&
-    python ci/check_ref_deploy.py && coverage report
-  # run the tests
-  - py.test -v -n $NCORES --cov-append --cov=psy_simple --ignore=tests/widgets
-  # test GUI widgets
-  - 'if [[ $QT_VERSION != "" ]]; then
-        echo "backend : module://psyplot_gui.backend" > matplotlibrc;
-        coverage run --source=psy_simple --append setup.py test -a "-v tests/widgets" &&
-        coverage report;
-    fi'
-  - conda build ci/conda-recipe --python $PYTHON_VERSION
-  # deploy here (don't use travis deploy because it requires homebrew)
-  - if [[ $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_REPO_SLUG == "Chilipp/psy-simple" && $DEPLOY_CONDA == "true" ]]; then
-        conda activate base;
-        ci/deploy_anaconda.py;
-    fi
-
 deploy:
   - provider: script
     script: ci/update_reference_submodule.py
