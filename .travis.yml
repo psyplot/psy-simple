@@ -96,7 +96,7 @@ install:
     # unset the global CONDA_REPO_TOKEN variable because it is not needed
     # during the tests. This decreases the vulnerability
     - unset_secure
-    - 'touch matplotlibrc'
+    - 'echo "backend : qt5agg" > matplotlibrc'
     - 'export MATPLOTLIBRC=`pwd`/matplotlibrc'
     - |
         echo ""
