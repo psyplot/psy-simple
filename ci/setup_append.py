@@ -27,9 +27,12 @@ with open(output, 'w') as f:
 
 pyqt_patt = re.compile("pyqt=.")
 
-commands = ["codecov"]
+config = {"test": {"commands": ["codecov"]}}
 if any(pyqt_patt.match(pkg) for pkg in args.packages):
-    commands.insert(0, "pytest --cov=psy_simple --cov-append -v tests/widgets")
+
+    config["test"]["commands"].insert(
+        0, "pytest --cov=psy_simple --cov-append -v tests/widgets")
+    config["test"]["imports"] = ["psy_simple.widgets"]
 
 with open(output, 'a') as f:
-    yaml.dump({"test": {"commands": commands}}, f)
+    yaml.dump(config, f)
