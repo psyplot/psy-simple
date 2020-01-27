@@ -3400,14 +3400,11 @@ class DataGrid(Formatoption):
         xcoord = self.xcoord
         data = self.data
         xbounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='x')
+            data, coords=data.coords, axis='x',
+            nans='skip' if self.mask_datagrid.value else None)
         if self.plotter.convert_radian:
             xbounds = convert_radian(xbounds, xcoord, xbounds)
-        if self.mask_datagrid.value:
-            mask = ~np.isnan(self.plot.array).ravel()
-            return xbounds.values[mask]
-        else:
-            return xbounds.values
+        return xbounds.values
 
     @property
     def cell_nodes_y(self):
@@ -3416,14 +3413,11 @@ class DataGrid(Formatoption):
         ycoord = self.ycoord
         data = self.data
         ybounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='y')
+            data, coords=data.coords, axis='y',
+            nans='skip' if self.mask_datagrid.value else None)
         if self.plotter.convert_radian:
             ybounds = convert_radian(ybounds, ycoord, ybounds)
-        if self.mask_datagrid.value:
-            mask = ~np.isnan(self.plot.array).ravel()
-            return ybounds.values[mask]
-        else:
-            return ybounds.values
+        return ybounds.values
 
     def __init__(self, *args, **kwargs):
         """
@@ -3452,6 +3446,13 @@ class DataGrid(Formatoption):
         for artist in self._artists:
             artist.remove()
         del self._artists
+
+
+class VectorDataGrid(DataGrid):
+
+    @property
+    def data(self):
+        return super().data[0]
 
 
 class SimplePlot2D(Plot2D):
@@ -4555,6 +4556,10 @@ class VectorPlot(Formatoption):
         self._args = []
         self._kwargs = {}
 
+    @property
+    def array(self):
+        return self.data.values
+
     def update(self, value):
         pass
         # the real plot making is done by make_plot but we store the value here
@@ -5648,6 +5653,7 @@ class BaseVectorPlotter(Base2D):
     cbar = VectorCbar('cbar')
     bounds = VectorBounds('bounds')
     cticks = VectorCTicks('cticks')
+    datagrid = VectorDataGrid('datagrid')
 
     @classmethod
     @docstrings.dedent

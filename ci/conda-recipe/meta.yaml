@@ -15,16 +15,32 @@ build:
 
 requirements:
   build:
-  - python
-  - pip
+    - python
+    - pip
   run:
-  - python
-  - psyplot
+    - python
+    - psyplot
 
 test:
   imports:
-  - psy_simple
-  - psy_simple.plotters
+    - psy_simple
+    - psy_simple.plotters
+
+  requires:
+    - pytest
+    - pytest-cov
+    - codecov
+    - dask
+    - pyqt
+    - xarray
+    - netCDF4
+    - seaborn
+  source_files:
+    - tests
+
+  commands:
+    - pytest -v --cov=psy_simple --ref --ignore=tests/widgets
+    - py.test -v --cov-append --cov=psy_simple --ignore=tests/widgets
 
 about:
   home: https://github.com/Chilipp/psy-simple

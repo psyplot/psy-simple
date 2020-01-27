@@ -1,14 +1,19 @@
 language: generic
 env:
   global:
-    - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"
-    - QT_VERSION=""
-    - secure: "QocbcpzKkTWjFW8xKiws6W9cQrw+E+wY6dbH+IX7qnBw1OenPkInqMbquyNhmktPPEsnKfcZODDfHeXmvZYEdtTBWac1xMhT/ql4XiiEZY31JvXKsIRo/F6hcbVWjRFgl8vndv7IGiDaQAUys6VQ0yoS/0RRyIIzgzxb0mqedlZqGwc+hS50qXJSLM7TCgf8aFf7rrBK/I638Hq6GziAV8Zrg7dR+6CkaIkV9Lorz+suk/VcZSu1r1PCV4v54siY55FQhya/faEb4NPr5LGgtlLJ4v2trDxyc1jZTCbQtYm/rgpNP8KFMRHHPwlHBSjRHKdGiGnBwdPMKn7C//q0f/45ipnvVB439ku225juLO/ciq73FikOzmvlRCA+/FkR5QPdOhTmXLxrnvz5vKbaEoFncrwZwmh8cnAsCGEWly8RF2wieN1TeREMoDYi0AW5HO1E0tjcjN6ELBJUiw8WnxD0UufNHxUv0uv3g0Xug4JMQqj4qeNdvu1LL+XcqB4M/vnfgw9aZu0yU0PwBphg/xYzr+cMOxmds6SS9VYtYYL+HqQTuEWdlo4Vgk0gw9zfBL38Wxs+u4hcUYkpok0Nt+GTYm8wuQwKyCVbuEz17RLEIez62XWgN8nskFA4IrVDoC2/ADRWAg1cr2Z98aq0bpKOgXcXaBhtAhTofEhJE2o="
-    - secure: "kuj6VT7J4z/H28jh5lX7sY8Xb28U5FsXBB2N4lLJQKiGLk+5naO3wqxEOsVD6tXUk/Vie1uf0Qcqsnh5Qq1x9bA6a7YqedKrkm238So8qqJtoQQUsuX9Q+ZQK12QIn3C/ZO0h9scSu28jVl55eFpDWIwfEV7ZOWhrNNwsid5eToPSyOo5yw0XX/cTXnpOCCeFW4ZqJdzYXb8yD4zFM+Z7n8bwD01xSXdq756YI6RVyUWwy1wYRHii76vCZUHhSDaXsjSj9kCybdrQJtr4ah7Qt9+JrduMSU1sSyxw/+Qhr0XqG4si5BfE6M8TdkGSnE+6a7IZzp2b4Mso0QAGo+6qZJrhD9+lrFarnMSGVxZzwqW3P6TOXgzMSnM90khiF87vOfS5jzDhjfN8JvcdRSzCAMY4Uu1eFD5XFwJL7BkXYDSOuGMWmc2svTkogqu0MJauhcYBpPx/1+DwIdxEEqNQy0zmLoTHEQVNidlmz+bStocLU0ubx5NVqXe3dbEJhqIYKiXN9ZvDRtoY4cfD4QDdd6ISEiwV/RX1ErRlO+pUXQRZHvSVXcPCLZTZ1tM1fTa8m+f9YV93raFEcSOuGAL/Kvfr+26Ce4b8hsXS2piWTzty0pft7ciQ7/caAlaKBPhDEhmK2eYiQppKdI6fUXrezMsBl3DUNmXHsfs/IJVgaw="
+    - COMMIT_AUTHOR_EMAIL="philipp.sommer@unil.ch"r
+    - secure: "MQ9fJUgiNp3AXdlwlEtW6dKrWmS/+w294ENsAeyDrXPL4mWV1SdMe1ErQO+0AcmV+8qtz8bjxWUkd8yeCrQ3MyXyxvzi2UEqmGs3WvalNbJrL6M0Yy8tbUtV+ZHtjqSXUdXnT8BTtuQaum5HN5irtOTsx69e8qNiKxKrL21Jk7PdRVD26Ze7YqG2VzV4NkU70cRMe67qhMME2Lsb/XLXT7XhaX4jjhJiPpIWmJREWUa7BHRPJybQGWb24NItpqLAV5OLOpvi8kPFj/q4L2FGuaChw7pclr51tnfzh1Ap/Oc1SYUirvT11QyeZqQp1xcaE9VgAhfCoWuY+G7cOnvBBjdZZhU57VqxPTVxEFAxvZY9Bonqv7SbBCIrsoLNx3EJuGR8AVqlY888S29YiSnniNldKuH0Ywh6FAF7zgFZUPQBAQXPPW8TcJLVf7OhAQuPp/iBvLhaNYT6nuZdIOrExi/CwgHz1AkneVQFrRYrHgXYB6YaDdbNE7iSMHXvBj4F121G5Fd0je1pa+jYbg5vPlceVMePZwMDss8/EIObfwYEV++ZJ5a+WrnEt6mGk+X/+06bT+NBODGW94HwTGde4YwJasXUML+f4BiRMjeaqZW/vOeVMsNMGbtw8kVPdxzeCiuPC3gXm/bPkBQjMXwuY/yQ2+dYPIkM6+WSYjMKuro="
+    - secure: "AGgGmfgh1+XrVlGyMYm50Zet5VEJV9YFL1fgB0L6jJanp4Qullh5P9nXszQvEDRttDml739G2Iin4xsRxQEtyvRO+nh9+r3euxp0VVgC6vadhy/UtCn6b21G22moKxzY0A3I9rNsbi5OyXgjQMBE7v5kbbkgA/5cQd+PHXlSdq4IVies0BU/p8IQL6x7G172F3k6dwx12DAZYzHBFFZCHvd2/gCBErSlcphhmBakYvsWMs83MCcvUvHHVn4IbfIHZVEgH+wRb36990J6yOBZPEFqyHKobK/CpbLEn/BX/y6Q8QPRAsBBq2UaDO0rHzT65byV2YzVqYW5XJNllbTt001z7HyT1sN7Kg+NQncipqWAUeUtAz5VyCwE4+iVYbr7MUuFv2OM1O93kk9jrfN2+7Pk6qZiWkYL1iJdolUE5Kj0Jsq6gTcSCFNomP2NTCxg55lIpHyQywIx0OPuI+I1MZAmmhsDYT527JOeF+xoEHt3yAEdVzPZfxUOxiOS3ZUr4vZaGu58/GQclfZCzEzEPnUGNMtWPv5V/ISzY7PhFjS6EssVRud1InO3Cd2oSXHPlb2zYcau9Pz2BvC+rT+JOMA7Nqdfakjj0tnM6D4s2zvL/fjpuUWvM/plA2vL25TltIbie5C/isplN5vehel85CReST3gipRFuDQaYyDipaM="
 matrix:
     include:
         # linux environments
         - env:
+            - PYTHON_VERSION=3.8
+            - MPL_VERSION=3.1
+            - QT_VERSION=5
+            - DEPLOY_CONDA=true
+          os: linux
+        - env:
             - PYTHON_VERSION=3.7
             - MPL_VERSION=3.1
             - QT_VERSION=5
@@ -17,104 +22,118 @@ matrix:
         - env:
             - PYTHON_VERSION=3.7
             - MPL_VERSION=3.0
-            - QT_VERSION=5
-          os: linux
-        - env:
-            - PYTHON_VERSION=3.6
-            - MPL_VERSION=2.2
             - QT_VERSION=5
           os: linux
         # osx environments
         - env:
-            - PYTHON_VERSION=3.7
+            - PYTHON_VERSION=3.8
             - MPL_VERSION=3.1
             - DEPLOY_CONDA=true
           os: osx
         - env:
             - PYTHON_VERSION=3.7
-            - MPL_VERSION=3.0
+            - MPL_VERSION=3.1
+            - DEPLOY_CONDA=true
           os: osx
-        - env:
-            - PYTHON_VERSION=3.6
-            - MPL_VERSION=2.2
-          os: osx
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      sed -i '' 's/git@github.com:/https:\/\/github.com\//' .gitmodules;
-    else
-      sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules;
-    fi
+
 git:
     submodules: false
+
+before_install:
+    - if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then export DEPLOY_CONDA=false; fi
+    # Remove homebrew.
+    - |
+      if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+          echo ""
+          echo "Removing homebrew from Travis CI to avoid conflicts."
+          curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall > ~/uninstall_homebrew
+          chmod +x ~/uninstall_homebrew
+          ~/uninstall_homebrew -fq
+          rm ~/uninstall_homebrew
+      fi
+    # define functions to unset and reset encrypted variables
+    - function unset_secure {
+          CONDA_TOKEN_SAVE=$CONDA_REPO_TOKEN;
+          unset CONDA_REPO_TOKEN;
+          GH_REPO_TOKEN_SAVE=$GH_REPO_TOKEN;
+          unset GH_REPO_TOKEN;
+          }
+    - function reset_secure {
+          export CONDA_REPO_TOKEN=$CONDA_TOKEN_SAVE;
+          export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE;
+          }
+    - unset_secure
+    # increase open files limit
+    - ulimit -a
+    - ulimit -Sn 10000
+    - ulimit -a
+      # select the os name for the conda installer
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+          OS_NAME=MacOSX;
+      else
+          OS_NAME=Linux;
+      fi
+    # Install Miniconda.
+    - |
+      echo ""
+      echo "Installing a fresh version of Miniconda."
+      MINICONDA_URL="https://repo.continuum.io/miniconda"
+      MINICONDA_FILE="Miniconda3-latest-${OS_NAME}-x86_64.sh"
+      curl -L -O "${MINICONDA_URL}/${MINICONDA_FILE}"
+      bash $MINICONDA_FILE -bp $HOME/miniconda3
+    - source $HOME/miniconda3/bin/activate root
+    - hash -r
+    - reset_secure
+
+before_script:
+    - if [[ $TRAVIS_OS_NAME == "linux" ]]; then
+          export "DISPLAY=:99.0";
+          sh -e /etc/init.d/xvfb start;
+          sleep 3;
+      fi
+
 install:
-  # unset the global GH_REPO_TOKEN variable because it is not needed during
-  # the installation process. This decreases the vulnerability
-  - GH_REPO_TOKEN_SAVE=$GH_REPO_TOKEN
-  - unset GH_REPO_TOKEN
-  # select the os name for the conda installer
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        OS_NAME=MacOSX;
-    else
-        OS_NAME=Linux;
-    fi
-  # We do this conditionally because it saves us some downloading if the
-  # version is the same.
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-"${OS_NAME}"-x86_64.sh -O miniconda.sh
-  # make sure we use an 'innocent' default matplotlib environment
-  - touch matplotlibrc
-  # setup conda environment
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - pip install pyyaml  # is somehow not included in the current conda installation
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  # install conda build and anaconda-client for deploy
-  - conda install conda-build anaconda-client
-  # Useful for debugging any issues with conda
-  - conda info -a
-  - 'ENVKEY=py"${PYTHON_VERSION}"_mpl"${MPL_VERSION}"'
-  - 'if [[ "$QT_VERSION" != "" ]]; then ENVKEY=${ENVKEY}_qt${QT_VERSION}; fi'
-  - conda env create -f tests/envs/environment_$ENVKEY.yml
-  - source activate psyplot_$ENVKEY
-  # install python cdo bindings
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        conda install -c conda-forge cdo python-cdo;
-        export CDO="$HOME/miniconda/envs/psyplot_$ENVKEY/bin/cdo";
-    fi
-  # checkout references
-  - 'export WORK=`pwd`'
-  - 'export REFDIR=`python tests/get_ref_dir.py`'
-  - 'export REFBRANCH=`python tests/get_ref_dir.py -b`'
-  - git submodule update --init $REFDIR
-  # use latest development version
-  # NOTE: Remove this when psyplot is stable enough
-  - git clone "https://github.com/Chilipp/psyplot.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot.git"
-  - cd psyplot && python setup.py install && cd .. && rm -rf psyplot
-  # install psyplot-gui if desired
-  - if [[ "$QT_VERSION" != "" ]]; then
-        git clone "https://github.com/Chilipp/psyplot-gui.git" -b $TRAVIS_BRANCH || git clone "https://github.com/Chilipp/psyplot-gui.git";
-        cd psyplot-gui && python setup.py install && cd .. && rm -rf psyplot-gui;
-    fi
-  - if [[ $TRAVIS_TAG == "" ]]; then export GIT_BRANCH=$TRAVIS_BRANCH; fi
-  # install coveralls
-  - pip install coveralls pytest-xdist pytest-cov
-  # install psyplot
-  - python setup.py install
-  # export the environment for debugging
-  - conda env export -n psyplot_$ENVKEY
-  # get the number of available cores
-  - 'NCORES=`python -c "import multiprocessing; print(multiprocessing.cpu_count())"`'
-  # use 8 cores at maximum
-  - 'export NCORES=`python -c "print(min(8, ${NCORES}))"`'
-  - echo using $NCORES
-  # print versions of all the important requirements
-  - psyplot -aV
-  # export the token to make it available for the deploy
-  - export GH_REPO_TOKEN=$GH_REPO_TOKEN_SAVE
-  # add conda-forge channel for build
-  - conda config --add channels chilipp/label/$TRAVIS_BRANCH
-  - conda config --add channels conda-forge
+    # unset the global CONDA_REPO_TOKEN variable because it is not needed
+    # during the tests. This decreases the vulnerability
+    - unset_secure
+    - |
+        echo ""
+        echo "Configuring conda."
+        conda config --set always_yes yes --set changeps1 no
+        conda config --add channels conda-forge
+        conda config --add channels chilipp
+        conda update -q conda
+        conda install conda-build anaconda-client conda-verify
+    - if [[ $TRAVIS_TAG == "" ]]; then
+        export GIT_BRANCH=$TRAVIS_BRANCH;
+        conda config --add channels chilipp/label/${TRAVIS_BRANCH};
+      fi
+    - python ci/setup_append.py ci/conda-recipe matplotlib=${MPL_VERSION} pyqt=${QT_VERSION}
+    - if [[ $USE_PIP == true ]]; then
+        python -m pip install . -r ci/requirements.txt;
+      fi
+    - conda info -a
+    - conda list
+    - export PSYPLOT_REFERENCES=`python tests/get_ref_dir.py -mpl ${MPL_VERSION} -py ${PYTHON_VERSION}`
+    - export REFBRANCH=`python tests/get_ref_dir.py -b -mpl ${MPL_VERSION} -py ${PYTHON_VERSION}`
+    - git submodule update --init ${PSYPLOT_REFERENCES}
+    - reset_secure
+
+script:
+    - unset_secure
+    # install conda
+    - if [[ $USE_PIP == true ]]; then
+          pytest -v --cov=psy_simple && codecov;
+      else
+          conda build ci/conda-recipe --python $PYTHON_VERSION;
+      fi
+    - python ci/check_ref_deploy.py
+    # export the pw to make it available for the deploy
+    - reset_secure
+    # deploy here (don't use travis deploy because it requires homebrew)
+    - if [[ $DEPLOY_CONDA == "true" && $TRAVIS_PULL_REQUEST == "false" && $TRAVIS_REPO_SLUG == "Chilipp/psy-simple" ]]; then
+          ci/deploy_anaconda.py;
+      fi
 
 script:
   # create the necessary references
@@ -134,16 +153,6 @@ script:
         conda activate base;
         ci/deploy_anaconda.py;
     fi
-
-before_script:
-  - if [[ $TRAVIS_OS_NAME == "linux" && $QT_VERSION != "" ]]; then
-        export "DISPLAY=:99.0";
-        sh -e /etc/init.d/xvfb start;
-        sleep 3;
-    fi
-
-after_success:
-  - coveralls
 
 deploy:
   - provider: script
