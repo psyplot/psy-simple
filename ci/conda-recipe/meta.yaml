@@ -39,8 +39,8 @@ test:
     - tests
 
   commands:
-    - pytest -v --cov=psy_simple --ref --ignore=tests/widgets
-    - py.test -v --cov-append --cov=psy_simple --ignore=tests/widgets
+    - pytest -sv --cov=psy_simple --ref --ignore=tests/widgets
+    - py.test -sv --cov-append --cov=psy_simple --ignore=tests/widgets
 
 about:
   home: https://github.com/Chilipp/psy-simple
