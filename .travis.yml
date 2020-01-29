@@ -36,6 +36,9 @@ matrix:
             - DEPLOY_CONDA=true
           os: osx
 
+services:
+    - xvfb
+
 git:
     submodules: false
 
