@@ -3018,10 +3018,10 @@ class Plot2D(Formatoption):
         or the :func:`matplotlib.pyplot.tripcolor` for an unstructered grid
     'tri'
         Use the :func:`matplotlib.pyplot.tripcolor` function to plot data on a
-        triangular grid
+        unstructured grid
     'contourf'
         Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`
-        function or the :func:`matplotlib.pyplot.tricontourf` for triangular
+        function or the :func:`matplotlib.pyplot.tricontourf` for unstructured
         data. The levels for the contour plot are controlled by the
         :attr:`levels` formatoption
     'tricontourf'
@@ -3170,7 +3170,7 @@ class Plot2D(Formatoption):
                 xcoord = convert_radian(xcoord, xcoord)
                 ycoord = convert_radian(ycoord, ycoord)
             if (self.value in ['tricontourf', 'tricontour'] or
-                    self.decoder.is_triangular(self.raw_data)):
+                    self.decoder.is_unstructured(self.raw_data)):
                 pm = self.ax.tricontourf if filled else self.ax.tricontour
                 mask = ~np.isnan(arr)
                 x = xcoord.values[mask]
@@ -3358,7 +3358,7 @@ class DataGrid(Formatoption):
         ``'-'`` the linestyle.
     dict
         any keyword arguments that are passed to the plotting function (
-        :func:`matplotlib.pyplot.triplot` for triangular grids and
+        :func:`matplotlib.pyplot.triplot` for unstructured grids and
         :func:`matplotlib.pyplot.hlines` for rectilinear grids)
 
     See Also
@@ -4634,7 +4634,7 @@ class VectorPlot(Formatoption):
         uname, vname = self.data.coords['variable'].values
         xcoord = self.xcoord
         ycoord = self.ycoord
-        if self.decoder.is_triangular(self.raw_data[0]):
+        if self.decoder.is_unstructured(self.raw_data[0]):
             x, y, z1, z2 = self.get_xyz_tri(xcoord, x, ycoord, y, u, v)
         elif xcoord.ndim == 1:
             x, y, z1, z2 = self.get_xyz_1d(xcoord, x, ycoord, y, u, v)
@@ -4682,7 +4682,7 @@ class VectorPlot(Formatoption):
 
 
 class SimpleVectorPlot(VectorPlot):
-    # disable the stream plot for triangular grids because it is not supported
+    # disable the stream plot for unstructured grids because it is not supported
     # for 1d arrays and for circumpolar grids because 2d coordinates are not
     # supported
 
