@@ -2,10 +2,6 @@ environment:
 
   PYTHON_ARCH: "64"
   PYTHON: "C:\\Miniconda36-x64"
-  GH_REPO_TOKEN:
-    secure: if/KFvIyudicJz5Rf2DcM96xMItYbe5LSoYQ12jHPFcuvXmktD2zeE6DX8/pjOzn
-  CONDA_REPO_TOKEN:
-    secure: 3bfaONftAXMNuj4/DQtVgdMzlcloLMhuxPxZe8b9PQ+5u1pghF90KJ1ihW9jiSgL
 
   matrix:
     - PYTHON_VERSION: "3.8"
