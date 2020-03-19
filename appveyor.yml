@@ -2,6 +2,7 @@ environment:
 
   PYTHON_ARCH: "64"
   PYTHON: "C:\\Miniconda36-x64"
+  COMMIT_AUTHOR_EMAIL: "philipp.sommer@hzg.de"
 
   matrix:
     - PYTHON_VERSION: "3.8"
