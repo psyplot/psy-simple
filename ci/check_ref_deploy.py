@@ -9,9 +9,9 @@ work = osp.abspath(os.getcwd())
 
 maybe_upload = (
     (os.getenv('TRAVIS') and os.getenv('TRAVIS_PULL_REQUEST') == 'false' and
-     os.getenv('TRAVIS_REPO_SLUG') == 'Chilipp/psy-simple') or
+     os.getenv('TRAVIS_REPO_SLUG') == 'psyplot/psy-simple') or
     (os.getenv('APPVEYOR') and
-     os.getenv('APPVEYOR_REPO_NAME') == 'Chilipp/psy-simple'))
+     os.getenv('APPVEYOR_REPO_NAME') == 'psyplot/psy-simple'))
 
 if maybe_upload:
     os.chdir(get_ref_dir())
