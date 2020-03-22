@@ -35,6 +35,7 @@ test:
     - xarray
     - netCDF4
     - seaborn
+    - statsmodels
   source_files:
     - tests
 
