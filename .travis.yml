@@ -2,6 +2,7 @@ language: generic
 env:
   global:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@hzg.de"
+    - BUILD_STR_END=cf
     - secure: "HJbiFhfVTzA/85tJXTa3BYYpSxisYbXFUJ3eVZY3TUcqHnHnUxLqbOFtcaf1LnnTgRhki6pzVr3OclXdkc24pbaNBpQi+DslwJ7cAcKTG96ianQC3JBNfUbEJN4wIFutaVm1Yp5u8mSZgGGzETGFQX9GiP2APJ5hmi9xkGCPRm9Uznua3tX723b5YBtwGz/MhkI8CPdW78N5rdv0MgZ8b7TmnxmvonZA6JX1CDoqYlkzbiJcjzIkfYlavHKmJrzLgOyc72i4vxpZw6iKDyQq45WaoKd/qSccR+zz3EcwKeXr/CUqhnNw45JB0Evln/2OLI6CxIikGv8ZxAfrq3n3An9rBDrjkT6IL99/Pgw6Z653har+yutPCbQ+oiUZ0YwYpIVa7G48ExuRDdVqWcL9zd5tNCVH+8tWVhkrBqYEW6QiN5yuL0HSE26KeHb6KCQ5yyBBCN2VGYm8xR3g6ZYtHTkEDg5mVCkj0u4q0AeUtcXQzKHRrhiHY2CyR2kjaszMwG0m7uFobYt2O/O1T+6xN8MjmAR6R7oWX7D1Ii5u1A9o0KVMJtEW+m7oIK7KkcDWD5bbH4aSrzsJVVLHUGjdOX9OHWQ/uwkVCcp6KKg7G6Btyj7xB5CJT5l79j0RdjadswaaQIa1kICmCPMVHWaIXoaSAjt8+0F5Kg7jouGmuH0="
     - secure: "FleGX8EV2CSutmoAV1k8YfkOH3hXOMXI1lL375n7KBvoG8DsESThj5HXMDODPJIRqcB4Lt9cjhwRDvZAnPBwlxr9JjoKNFubj9JLUHjGZITMl1PEWuLW8BaXthU6iA8p9htZLlWYCOooC7rLW6+RiDgfXA+i0yohLSJoncWYdhbTtMr86p1CINz1uhR59doJSdx3/nXazMeS+45FZMccGi/6XGE5nC3jRujmTXG5T0q63Lc1qSSrnzLl/le7+RU+C2g06Bdrz5FZ+6OMM9ycp9VM2sk9uzMbyJoqwsJKCj2cEfQSBUcIIl0tItVIJQuXkLYtaNk7UDWSBbmdWDkPq8+pf4wkr3Pi3EzT4NRKj6I486P1IrMyslj7/+u7x0U3mmlR1MPCYh/WUH0QlEz/+qg3IHN105jeJo0YuX1m6fgDoPm2TburZDHZAg6OLXzF6aULPRWrrvl5iKGSzXcQEXg9FnvyNlpn/ZZzUyh1oLeuxwRiM4kzzMPrKCAY+rs3FJ6BjQxuhWQDXt8jHqCqiJ6oVZxSvHzeRTMk7lGg83s/4LWHYUcKE+LT47pbpV9RDELk6/eGw4CZ89S8y94NJlWsTSmEl2yvUFa08aCGze/ERmkwxcbgICFaApwDIDDuvMIsU8A/h2CUK+wWD5Ppw5/k1d1i/PbSJgbVKHJyswA="
 matrix:
@@ -21,6 +22,11 @@ matrix:
           os: linux
         - env:
             - PYTHON_VERSION=3.7
+            - DEPLOY_CONDA=true
+            - BUILD_STR_END=
+          os: linux
+        - env:
+            - PYTHON_VERSION=3.7
             - MPL_VERSION=3.0
             - QT_VERSION=5
           os: linux
@@ -29,6 +35,11 @@ matrix:
             - PYTHON_VERSION=3.8
             - MPL_VERSION=3.1
             - DEPLOY_CONDA=true
+          os: osx
+        - env:
+            - PYTHON_VERSION=3.7
+            - DEPLOY_CONDA=true
+            - BUILD_STR_END=
           os: osx
         - env:
             - PYTHON_VERSION=3.7
@@ -95,7 +106,11 @@ install:
         echo ""
         echo "Configuring conda."
         conda config --set always_yes yes --set changeps1 no
-        conda config --add channels conda-forge
+        if [[ ${BUILD_STR_END} == "cf" ]]; then
+            conda config --add channels conda-forge
+        else
+            conda config --add channels chilipp
+        fi
         conda config --add channels psyplot
         conda update -q conda
         conda install conda-build anaconda-client conda-verify
