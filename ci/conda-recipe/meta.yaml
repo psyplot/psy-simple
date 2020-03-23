@@ -44,7 +44,7 @@ test:
     - py.test -sv --cov-append --cov=psy_simple --ignore=tests/widgets
 
 about:
-  home: https://github.com/Chilipp/psy-simple
+  home: https://github.com/psyplot/psy-simple
   license: GPL-2.0
   license_family: GPL
   license_file: LICENSE
@@ -54,4 +54,4 @@ about:
     This psyplot plugin provides plot methods for simple visualization tasks
     like 2D plots, line plots, bar plots, etc.
   doc_url: http://psyplot.readthedocs.io/projects/psy-simple
-  dev_url: https://github.com/Chilipp/psy-simple
+  dev_url: https://github.com/psyplot/psy-simple
