@@ -88,7 +88,7 @@ if not osp.exists('<string>'):
 # The cdo example would require the installation of climate data operators
 # which is a bit of an overkill
 example_gallery_config = dict(
-    urls='https://github.com/Chilipp/psy-simple/blob/master/examples',
+    urls='https://github.com/psyplot/psy-simple/blob/master/examples',
     )
 
 napoleon_use_admonition_for_examples = True

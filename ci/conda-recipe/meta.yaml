@@ -6,11 +6,11 @@ package:
   version: {{ data.get('version') }}
 
 source:
-  git_url: ../../
+  path: ../../
 
 build:
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
-  string: py{{ environ.get('CONDA_PY') }}_{{ environ.get('GIT_BUILD_STR', '') }}{% if environ.get('GIT_BRANCH') %}_{{ environ.get('GIT_BRANCH') }}{% endif %}
+  string: py{{ environ.get('CONDA_PY') }}_{{ environ.get('GIT_BUILD_STR', '') }}{% if environ.get('GIT_BRANCH') %}_{{ environ.get('GIT_BRANCH').replace('-', '') }}{% endif %}{% if environ.get("BUILD_STR_END") %}_{{ environ.get("BUILD_STR_END") }}{% endif %}
   script: python -m pip install . --no-deps --ignore-installed -vvv
 
 requirements:
@@ -35,6 +35,7 @@ test:
     - xarray
     - netCDF4
     - seaborn
+    - statsmodels
   source_files:
     - tests
 
@@ -43,7 +44,7 @@ test:
     - py.test -sv --cov-append --cov=psy_simple --ignore=tests/widgets
 
 about:
-  home: https://github.com/Chilipp/psy-simple
+  home: https://github.com/psyplot/psy-simple
   license: GPL-2.0
   license_family: GPL
   license_file: LICENSE
@@ -53,4 +54,4 @@ about:
     This psyplot plugin provides plot methods for simple visualization tasks
     like 2D plots, line plots, bar plots, etc.
   doc_url: http://psyplot.readthedocs.io/projects/psy-simple
-  dev_url: https://github.com/Chilipp/psy-simple
+  dev_url: https://github.com/psyplot/psy-simple

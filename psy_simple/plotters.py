@@ -109,7 +109,7 @@ def convert_radian(coord, *variables):
     xr.Variable
         The transformed variable if one of the given `variables` has units in
         radian"""
-    if any(v.attrs.get('units') == 'radian' for v in variables):
+    if any(v.attrs.get('units', '').startswith('radian') for v in variables):
         return coord * 180. / np.pi
     return coord
 
@@ -5598,7 +5598,8 @@ class Simple2DBase(Base2D):
         if data.psy.decoder.is_unstructured(data):
             ndims -= 1
         if data.ndim != ndims:
-            raise ValueError("Can only plot 2-dimensional data!")
+            raise ValueError(f"Can only plot {self.allowed_dims}-dimensional "
+                             "data!")
 
 
 class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
@@ -5644,6 +5645,8 @@ class BaseVectorPlotter(Base2D):
     """
 
     _rcparams_string = ["plotter.vector."]
+
+    allowed_dims = 3
 
     arrowsize = ArrowSize('arrowsize')
     arrowstyle = ArrowStyle('arrowstyle')
@@ -5722,9 +5725,12 @@ class BaseVectorPlotter(Base2D):
             data = self.data[0]
         else:
             data = self.data
-        if not ((data.psy.decoder.is_unstructured(data) and data.ndim == 2) or
-                data.ndim == 3):
-            raise ValueError("Can only plot 3-dimensional data!")
+        ndims = self.allowed_dims
+        if data.psy.decoder.is_unstructured(data):
+            ndims -= 1
+        if data.ndim != ndims:
+            raise ValueError(f"Can only plot {self.allowed_dims}-dimensional "
+                             "data!")
 
 
 class SimpleVectorPlotter(BaseVectorPlotter, SimplePlotterBase):

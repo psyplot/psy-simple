@@ -34,6 +34,9 @@ if any(pyqt_patt.match(pkg) for pkg in args.packages):
         0, "pytest --cov=psy_simple --cov-append -v tests/widgets")
     config["test"]["imports"] = ["psy_simple.widgets"]
     config["test"]["requires"].append("psyplot-gui")
+    # HACK: Should be removed when https://github.com/ipython/ipykernel/pull/489
+    # is implemented
+    config["test"]["requires"].append("jupyter_client <6.0.0")
 
 with open(output, 'w') as f:
     yaml.dump(config, f)

@@ -47,4 +47,4 @@ or after having install pytest_::
 
 
 .. _pytest: https://pytest.org/latest/contents.html
-.. _github: https://github.com/Chilipp/psy-simple
+.. _github: https://github.com/psyplot/psy-simple

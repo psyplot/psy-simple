@@ -11,7 +11,7 @@ psy-simple: The psyplot plugin for simple visualizations
     * - docs
       - |docs|
     * - tests
-      - |travis| |appveyor| |requires| |coveralls|
+      - |travis| |appveyor| |requires| |codecov|
     * - package
       - |version| |conda| |supported-versions| |supported-implementations| |zenodo|
 
@@ -19,21 +19,21 @@ psy-simple: The psyplot plugin for simple visualizations
     :alt: Documentation Status
     :target: http://psy-simple.readthedocs.io/en/latest/?badge=latest
 
-.. |travis| image:: https://travis-ci.org/Chilipp/psy-simple.svg?branch=master
+.. |travis| image:: https://travis-ci.org/psyplot/psy-simple.svg?branch=master
     :alt: Travis
-    :target: https://travis-ci.org/Chilipp/psy-simple
+    :target: https://travis-ci.org/psyplot/psy-simple
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/pv9kyd8obfrqp5wf?svg=true
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/49u41l2f9k0r4xc0/branch/master?svg=true
     :alt: AppVeyor
-    :target: https://ci.appveyor.com/project/Chilipp/psy-simple
+    :target: https://ci.appveyor.com/project/psyplot/psy-simple
 
-.. |coveralls| image:: https://coveralls.io/repos/github/Chilipp/psy-simple/badge.svg?branch=master
+.. |codecov| image:: https://codecov.io/gh/psyplot/psy-simple/branch/master/graph/badge.svg
     :alt: Coverage
-    :target: https://coveralls.io/github/Chilipp/psy-simple?branch=master
+    :target: https://codecov.io/gh/psyplot/psy-simple
 
-.. |requires| image:: https://requires.io/github/Chilipp/psy-simple/requirements.svg?branch=master
+.. |requires| image:: https://requires.io/github/psyplot/psy-simple/requirements.svg?branch=master
     :alt: Requirements Status
-    :target: https://requires.io/github/Chilipp/psy-simple/requirements/?branch=master
+    :target: https://requires.io/github/psyplot/psy-simple/requirements/?branch=master
 
 .. |version| image:: https://img.shields.io/pypi/v/psy-simple.svg?style=flat
     :alt: PyPI Package latest release
