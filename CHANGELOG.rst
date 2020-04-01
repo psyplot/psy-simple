@@ -1,3 +1,8 @@
+v1.2.1
+======
+* psy-simple has been moved from https://github.com/Chilipp/psy-simple to https://github.com/psyplot/psy-simple,
+  see `#7 <https://github.com/psyplot/psy-simple/pull/7>`__
+
 v1.2.0
 ======
 Added
