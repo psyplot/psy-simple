@@ -475,6 +475,8 @@ class DataTicksCalculator(Formatoption):
 
     @staticmethod
     def _round_min_max(vmin, vmax):
+        if vmin == vmax:
+            return vmin, vmax
         exp = np.floor(np.log10(abs(vmax - vmin)))
         larger = round_to_05([vmin, vmax], exp, mode='l')
         smaller = round_to_05([vmin, vmax], exp, mode='s')
