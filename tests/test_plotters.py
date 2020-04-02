@@ -1092,6 +1092,17 @@ class Simple2DPlotterContourTest(Simple2DPlotterTest):
         pass
 
 
+class Simple2DPlotterTestArtificial(unittest.TestCase):
+    """A test case for artifial data"""
+
+    def test_single_level(self):
+        """Test the case when all the data contains exactly one value"""
+        ds = xr.Dataset()
+        ds['test'] = (('y', 'x'), np.ones((4, 5)))
+        sp = ds.psy.plot.plot2d(cmap='Reds', bounds=['rounded', 3])
+        self.assertEquals(list(sp.plotters[0].bounds.bounds), [1., 1., 1.])
+
+
 class IconTestMixin(object):
     """A mixin class for changed test methods for icon"""
 
