@@ -1,7 +1,15 @@
 v1.2.1
 ======
+Changed
+-------
 * psy-simple has been moved from https://github.com/Chilipp/psy-simple to https://github.com/psyplot/psy-simple,
   see `#7 <https://github.com/psyplot/psy-simple/pull/7>`__
+
+Fixed
+-----
+* Fixed a bug to calculate color bounds for uniform data,
+  see `#9 <https://github.com/psyplot/psy-simple/pull/9>`__
+
 
 v1.2.0
 ======
