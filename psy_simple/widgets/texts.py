@@ -125,7 +125,7 @@ class LabelWidget(QWidget):
     label"""
 
     @docstrings.get_sectionsf('LabelWidget')
-    def __init__(self, parent, fmto, project):
+    def __init__(self, parent, fmto, project, properties=True):
         """
         Parameters
         ----------
@@ -157,7 +157,7 @@ class LabelWidget(QWidget):
             getattr(fmto.plotter, fmto.key + 'weight', None)
             ]
         fmtos = list(filter(None, fmtos))
-        if fmtos:
+        if fmtos and properties:
             hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
         self.setLayout(hbox)
