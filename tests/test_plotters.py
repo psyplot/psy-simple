@@ -181,27 +181,31 @@ class LinePlotterTest(tb.BasePlotterTest):
         old_c = mcol.to_rgba(self.plotter.color.colors[-1])
         self.assertEqual(get_color(self.plotter.plot._plot[-1]), old_c)
 
-        # append data
-        new = data[-1].psy.copy()
-        data.append(new, new_name=True)
-        self.assertEqual(len(data), n+1)
-        self.plotter.update(replot=True)
-        self.assertEqual(len(self.plotter.plot_data), n+1)
-        c = mcol.to_rgba(self.plotter.color.colors[-1])
-        self.assertNotEqual(c, old_c)
-        self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
+        try:
+            # append data
+            new = data[-1].psy.copy()
+            data.append(new, new_name=True)
+            self.assertEqual(len(data), n+1)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n+1)
+            c = mcol.to_rgba(self.plotter.color.colors[-1])
+            self.assertNotEqual(c, old_c)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
 
-        # remove data again
-        data.pop(-1)
-        self.plotter.update(replot=True)
-        self.assertEqual(len(self.plotter.plot_data), n)
-        self.assertEqual(get_color(self.plotter.plot._plot[-1]), old_c)
+            # remove data again
+            data.pop(-1)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), old_c)
 
-        # append data again
-        data.append(new, new_name=True)
-        self.plotter.update(replot=True)
-        self.assertEqual(len(self.plotter.plot_data), n+1)
-        self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
+            # append data again
+            data.append(new, new_name=True)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n+1)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
+        finally:
+            if len(data) > n:
+                data.pop(-1)
 
     def test_plot_stacked_transposed(self, *args):
         """Test plot formatoption with ``'areax'``"""
