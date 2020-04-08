@@ -1604,7 +1604,6 @@ class LineColors(Formatoption):
     def __init__(self, *args, **kwargs):
         super(LineColors, self).__init__(*args, **kwargs)
         self.colors = []
-        self.default_colors = None
 
     @property
     def extended_colors(self):
@@ -1616,17 +1615,11 @@ class LineColors(Formatoption):
             yield c
 
     def update(self, value):
+        changed = self.plotter.has_changed(self.key)
         if value is None:
-            ax = self.plotter.ax
-            if float(mpl.__version__[:3]) < 1.5:
-                self.color_cycle = ax._get_lines.color_cycle
-            else:
-                self.color_cycle = (props['color'] for props in
-                                    ax._get_lines.prop_cycler)
-            # use the default colors if it is reset to None
-            if self.default_colors is not None:
-                self.color_cycle = cycle(chain(self.default_colors,
-                                               self.color_cycle))
+            prop_cycler = mpl.rcParams['axes.prop_cycle']
+            self.color_cycle = cycle((props['color'] for props in prop_cycler))
+            prop_cycler._keys  # this should make a copy
         else:
             try:
                 self.color_cycle = cycle(get_cmap(value)(
@@ -1641,9 +1634,8 @@ class LineColors(Formatoption):
                 else:
                     value = [value]
                 self.color_cycle = cycle(iter(value))
-        # store the default colors
-        if value is None and self.default_colors is None:
-            self.default_colors = self.colors
+        if changed:
+            self.colors.clear()
 
 
 class Marker(Formatoption):
