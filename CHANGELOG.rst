@@ -2,12 +2,13 @@ v1.2.1
 ======
 Changed
 -------
+* psy-simple now requires matplotlib greater or equal than 2.0
 * psy-simple has been moved from https://github.com/Chilipp/psy-simple to https://github.com/psyplot/psy-simple,
   see `#7 <https://github.com/psyplot/psy-simple/pull/7>`__
 * The color handling of the `color` formatoption has been changed to allow
   appending of new data. The `colors` attribute can be extended by the
   `color_cycle` using the `extended_colors` attribute (see
-  `#10 <https://github.com/psyplot/psy-simple/pull/10>`)
+  `#10 <https://github.com/psyplot/psy-simple/pull/10>`__)
 
 Fixed
 -----

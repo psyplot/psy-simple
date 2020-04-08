@@ -20,6 +20,7 @@ requirements:
   run:
     - python
     - psyplot
+    - matplotlib >=2.0
 
 test:
   imports:
