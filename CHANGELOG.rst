@@ -4,6 +4,10 @@ Changed
 -------
 * psy-simple has been moved from https://github.com/Chilipp/psy-simple to https://github.com/psyplot/psy-simple,
   see `#7 <https://github.com/psyplot/psy-simple/pull/7>`__
+* The color handling of the `color` formatoption has been changed to allow
+  appending of new data. The `colors` attribute can be extended by the
+  `color_cycle` using the `extended_colors` attribute (see
+  `#10 <https://github.com/psyplot/psy-simple/pull/10>`)
 
 Fixed
 -----
