@@ -162,6 +162,51 @@ class LinePlotterTest(tb.BasePlotterTest):
         self.compare_figures(next(iter(args),
                                   self.get_ref_file('plot_stacked')))
 
+    def test_append_data(self):
+        """Test appending new data to the list"""
+
+        def get_color(artist):
+            try:
+                ret = artist.get_color()
+            except AttributeError:
+                try:
+                    ret = artist.get_facecolor()
+                except AttributeError:
+                    ret = artist[0].get_facecolor()
+            return mcol.to_rgba(ret)
+
+        data = self.data
+        n = len(data)
+        self.assertEqual(len(self.plotter.plot_data), n)
+        old_c = mcol.to_rgba(self.plotter.color.colors[-1])
+        self.assertEqual(get_color(self.plotter.plot._plot[-1]), old_c)
+
+        try:
+            # append data
+            new = data[-1].psy.copy()
+            data.append(new, new_name=True)
+            self.assertEqual(len(data), n+1)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n+1)
+            c = mcol.to_rgba(self.plotter.color.colors[-1])
+            self.assertNotEqual(c, old_c)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
+
+            # remove data again
+            data.pop(-1)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), old_c)
+
+            # append data again
+            data.append(new, new_name=True)
+            self.plotter.update(replot=True)
+            self.assertEqual(len(self.plotter.plot_data), n+1)
+            self.assertEqual(get_color(self.plotter.plot._plot[-1]), c)
+        finally:
+            if len(data) > n:
+                data.pop(-1)
+
     def test_plot_stacked_transposed(self, *args):
         """Test plot formatoption with ``'areax'``"""
         self.update(plot='stacked', transpose=True)
@@ -510,6 +555,10 @@ class SingleLinePlotterTest(LinePlotterTest):
     def test_plot_None(self, *args):
         pass
 
+    @unittest.skip("Appending not possible for single line")
+    def test_append_data(self):
+        pass
+
 
 class ViolinPlotterTest(LinePlotterTest):
     """Test class for :class:`psy_simple.plotters.BarPlotter`"""
@@ -551,6 +600,10 @@ class ViolinPlotterTest(LinePlotterTest):
 
     @unittest.skip("No need for figure creation")
     def ref_plot_stacked_transposed(self, close=True):
+        pass
+
+    @unittest.skip("seaborn changes colors")
+    def test_append_data(self):
         pass
 
     @unittest.skip('Test needs to be implemented')
@@ -802,6 +855,10 @@ class SingleBarPlotterTest(BarPlotterTest):
     def test_plot(self, *args):
         pass
 
+    @unittest.skip("Appending not possible for single line")
+    def test_append_data(self):
+        pass
+
 
 class References2D(object):
     """abstract base class that defines reference methods for 2D plotter"""
@@ -942,6 +999,10 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
 
     @unittest.skip("No need for figure creation")
     def test_plot_None(self, *args):
+        pass
+
+    @unittest.skip("Appending not possible for plot2d")
+    def test_append_data(self):
         pass
 
     @unittest.skip("No need for figure creation")

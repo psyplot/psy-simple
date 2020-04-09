@@ -1599,26 +1599,27 @@ class LineColors(Formatoption):
 
     @property
     def value2share(self):
-        return self.colors
+        return self.extended_colors
 
     def __init__(self, *args, **kwargs):
         super(LineColors, self).__init__(*args, **kwargs)
         self.colors = []
-        self.default_colors = None
+
+    @property
+    def extended_colors(self):
+        for c in self.colors:
+            yield c
+        while True:
+            c = next(self.color_cycle)
+            self.colors.append(c)
+            yield c
 
     def update(self, value):
         changed = self.plotter.has_changed(self.key)
         if value is None:
-            ax = self.plotter.ax
-            if float(mpl.__version__[:3]) < 1.5:
-                self.color_cycle = ax._get_lines.color_cycle
-            else:
-                self.color_cycle = (props['color'] for props in
-                                    ax._get_lines.prop_cycler)
-            # use the default colors if it is reset to None
-            if self.default_colors is not None:
-                self.color_cycle = cycle(chain(self.default_colors,
-                                               self.color_cycle))
+            prop_cycler = mpl.rcParams['axes.prop_cycle']
+            self.color_cycle = cycle((props['color'] for props in prop_cycler))
+            prop_cycler._keys  # this should make a copy
         else:
             try:
                 self.color_cycle = cycle(get_cmap(value)(
@@ -1634,15 +1635,7 @@ class LineColors(Formatoption):
                     value = [value]
                 self.color_cycle = cycle(iter(value))
         if changed:
-            self.colors = [
-                next(self.color_cycle) for arr in self.iter_data]
-        else:  # then it is replotted
-            # append new colors from color_cycle (if necessary)
-            self.colors += [next(self.color_cycle) for _ in range(
-                len(list(self.iter_data)) - len(self.colors))]
-        # store the default colors
-        if value is None and self.default_colors is None:
-            self.default_colors = self.colors
+            self.colors.clear()
 
 
 class Marker(Formatoption):
@@ -1775,7 +1768,7 @@ class LinePlot(Formatoption):
                     markers = repeat(None)
                 self._plot = list(filter(None, chain.from_iterable(starmap(
                     self.plot_arr, zip(
-                        self.iter_data, self.color.colors,
+                        self.iter_data, self.color.extended_colors,
                         cycle(slist(self.value)), markers)))))
 
     def _stacked_plot(self):
@@ -1797,7 +1790,7 @@ class LinePlot(Formatoption):
             x = index.to_pydatetime()
         base = np.zeros_like(df.iloc[:, 0])
         self._plot = []
-        for (col, s), c, val in zip(df.items(), self.color.colors,
+        for (col, s), c, val in zip(df.items(), self.color.extended_colors,
                                     cycle(slist(self.value))):
             if val is None:
                 continue
@@ -1916,7 +1909,7 @@ class ErrorPlot(Formatoption):
             self.remove()
         if self.value is not None:
             self._plot = []
-            colors = iter(self.color.colors)
+            colors = self.color.extended_colors
             for da, line in zip(self.iter_data, self.plot._plot):
                 if da.ndim == 2 and da.shape[0] > 1:
                     data = da[0].to_series()
@@ -2123,7 +2116,8 @@ class BarPlot(Formatoption):
                 self._plot = [
                     pm(*self.get_xys(arr), facecolor=c, alpha=alpha,
                        align='edge')
-                    for arr, c in zip(self.iter_data, self.color.colors)]
+                    for arr, c in zip(self.iter_data,
+                                      self.color.extended_colors)]
                 if self._set_date:
                     if self.transpose.value:
                         ax.yaxis_date()
@@ -2142,7 +2136,7 @@ class BarPlot(Formatoption):
                 self._plot = containers = []
                 base = np.zeros_like(y)
                 for i, (col, c, plot) in enumerate(
-                        zip(df.columns, self.color.colors,
+                        zip(df.columns, self.color.extended_colors,
                             cycle(slist(self.value)))):
                     if not plot:
                         continue
@@ -2296,7 +2290,7 @@ class ViolinPlot(Formatoption):
                 df = self.data.to_series().to_frame()
             old_artists = self.ax.containers[:] + self.ax.lines[:] \
                 + self.ax.collections[:]
-            palette = self.color.colors
+            palette = list(islice(self.color.extended_colors, df.shape[1]))
             violinplot(data=df, palette=palette, ax=self.ax,
                        orient='h' if self.transpose.value else 'v',
                        **self._kwargs)

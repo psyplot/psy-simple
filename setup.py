@@ -52,6 +52,7 @@ setup(name='psy-simple',
       packages=find_packages(exclude=['docs', 'tests*', 'examples']),
       install_requires=[
           'psyplot',
+          'matplotlib>=2.0',
       ],
       package_data={'psy_simple': [
           osp.join('psy_simple', 'widgets', 'icons', '*.png'),
