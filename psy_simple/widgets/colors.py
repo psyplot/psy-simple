@@ -44,7 +44,11 @@ class ColormapModel(QtCore.QAbstractTableModel):
         """
         super(ColormapModel, self).__init__(*args, **kwargs)
         names = _get_cmaps(names)
-        self.names = names
+        self.set_colors(N, names)
+
+    def set_colors(self, N=None, names=None):
+        self.names = names = names or self.names
+        self.N = N = N or self.N
 
         colors = np.zeros((len(names), N, 4))
         a = np.linspace(0, 1, N)
@@ -353,11 +357,14 @@ class ArrayFmtWidget(QWidget):
         combo.addItems(['Step', '# Steps'])
 
         if array is not None:
-            self.txt_min.setText('%1.4g' % array.min())
-            self.txt_max.setText('%1.4g' % array.max())
+            vmin, vmax = array.min(), array.max()
+            decimals = self.get_decimals(vmin, vmax)
+
+            self.txt_min.setText(f'%1.{decimals}g' % vmin)
+            self.txt_max.setText(f'%1.{decimals}g' % vmax)
             steps = np.diff(array)
             if len(steps) == 1 or np.diff(steps).max() < 1e-5:
-                self.txt_step.setText('%1.4g' % steps[0])
+                self.txt_step.setText(f'%1.{decimals}g' % steps[0])
                 combo.setCurrentIndex(0)
             else:
                 combo.setCurrentIndex(1)
@@ -388,6 +395,14 @@ class ArrayFmtWidget(QWidget):
         self.txt_step.setEnabled(show_step)
         self.sb_nsteps.setEnabled(not show_step)
 
+    @staticmethod
+    def get_decimals(vmin, vmax):
+        if vmin == vmax:
+            decimals = 4
+        else:
+            decimals = -np.floor(np.log10(abs(vmax - vmin))) + 4
+        return int(decimals)
+
     def set_array(self, *args, **kwargs):
         try:
             vmin = float(self.txt_min.text())
@@ -405,7 +420,8 @@ class ArrayFmtWidget(QWidget):
             arr = np.arange(vmin, vmax + 0.05 * step, step)
         else:
             arr = np.linspace(vmin, vmax, self.sb_nsteps.value())
-        self.parent().set_obj(np.round(arr, 4).tolist())
+        self.parent().set_obj(
+            np.round(arr, self.get_decimals(vmin, vmax)).tolist())
 
 
 class NormalizationWidget(QWidget):
@@ -520,8 +536,9 @@ class BoundsFmtWidget(QWidget):
         'Power-law': [1.0]  # gamma
         }
 
-    def __init__(self, parent, fmto, project):
+    def __init__(self, parent, fmto, project, properties=True):
         QWidget.__init__(self, parent)
+        self._editor = parent
         hbox = QHBoxLayout()
 
         self.combo = combo = QComboBox(self)
@@ -550,7 +567,8 @@ class BoundsFmtWidget(QWidget):
         combo.currentTextChanged.connect(self.toggle_combo)
 
         # add a button to select other formatoptions
-        hbox.addWidget(Switch2FmtButton(parent, fmto.cmap, fmto.cbar))
+        if properties:
+            hbox.addWidget(Switch2FmtButton(parent, fmto.cmap, fmto.cbar))
         self.setLayout(hbox)
         self.toggle_combo(combo.currentText())
 
@@ -577,7 +595,7 @@ class BoundsFmtWidget(QWidget):
     def get_auto_discrete_array_widget(self):
         if self._auto_array_widget is not None:
             return self._auto_array_widget
-        fmto = self.parent().fmto
+        fmto = self._editor.fmto
         args = []
         try:
             what = fmto.value[0]
@@ -589,19 +607,19 @@ class BoundsFmtWidget(QWidget):
                 if fmto.value[1] is None:  # N is None
                     args[1] = len(fmto.norm.boundaries)
         self._auto_array_widget = DataTicksCalculatorFmtWidget(
-            self.parent(), fmto, *args)
+            self._editor, fmto, *args)
         self.layout().insertWidget(1, self._auto_array_widget)
         return self._auto_array_widget
 
     def get_discrete_array_widget(self):
         if self._array_widget is not None:
             return self._array_widget
-        fmto = self.parent().fmto
+        fmto = self._editor.fmto
         try:
             arr = fmto.norm.boundaries
         except AttributeError:
             arr = fmto.calc_funcs['rounded']()
-        self._array_widget = ArrayFmtWidget(self.parent(), arr)
+        self._array_widget = ArrayFmtWidget(self._editor, arr)
         self.layout().insertWidget(1, self._array_widget)
         return self._array_widget
 
@@ -611,9 +629,9 @@ class BoundsFmtWidget(QWidget):
                 self._norm_widget.norm = norm
                 self._norm_widget.fill_from_norm()
             return self._norm_widget
-        self._norm_widget = NormalizationWidget(self.parent(), norm)
+        self._norm_widget = NormalizationWidget(self._editor, norm)
         self.layout().insertWidget(1, self._norm_widget)
         return self._norm_widget
 
     def set_obj(self, obj):
-        self.parent().set_obj(obj)
+        self._editor.set_obj(obj)
