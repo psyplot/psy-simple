@@ -2,6 +2,7 @@
 import os
 import re
 import six
+import pytest
 from functools import wraps
 from itertools import chain
 import unittest
@@ -1128,6 +1129,43 @@ class Simple2DPlotterTest(LinePlotterTest, References2D):
     def test_ylim(self):
         """Test ylim formatoption"""
         super(Simple2DPlotterTest, self).test_ylim(test_pctls=False)
+
+
+@pytest.mark.parametrize('vmin,vmax', [(1, int(1e2)), (int(-10), int(1e2))])
+def test_log_bounds(vmin, vmax):
+    ds = xr.Dataset()
+    ds['test'] = (('y', 'x'), np.random.randint(vmin, vmax, (40, 50)) * 1e-3)
+    vmin *= 10e-3
+    vmax *= 10e-3
+    ds['x'] = ('x', np.arange(50))
+    ds['y'] = ('y', np.arange(40))
+
+    sp = ds.psy.plot.plot2d(bounds='log')
+    plotter = sp.plotters[0]
+
+    assert len(plotter.bounds.norm.boundaries) in [10, 11, 12]
+    assert np.isclose(plotter.bounds.norm.boundaries[0],
+                      [vmin, vmin * 0.1, vmin*10]).any()
+    assert np.isclose(plotter.bounds.norm.boundaries[-1],
+                      [vmax, vmax * 0.1, vmax * 10]).any()
+
+
+def test_symlog_bounds():
+    vmin = -1
+    vmax = 100
+    ds = xr.Dataset()
+    ds['test'] = (('y', 'x'), np.random.randint(vmin, vmax, (40, 50)) * 1e-3)
+    vmin *= 10e-3
+    vmax *= 10e-3
+    ds['x'] = ('x', np.arange(50))
+    ds['y'] = ('y', np.arange(40))
+
+    sp = ds.psy.plot.plot2d(bounds='symlog')
+    plotter = sp.plotters[0]
+
+    assert len(plotter.bounds.norm.boundaries) in [12, 13, 14]
+    assert plotter.bounds.norm.boundaries[0] == pytest.approx(-0.1)
+    assert plotter.bounds.norm.boundaries[-1] == pytest.approx(0.1)
 
 
 class Simple2DPlotterContourTest(Simple2DPlotterTest):

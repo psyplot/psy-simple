@@ -3,6 +3,7 @@ import re
 from warnings import warn
 from psyplot.warning import PsyPlotRuntimeWarning
 from abc import abstractproperty, abstractmethod
+from functools import partial
 from itertools import chain, starmap, cycle, islice, repeat
 from pandas import (
     date_range, to_datetime, DatetimeIndex, to_timedelta, MultiIndex)
@@ -382,7 +383,17 @@ class DataTicksCalculator(Formatoption):
         minmax
             Uses the minimum as minimal tick and maximum as maximal tick
         sym
-            Same as minmax but symmetric around zero"""
+            Same as minmax but symmetric around zero
+        log
+            Use logarithmic bounds. In this case, the given second number N
+            determines the number of bounds per power of tenth (i.e. ``N == 2``
+            results in something like ``1.0, 5.0, 10.0, 50.0``, etc., If this
+            second number is None, then it will be chosen such that we have
+            around 11 boundaries but at least one per power of ten.
+        symlog
+            The same as ``log`` but symmetric around 0. If the second number is
+            None, then we have around 12 boundaries but at least one per power
+            of ten"""
 
     data_dependent = True
 
@@ -412,6 +423,33 @@ class DataTicksCalculator(Formatoption):
         arr = np.unique(self.array)
         return ((arr[:-1] + arr[1:])/2.)[::step]
 
+    def _collect_array(self, percmin=None, percmax=None):
+        """Collect the data from the shared formatoptions (if necessary)."""
+
+        def shared_arrays():
+            for fmto in self.shared:
+                fmto._lock_children()
+                # do not lock the fmto itself, because this breaks the plotter
+                # update procedure. But make sure, that the dependencies are
+                # locked
+                arr = fmto.array
+                yield arr
+                # release the locks
+                fmto._release_children()
+
+        if not self.shared:
+            arr = self.array
+        else:
+            # np.concatenate all arrays if any of the percentiles are required
+            if percmin is not None or percmax is not None:
+                arr = np.concatenate(tuple(chain(
+                    [self.array], shared_arrays())))
+            # np.concatenate only min and max-values instead of the full arrays
+            else:
+                arr = np.concatenate(tuple(map(minmax, chain(
+                    [self.array], shared_arrays()))))
+        return arr
+
     def _calc_vmin_vmax(self, percmin=None, percmax=None):
         def nanmin(arr):
             try:
@@ -428,29 +466,8 @@ class DataTicksCalculator(Formatoption):
         def minmax(arr):
             return [nanmin(arr), nanmax(arr)]
 
-        def shared_arrays():
-            for fmto in self.shared:
-                fmto._lock_children()
-                # do not lock the fmto itself, because this breaks the plotter
-                # update procedure. But make sure, that the dependencies are
-                # locked
-                arr = fmto.array
-                yield arr
-                # release the locks
-                fmto._release_children()
-
         percentiles = []
-        if not self.shared:
-            arr = self.array
-        else:
-            # np.concatenate all arrays if any of the percentiles are required
-            if percmin is not None or percmax is not None:
-                arr = np.concatenate(tuple(chain(
-                    [self.array], shared_arrays())))
-            # np.concatenate only min and max-values instead of the full arrays
-            else:
-                arr = np.concatenate(tuple(map(minmax, chain(
-                    [self.array], shared_arrays()))))
+        arr = self._collect_array(percmin=None, percmax=None)
         try:
             if not percmin:
                 vmin = nanmin(arr)
@@ -488,6 +505,92 @@ class DataTicksCalculator(Formatoption):
             *self._calc_vmin_vmax(*args, **kwargs))
         return np.linspace(vmin, vmax, N, endpoint=True)
 
+    def _log_bounds(self, expmin, expmax, N):
+        bounds = []
+        for i in range(int(expmax - expmin)):
+            new_vals = np.linspace(1 * 10 ** (expmin + i),
+                                   9 * 10 ** (expmin + i), N + 1)[:-1]
+            bounds.extend(new_vals)
+        return bounds
+
+    def _log_ticks(self, symmetric=False, N=None, *args, **kwargs):
+        vmin, vmax = self._calc_vmin_vmax(*args, **kwargs)
+        larger = round_to_05([vmin, vmax], mode='l')
+        smaller = round_to_05([vmin, vmax], mode='s')
+        vmin, vmax = min([larger[0], smaller[0]]), max([larger[1], smaller[1]])
+
+        if symmetric and np.sign(vmin) == np.sign(vmax):
+            if vmin < 0:  # make vmax positive
+                vmax = -vmax
+            else:  # make vmin negative
+                vmin = -vmin
+        elif symmetric:
+            vmax = np.max([-vmin, vmax])
+            vmin = -vmax
+
+        if vmin == vmax:
+            return vmin, vmax
+
+        signs = np.sign([vmin, vmax])
+        crossing0 = vmin != 0 and vmax != 0 and signs[0] != signs[1]
+        if not crossing0:
+            vmin, vmax = np.sort(np.abs([vmin, vmax]))
+            vmin0 = vmax
+            vmax0 = vmin
+
+            expmin, expmax = np.floor(np.log10(np.abs([vmin, vmax])))
+
+            dexp = int(expmax - expmin)
+            expmax0 = np.inf
+        else:  # vmin < 0, vmax > 0
+            arr = self._collect_array()
+            less0 = arr < 0
+            greater0 = arr > 0
+            if not less0.size:
+                vmin0 = round_to_05(arr[arr > 0].min(), mode='s')
+                vmax0 = -vmin0
+            elif not greater0.size:
+                vmax0 = round_to_05(arr[arr < 0].max(), mode='l')
+                vmin0 = -vmax0
+            else:
+                vmin0 = round_to_05(arr[arr > 0].min(), mode='s')
+                vmax0 = round_to_05(arr[arr < 0].max(), mode='l')
+                if symmetric:
+                    vmin0 = min(-vmax0, vmin0)
+                    vmax0 = -vmin0
+
+            expmin, expmax0 = np.floor(np.log10(np.abs([vmax0, vmin])))
+            expmin0, expmax = np.floor(np.log10(np.abs([vmin0, vmax])))
+
+            dexp_neg = int(expmax0 - expmin)
+            dexp_pos = int(expmax - expmin0)
+
+            dexp = int(dexp_neg + dexp_pos)
+
+        if dexp == 0 or (dexp == 1 and vmax == 1 * 10**expmax):
+            # effectively only one factor of 10 (e.g. vmin = 1, vmax = 10)
+            N = N or (11 if not symmetric else 12)
+            return np.linspace(vmin, vmax, N, endpoint=True)
+        else:
+            if N is None:
+                # we go close to 11 bounds in total
+                N = int(max(np.floor((11 if not symmetric else 12) / dexp), 1))
+            if not crossing0:
+                bounds = self._log_bounds(expmin, expmax, N)
+                bounds += [1*10**expmax]
+                if signs[0] == -1 and signs[1] == -1:
+                    bounds = -np.array(bounds)
+            else:
+                bounds_neg = -np.array(self._log_bounds(expmin, expmax0, N))
+                bounds_pos = self._log_bounds(expmin0, expmax, N)
+                bounds = np.unique(
+                    np.r_[bounds_neg, bounds_pos,
+                          -1 * 10 ** expmin, -1 * 10 ** expmax0,
+                          1 * 10 ** expmin0, 1 * 10 ** expmax])
+                bounds = bounds[(bounds <= vmax0) | (bounds >= vmin0)]
+
+            return np.unique(bounds)
+
     def _roundedsym_ticks(self, N=None, *args, **kwargs):
         N = N or 10
         vmax = max(map(abs, self._round_min_max(
@@ -515,6 +618,8 @@ class DataTicksCalculator(Formatoption):
             'roundedsym': self._roundedsym_ticks,
             'minmax': self._data_minmax_ticks,
             'sym': self._data_symminmax_ticks,
+            'log': partial(self._log_ticks, False),
+            'symlog': partial(self._log_ticks, True),
             }
 
 
@@ -2898,7 +3003,11 @@ class Bounds(DataTicksCalculator):
 
     >>> plotter.update(bounds=['minmax', 7])
 
-    Plot logarithmic bounds::
+    Plot 3 bounds per power of ten
+
+    >>> plotter.update(bounds=['log', 3])
+
+    Plot continuous logarithmic bounds::
 
     >>> from matplotlib.colors import LogNorm
     >>> plotter.update(bounds=LogNorm())

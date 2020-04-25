@@ -46,7 +46,8 @@ patches = {
     }
 
 
-bound_strings = ['data', 'mid', 'rounded', 'roundedsym', 'minmax', 'sym']
+bound_strings = ['data', 'mid', 'rounded', 'roundedsym', 'minmax', 'sym',
+                 'log', 'symlog']
 
 tick_strings = bound_strings + ['hour', 'day', 'week', 'month', 'monthend',
                                 'monthbegin', 'year', 'yearend', 'yearbegin']
