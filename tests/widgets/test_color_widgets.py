@@ -132,7 +132,7 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
         fmt_w.reset_fmt_widget()
         w = fmt_w.fmt_widget.current_widget
         self.assertIs(w, fmt_w.fmt_widget._auto_array_widget)
-        self.assertEqual(w.combo.currentText(), 'minmax')
+        self.assertEqual(fmt_w.fmt_widget.method_combo.currentText(), 'minmax')
         self.assertEqual(w.sb_N.value(), 14)
         self.assertEqual(float(w.txt_min_pctl.text()), 5)
         self.assertEqual(float(w.txt_max_pctl.text()), 95)
@@ -184,7 +184,7 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
         w.sb_nsteps.setValue(12)
         w.set_array()
         self.assertAlmostArrayEqual(
-            fmt_w.get_obj(), np.round(np.linspace(280, 290, 12), 4))
+            fmt_w.get_obj(), np.round(np.linspace(280, 290, 12), 3))
 
 
 if __name__ == '__main__':

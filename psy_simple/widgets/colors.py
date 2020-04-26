@@ -4,6 +4,7 @@ This module corresponds to the :mod:`psy_simple.colors` module as a version for
 the usage in the psyplot GUI."""
 import six
 from functools import partial
+import contextlib
 from psyplot.data import safe_list
 from psy_simple.widgets import Switch2FmtButton
 from psy_simple.colors import _get_cmaps, get_cmap
@@ -285,15 +286,12 @@ class DataTicksCalculatorFmtWidget(QWidget):
     for the number of increments and two text widgets for minimum and maximum
     percentile"""
 
-    def __init__(self, parent, fmto, what=None, N=None, pctl_min=None,
-                 pctl_max=None):
+    def __init__(self, parent, method=None):
         QWidget.__init__(self, parent)
 
-        hbox = QHBoxLayout()
+        self.method = method
 
-        self.combo = QComboBox()
-        self.combo.addItems(sorted(fmto.calc_funcs))
-        hbox.addWidget(self.combo)
+        hbox = QHBoxLayout()
 
         self.sb_N = QSpinBox()
         hbox.addWidget(self.sb_N)
@@ -309,16 +307,6 @@ class DataTicksCalculatorFmtWidget(QWidget):
         hbox.addWidget(QLabel('Max.:'))
         hbox.addWidget(self.txt_max_pctl)
 
-        if what is not None:
-            self.combo.setCurrentText(what)
-        if N is not None:
-            self.sb_N.setValue(N)
-        if pctl_min is not None:
-            self.txt_min_pctl.setText('%1.6g' % pctl_min)
-        if pctl_max is not None:
-            self.txt_max_pctl.setText('%1.6g' % pctl_max)
-
-        self.combo.currentTextChanged.connect(self.set_obj)
         self.sb_N.valueChanged.connect(self.set_obj)
         self.txt_min_pctl.textChanged.connect(self.set_obj)
         self.txt_max_pctl.textChanged.connect(self.set_obj)
@@ -326,14 +314,30 @@ class DataTicksCalculatorFmtWidget(QWidget):
         self.setLayout(hbox)
 
     def set_obj(self):
-        obj = [self.combo.currentText(),
-               self.sb_N.value()]
+        obj = [self.method, self.sb_N.value()]
         if (self.txt_min_pctl.text().strip() or
                 self.txt_max_pctl.text().strip()):
             obj.append(float(self.txt_min_pctl.text().strip() or 0))
             if self.txt_max_pctl.text().strip():
                 obj.append(float(self.txt_max_pctl.text().strip()))
         self.parent().set_obj(obj)
+
+    def refresh(self, method, fmto):
+        value = fmto.value
+        try:
+            what = fmto.value[0]
+        except TypeError:
+            pass
+        else:
+            if what in fmto.calc_funcs:
+                if len(fmto.value) > 1 and fmto.value[1] is None:
+                    self.sb_N.setValue(len(fmto.norm.boundaries))
+                else:
+                    self.sb_N.setValue(value[1])
+                if len(fmto.value) > 2:
+                    self.txt_min_pctl.setText('%1.6g' % value[2])
+                if len(fmto.value) > 3:
+                    self.txt_max_pctl.setText('%1.6g' % value[3])
 
 
 class ArrayFmtWidget(QWidget):
@@ -394,6 +398,7 @@ class ArrayFmtWidget(QWidget):
         self.sb_nsteps.setVisible(not show_step)
         self.txt_step.setEnabled(show_step)
         self.sb_nsteps.setEnabled(not show_step)
+        self.set_array()
 
     @staticmethod
     def get_decimals(vmin, vmax):
@@ -422,6 +427,9 @@ class ArrayFmtWidget(QWidget):
             arr = np.linspace(vmin, vmax, self.sb_nsteps.value())
         self.parent().set_obj(
             np.round(arr, self.get_decimals(vmin, vmax)).tolist())
+
+    def set_obj(self):
+        self.set_array()
 
 
 class NormalizationWidget(QWidget):
@@ -525,15 +533,15 @@ class BoundsFmtWidget(QWidget):
     current_widget = None
 
     norm_map = {
-        'No normalization': mcol.NoNorm,
-        'Logarithmic': mcol.LogNorm,
-        'Symmetric logarithmic': mcol.SymLogNorm,
-        'Power-law': mcol.PowerNorm,
+        'No normalization': mcol.Normalize,
+        'log': mcol.LogNorm,
+        'symlog': mcol.SymLogNorm,
+        'power-law': mcol.PowerNorm,
         }
 
     default_args = {
-        'Symmetric logarithmic': [1e-3],  # linthresh
-        'Power-law': [1.0]  # gamma
+        'symlog': [1e-3],  # linthresh
+        'power-law': [1.0]  # gamma
         }
 
     def __init__(self, parent, fmto, project, properties=True):
@@ -541,74 +549,114 @@ class BoundsFmtWidget(QWidget):
         self._editor = parent
         hbox = QHBoxLayout()
 
-        self.combo = combo = QComboBox(self)
-        combo.addItems(['Auto discrete', 'No normalization',
-                        'Discrete', 'Logarithmic', 'Symmetric logarithmic',
-                        'Power-law', 'Custom'])
-        hbox.addWidget(combo)
-        value = fmto.value
-        if value is None:
-            combo.setCurrentText('No normalization')
-            value = mcol.Normalize()
-        elif isinstance(value, mcol.Normalize):
-            if isinstance(value, mcol.LogNorm):
-                combo.setCurrentText('Logarithmic')
-            elif isinstance(value, mcol.SymLogNorm):
-                combo.setCurrentText('Symmetric logarithmic')
-            elif isinstance(value, mcol.PowerNorm):
-                combo.setCurrentText('Power-law')
-            else:
-                combo.setCurrentText('Custom')
-        elif isinstance(value[0], six.string_types):
-            combo.setCurrentText('Auto discrete')
-        else:
-            combo.setCurrentText('Discrete')
+        self.type_combo = QComboBox(self)
+        self.type_combo.addItems(['Discrete', 'Continuous'])
 
-        combo.currentTextChanged.connect(self.toggle_combo)
+        self.method_combo = QComboBox(self)
+
+        self.discrete_items = sorted(fmto.calc_funcs) + ['Custom']
+
+        hbox.addWidget(self.type_combo)
+        hbox.addWidget(self.method_combo)
+        hbox.addStretch(0)
+
+        self.type_combo.currentTextChanged.connect(self.refresh_methods)
+        self.method_combo.currentTextChanged.connect(
+            self.refresh_current_widget)
 
         # add a button to select other formatoptions
         if properties:
             hbox.addWidget(Switch2FmtButton(parent, fmto.cmap, fmto.cbar))
         self.setLayout(hbox)
-        self.toggle_combo(combo.currentText())
 
-        # refresh the norm widget if necessary
-        if isinstance(value, mcol.Normalize):
-            self.current_widget.norm = value
-            self.current_widget.fill_from_norm()
+        self.set_value(fmto.value)
 
-    def toggle_combo(self, s):
+    def set_value(self, value):
+        with self.block_widgets(self.method_combo, self.type_combo):
+            if value is None:
+                self.type_combo.setCurrentText('Continuous')
+                self.refresh_methods('Continuous')
+                self.method_combo.setCurrentText('No normalization')
+            elif isinstance(value, mcol.Normalize) and not hasattr(
+                    value, 'boundaries'):
+                self.type_combo.setCurrentText('Continuous')
+                self.refresh_methods('Continuous')
+
+                if isinstance(value, mcol.LogNorm):
+                    self.method_combo.setCurrentText('log')
+                elif isinstance(value, mcol.SymLogNorm):
+                    self.method_combo.setCurrentText('symlog')
+                elif isinstance(value, mcol.PowerNorm):
+                    self.method_combo.setCurrentText('power-law')
+                else:
+                    self.method_combo.setCurrentText('Custom')
+            else:
+                self.type_combo.setCurrentText('Discrete')
+                self.refresh_methods('Discrete')
+                if not isinstance(value, mcol.Normalize) and isinstance(
+                        value[0], six.string_types):
+                    self.method_combo.setCurrentText(value[0])
+                else:
+                    self.method_combo.setCurrentText('Custom')
+
+        self.refresh_methods(self.type_combo.currentText())
+
+    @contextlib.contextmanager
+    def block_widgets(self, *widgets):
+        for w in widgets:
+            w.blockSignals(True)
+        yield
+        for w in widgets:
+            w.blockSignals(False)
+
+    def refresh_methods(self, text):
+        current = self.method_combo.currentText()
+        with self.block_widgets(self.method_combo):
+            self.method_combo.clear()
+            if text == 'Discrete':
+                items = self.discrete_items
+                self.method_combo.addItems(items)
+                if current in items:
+                    self.method_combo.setCurrentText(current)
+                elif current == 'No normalization' and 'rounded' in items:
+                    self.method_combo.setCurrentText('rounded')
+            else:
+                self.method_combo.addItems(list(self.norm_map))
+                if current in self.norm_map:
+                    self.method_combo.setCurrentText(current)
+                else:
+                    self.method_combo.setCurrentText('No normalization')
+
+        self.refresh_current_widget()
+
+    def refresh_current_widget(self):
         if self.current_widget is not None:
             self.current_widget.setVisible(False)
-        if s == 'Auto discrete':
-            self.current_widget = self.get_auto_discrete_array_widget()
-        elif s == 'Discrete':
-            self.current_widget = self.get_discrete_array_widget()
-        elif s in self.norm_map:
+        if self.type_combo.currentText() == 'Continuous':
+            s = self.method_combo.currentText()
             norm = self.norm_map[s](*self.default_args.get(s, []))
             self.current_widget = self.get_norm_widget(norm)
         else:
-            self.current_widget = None
+            if self.method_combo.currentText() != 'Custom':
+                self.current_widget = self.get_auto_discrete_array_widget()
+            else:
+                self.current_widget = self.get_discrete_array_widget()
         if self.current_widget is not None:
             self.current_widget.setVisible(True)
+            self.current_widget.set_obj()
 
     def get_auto_discrete_array_widget(self):
+        method = self.method_combo.currentText()
         if self._auto_array_widget is not None:
-            return self._auto_array_widget
-        fmto = self._editor.fmto
-        args = []
-        try:
-            what = fmto.value[0]
-        except TypeError:
-            pass
+            self._auto_array_widget.method = method
         else:
-            if isinstance(what, six.string_types):
-                args = list(fmto.value)
-                if fmto.value[1] is None:  # N is None
-                    args[1] = len(fmto.norm.boundaries)
-        self._auto_array_widget = DataTicksCalculatorFmtWidget(
-            self._editor, fmto, *args)
-        self.layout().insertWidget(1, self._auto_array_widget)
+            self._auto_array_widget = DataTicksCalculatorFmtWidget(
+                self._editor, method)
+            self.layout().insertWidget(3, self._auto_array_widget)
+
+        fmto = self._editor.fmto
+        self._auto_array_widget.refresh(
+            self.method_combo.currentText(), fmto)
         return self._auto_array_widget
 
     def get_discrete_array_widget(self):
@@ -620,17 +668,18 @@ class BoundsFmtWidget(QWidget):
         except AttributeError:
             arr = fmto.calc_funcs['rounded']()
         self._array_widget = ArrayFmtWidget(self._editor, arr)
-        self.layout().insertWidget(1, self._array_widget)
+        self.layout().insertWidget(3, self._array_widget)
         return self._array_widget
 
     def get_norm_widget(self, norm):
         if self._norm_widget is not None:
-            if not isinstance(self._norm_widget.norm, norm.__class__):
+            if norm.__class__ is not self._norm_widget.norm.__class__:
+                # don't use isinstance here because of mcol.Normalize
                 self._norm_widget.norm = norm
                 self._norm_widget.fill_from_norm()
             return self._norm_widget
         self._norm_widget = NormalizationWidget(self._editor, norm)
-        self.layout().insertWidget(1, self._norm_widget)
+        self.layout().insertWidget(3, self._norm_widget)
         return self._norm_widget
 
     def set_obj(self, obj):
