@@ -1,5 +1,11 @@
 v1.2.1
 ======
+Added
+-----
+* the ``bounds`` formatoption now also supports discrete logarithmic and symmetric
+  logarithmic bounds via ``bounds='log'`` and ``bounds='symlog'``
+  (see `#13 <https://github.com/psyplot/psy-simple/pull/13>`__)
+
 Changed
 -------
 * psy-simple now requires matplotlib greater or equal than 2.0
@@ -14,6 +20,8 @@ Fixed
 -----
 * Fixed a bug to calculate color bounds for uniform data,
   see `#9 <https://github.com/psyplot/psy-simple/pull/9>`__
+* An issue has been fixed with the setting of colorbar ticks after updating
+  the colorbar bounds (see `#13 <https://github.com/psyplot/psy-simple/pull/13>`__)
 
 
 v1.2.0
