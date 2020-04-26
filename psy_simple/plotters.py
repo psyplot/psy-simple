@@ -3818,7 +3818,12 @@ class Cbar(Formatoption):
                             'bounds']]):
             cbars2delete = set(self.cbars)
         else:
-            cbars2delete = set(self.cbars).difference(value)
+            changed_bounds = plotter.has_changed(self.bounds.key)
+            if changed_bounds and (type(changed_bounds[0]) is not
+                                   type(changed_bounds[1])):
+                cbars2delete = set(self.cbars)
+            else:
+                cbars2delete = set(self.cbars).difference(value)
         if cbars2delete:
             # if the colorbars are in the figure of the axes, we have to first
             # remove all the colorbars and then redraw it in order to make
@@ -4121,12 +4126,12 @@ class CTicks(CbarOptions, TicksBase):
 
     name = 'Colorbar ticks'
 
+    _default_locator = None
+
     @property
     def default_locator(self):
         """Default locator of the axis of the colorbars"""
-        try:
-            return self._default_locator
-        except AttributeError:
+        if self._default_locator is None:
             self.set_default_locators()
         return self._default_locator
 
@@ -4146,7 +4151,7 @@ class CTicks(CbarOptions, TicksBase):
         return self.bounds.bounds[::step]
 
     def update(self, value):
-        # reset the locators if the colorbar as been drawn from scratch
+        # reset the locators if the colorbar has been drawn from scratch
         if self.cbar._just_drawn:
             try:
                 del self._colorbar
