@@ -362,38 +362,61 @@ class DataTicksCalculator(Formatoption):
     numeric array
         specifies the ticks manually
     str or list [str, ...]
-        Automatically determine the ticks corresponding to the data. The given
-        string determines how the ticks are calculated. If not a single string
-        but a list, the second value determines the number of ticks (see
-        below). A string can be one of the following:
+        A list of the below mentioned values of the mapping like
+        ``[method, N, percmin, percmax, vmin, vmax]``, where only the first
+        one is absolutely necessary
+    dict
+        Automatically determine the ticks corresponding to the data. The
+        mapping can have the following keys, but only `method` is not optional.
 
-        data
-            plot the ticks exactly where the data is.
-        mid
-            plot the ticks in the middle of the data.
-        rounded
-            Sets the minimum and maximum of the ticks to the rounded data
-            minimum or maximum. Ticks are rounded to the next 0.5 value with
-            to the difference between data max- and minimum. The minimal tick
-            will always be lower or equal than the data minimum, the maximal
-            tick will always be higher or equal than the data maximum.
-        roundedsym
-            Same as `rounded` above but the ticks are chose such that they are
-            symmetric around zero
-        minmax
-            Uses the minimum as minimal tick and maximum as maximal tick
-        sym
-            Same as minmax but symmetric around zero
-        log
-            Use logarithmic bounds. In this case, the given second number N
-            determines the number of bounds per power of tenth (i.e. ``N == 2``
-            results in something like ``1.0, 5.0, 10.0, 50.0``, etc., If this
-            second number is None, then it will be chosen such that we have
-            around 11 boundaries but at least one per power of ten.
-        symlog
-            The same as ``log`` but symmetric around 0. If the second number is
-            None, then we have around 12 boundaries but at least one per power
-            of ten"""
+        N
+            An integer describing the number of boundaries (or ticks per
+            power of ten, see `log` and `symlog` above)
+        percmin
+            The percentile to use for the minimum (by default, 0, i.e. the
+            minimum of the array)
+        percmax
+            The percentile to use for the maximum (by default, 100, i.e. the
+            maximum of the array)
+        vmin
+            The minimum to use (in which case it is not calculated from the
+            specified `method`)
+        vmax
+            The maximum to use (in which case it is not calculated from the
+            specified `method`)
+        method
+            A string that defines how minimum and maximum shall be set. This
+            argument is **not optional** and can be one of the following:
+
+            data
+                plot the ticks exactly where the data is.
+            mid
+                plot the ticks in the middle of the data.
+            rounded
+                Sets the minimum and maximum of the ticks to the rounded data
+                minimum or maximum. Ticks are rounded to the next 0.5 value
+                with to the difference between data max- and minimum. The
+                minimal tick will always be lower or equal than the data
+                minimum, the maximal tick will always be higher or equal than
+                the data maximum.
+            roundedsym
+                Same as `rounded` above but the ticks are chose such that they
+                are symmetric around zero
+            minmax
+                Uses the minimum as minimal tick and maximum as maximal tick
+            sym
+                Same as minmax but symmetric around zero
+            log
+                Use logarithmic bounds. In this case, the given number `N`
+                determines the number of bounds per power of tenth (i.e.
+                ``N == 2`` results in something like ``1.0, 5.0, 10.0, 50.0``,
+                etc., If this second number is None, then it will be chosen
+                such that we have around 11 boundaries but at least one per
+                power of ten.
+            symlog
+                The same as ``log`` but symmetric around 0. If the number `N`
+                is None, then we have around 12 boundaries but at least one
+                per power of ten"""
 
     data_dependent = True
 
@@ -450,7 +473,7 @@ class DataTicksCalculator(Formatoption):
                     [self.array], shared_arrays()))))
         return arr
 
-    def _calc_vmin_vmax(self, percmin=None, percmax=None):
+    def _calc_vmin_vmax(self, percmin=None, percmax=None, vmin=None, vmax=None):
         def nanmin(arr):
             try:
                 return np.nanmin(arr)
@@ -466,14 +489,21 @@ class DataTicksCalculator(Formatoption):
         def minmax(arr):
             return [nanmin(arr), nanmax(arr)]
 
+        if vmin is not None and vmax is not None:
+            return vmin, vmax
+
         percentiles = []
-        arr = self._collect_array(percmin=None, percmax=None)
+        arr = self._collect_array(percmin, percmax)
         try:
-            if not percmin:
+            if vmin is not None:
+                pass
+            elif not percmin:
                 vmin = nanmin(arr)
             else:
                 percentiles.append(percmin)
-            if percmax is None or percmax == 100:
+            if vmax is not None:
+                pass
+            elif percmax is None or percmax == 100:
                 vmax = nanmax(arr)
             else:
                 percentiles.append(percmax)
@@ -712,18 +742,18 @@ class DtTicksBase(TicksBase, TicksManager):
     %(TicksManager.possible_types)s
     %(TicksBase.possible_types)s
     %(DataTicksCalculator.possible_types)s
-        hour
-            draw ticks every hour
-        day
-            draw ticks every day
-        week
-            draw ticks every week
-        month, monthend, monthbegin
-            draw ticks in the middle, at the end or at the beginning of each
-            month
-        year, yearend, yearbegin
-            draw ticks in the middle, at the end or at the beginning of each
-            year
+            hour
+                draw ticks every hour
+            day
+                draw ticks every day
+            week
+                draw ticks every week
+            month, monthend, monthbegin
+                draw ticks in the middle, at the end or at the beginning of each
+                month
+            year, yearend, yearbegin
+                draw ticks in the middle, at the end or at the beginning of each
+                year
 
         For data, mid, hour, day, week, month, etc., the optional second value
         can be an integer i determining that every i-th data point shall be
@@ -2994,23 +3024,40 @@ class Bounds(DataTicksCalculator):
 
     Examples
     --------
-    Plot 11 bounds over the whole data range::
+    - Plot 11 bounds over the whole data range::
 
-    >>> plotter.update(bounds='rounded')
+          >>> plotter.update(bounds='rounded')
 
-    Plot 7 ticks over the whole data range where the maximal and minimal
-    tick matches the data maximum and minimum::
+      which is equivalent to::
 
-    >>> plotter.update(bounds=['minmax', 7])
+          >>> plotter.update(bounds={'method': 'rounded'})
 
-    Plot 3 bounds per power of ten
+    - Plot 7 ticks over the whole data range where the maximal and minimal
+      tick matches the data maximum and minimum::
 
-    >>> plotter.update(bounds=['log', 3])
+          >>> plotter.update(bounds=['minmax', 7])
 
-    Plot continuous logarithmic bounds::
+      which is equivaluent to::
 
-    >>> from matplotlib.colors import LogNorm
-    >>> plotter.update(bounds=LogNorm())
+          >>> plotter.update(bounds={'method': 'minmax', 'N': 7})
+
+    - chop the first and last five percentiles::
+
+          >>> plotter.update(bounds=['rounded', None, 5, 95])
+
+      which is equivalent to::
+
+          >>> plotter.update(bounds={'method': 'rounded', 'percmin': 5,
+          ...                        'percmax': 95})
+
+    - Plot 3 bounds per power of ten::
+
+          >>> plotter.update(bounds=['log', 3])
+
+    - Plot continuous logarithmic bounds::
+
+          >>> from matplotlib.colors import LogNorm
+          >>> plotter.update(bounds=LogNorm())
 
 
     See Also
@@ -4109,10 +4156,10 @@ class CTicks(CbarOptions, TicksBase):
     None
         use the default ticks
     %(DataTicksCalculator.possible_types)s
-        bounds
-            let the :attr:`bounds` keyword determine the ticks. An additional
-            integer `i` may be specified to only use every i-th bound as a tick
-            (see also `int` below)
+            bounds
+                let the :attr:`bounds` keyword determine the ticks. An
+                additional integer `i` may be specified to only use every i-th
+                bound as a tick (see also `int` below)
     int
         Specifies how many ticks to use with the ``'bounds'`` option. I.e. if
         integer ``i``, then this is the same as ``['bounds', i]``.
@@ -4152,7 +4199,7 @@ class CTicks(CbarOptions, TicksBase):
 
     def update(self, value):
         # reset the locators if the colorbar has been drawn from scratch
-        if self.cbar._just_drawn:
+        if self.cbar._just_drawn or self.value is None:
             try:
                 del self._colorbar
             except AttributeError:

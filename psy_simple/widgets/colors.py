@@ -8,6 +8,7 @@ import contextlib
 from psyplot.data import safe_list
 from psy_simple.widgets import Switch2FmtButton
 from psy_simple.colors import _get_cmaps, get_cmap
+from psy_simple.plugin import BoundsType
 from psyplot.docstring import docstrings
 import numpy as np
 import xarray as xr
@@ -298,46 +299,88 @@ class DataTicksCalculatorFmtWidget(QWidget):
 
         self.txt_min_pctl = QLineEdit()
         self.txt_min_pctl.setValidator(QDoubleValidator(0., 100., 10))
-        hbox.addWidget(QLabel('Percentiles:'))
+
+
         hbox.addWidget(QLabel('Min.:'))
+
+        self.combo_min = QComboBox()
+        self.combo_min.addItems(['absolute', 'percentile'])
+        hbox.addWidget(self.combo_min)
+
         hbox.addWidget(self.txt_min_pctl)
 
         self.txt_max_pctl = QLineEdit()
         self.txt_max_pctl.setValidator(QDoubleValidator(0., 100., 10))
         hbox.addWidget(QLabel('Max.:'))
+
+        self.combo_max = QComboBox()
+        self.combo_max.addItems(['absolute', 'percentile'])
+        hbox.addWidget(self.combo_max)
+
         hbox.addWidget(self.txt_max_pctl)
 
         self.sb_N.valueChanged.connect(self.set_obj)
+        self.combo_min.currentIndexChanged.connect(self.set_obj)
+        self.combo_max.currentIndexChanged.connect(self.set_obj)
         self.txt_min_pctl.textChanged.connect(self.set_obj)
         self.txt_max_pctl.textChanged.connect(self.set_obj)
 
         self.setLayout(hbox)
 
     def set_obj(self):
-        obj = [self.method, self.sb_N.value()]
-        if (self.txt_min_pctl.text().strip() or
-                self.txt_max_pctl.text().strip()):
-            obj.append(float(self.txt_min_pctl.text().strip() or 0))
-            if self.txt_max_pctl.text().strip():
-                obj.append(float(self.txt_max_pctl.text().strip()))
-        self.parent().set_obj(obj)
+        obj = {
+            'method': self.method,
+            'N': self.sb_N.value(),
+            }
+        if self.txt_min_pctl.text().strip():
+            key = 'vmin' if self.combo_min.currentText() == 'absolute' else \
+                'percmin'
+            obj[key] = float(self.txt_min_pctl.text().strip())
+        if self.txt_max_pctl.text().strip():
+            key = 'vmax' if self.combo_max.currentText() == 'absolute' else \
+                'percmax'
+            obj[key] = float(self.txt_max_pctl.text().strip())
+        self.parent().set_obj(list(BoundsType(**obj)))
 
     def refresh(self, method, fmto):
         value = fmto.value
         try:
-            what = fmto.value[0]
-        except TypeError:
+            value = BoundsType(*fmto.value)
+        except (ValueError, TypeError):
             pass
         else:
-            if what in fmto.calc_funcs:
-                if len(fmto.value) > 1 and fmto.value[1] is None:
-                    self.sb_N.setValue(len(fmto.norm.boundaries))
-                else:
-                    self.sb_N.setValue(value[1])
-                if len(fmto.value) > 2:
-                    self.txt_min_pctl.setText('%1.6g' % value[2])
-                if len(fmto.value) > 3:
-                    self.txt_max_pctl.setText('%1.6g' % value[3])
+            if value.N is None:
+                self.sb_N.setValue(len(fmto.norm.boundaries))
+            else:
+                self.sb_N.setValue(value.N)
+            decimals = None
+            if value.vmin is not None and value.vmax is not None:
+                decimals = self.get_decimals(value.vmin, value.vmax)
+            if value.vmin is not None:
+                if decimals is None:
+                    decimals = -np.floor(np.log10(value.vmin)) + 4
+                self.txt_min_pctl.setText(str(np.round(value.vmin, decimals)))
+                self.combo_min.setCurrentText('absolute')
+            elif value.percmin != 0:
+                self.txt_min_pctl.setText('%1.6g' % value.percmin)
+                self.combo_min.setCurrentText('percentile')
+
+            if value.vmax is not None:
+                if decimals is None:
+                    decimals = -np.floor(np.log10(value.vmax)) + 4
+                self.txt_max_pctl.setText(str(np.round(value.vmax, decimals)))
+                self.combo_max.setCurrentText('absolute')
+            elif value.percmax != 100:
+                self.txt_max_pctl.setText('%1.6g' % value.percmax)
+                self.combo_max.setCurrentText('percentile')
+
+    @staticmethod
+    def get_decimals(vmin, vmax):
+        if vmin == vmax:
+            decimals = 4
+        else:
+            decimals = -np.floor(np.log10(abs(vmax - vmin))) + 4
+        return int(decimals)
 
 
 class ArrayFmtWidget(QWidget):
