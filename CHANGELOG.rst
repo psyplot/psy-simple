@@ -2,9 +2,22 @@ v1.2.1
 ======
 Added
 -----
-* the ``bounds`` formatoption now also supports discrete logarithmic and symmetric
-  logarithmic bounds via ``bounds='log'`` and ``bounds='symlog'``
-  (see `#13 <https://github.com/psyplot/psy-simple/pull/13>`__)
+* the ``bounds`` and other ``ticks`` (e.g. ``xticks, yticks, cticks``)
+  formatoptions have gained multiple new  values (all backwards-compatible, see
+  `#13 <https://github.com/psyplot/psy-simple/pull/13>`__):
+
+  * they now support discrete logarithmic and symmetric bounds/ticks via
+    ``bounds='log'`` and ``bounds='symlog'``.
+  * The bounds and other tick formatoptions (`xticks, cticks, yticks, etc.`) now
+    support a dictionary as a value, e.g.::
+
+        plotter.update(bounds={'method': 'rounded', 'percmin': 5})
+  * You can specify ``vmin`` and ``vmax`` for color bounds and ticks which
+    prevents their automatic estimation, e.g. via::
+
+        plotter.update(bounds={'method': 'rounded', 'vmin': 50, 'vmax': 75})
+        # or
+        plotter.update(bounds=['rounded', None, None, None, 50, 75])
 
 Changed
 -------
