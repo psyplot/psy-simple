@@ -798,8 +798,8 @@ class DtTicksBase(TicksBase, TicksManager):
             return data
 
     def _frequent_ticks(self, freq, onset=None, offset=None):
-        def func(step=None):
-            step = step or 1
+        def func(N=None, *args, **kwargs):
+            step = N or 1
             data = self.dtdata
             if data is None:
                 return
@@ -810,8 +810,8 @@ class DtTicksBase(TicksBase, TicksManager):
         return func
 
     def _mid_dt_ticks(self, freq):
-        def func(step=None):
-            step = step or 1
+        def func(N=None, *args, **kwargs):
+            step = N or 1
             data = self.dtdata
             if data is None:
                 return
