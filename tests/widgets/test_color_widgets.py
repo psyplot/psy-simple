@@ -138,7 +138,7 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
         self.assertEqual(float(w.txt_max_pctl.text()), 95)
 
         w.txt_min_pctl.setText('10')
-        self.assertEqual(fmt_w.get_obj(), ['minmax', 14, 10, 95])
+        self.assertEqual(fmt_w.get_obj(), ['minmax', 14, 10, 95, None, None])
 
     def test_powernorm(self):
         """Test a :class:`matplotlib.colors.PowerNorm`"""
