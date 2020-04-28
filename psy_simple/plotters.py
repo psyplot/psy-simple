@@ -435,12 +435,12 @@ class DataTicksCalculator(Formatoption):
         mask = np.asarray(data.notnull())
         return data.values[mask]
 
-    def _data_ticks(self, step=None):
+    def _data_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         """Array of ticks that match exactly the data"""
         return np.unique(self.array)[::step]
 
-    def _mid_data_ticks(self, step=None):
+    def _mid_data_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         """Array of ticks in the middle between the data points"""
         arr = np.unique(self.array)
@@ -448,6 +448,21 @@ class DataTicksCalculator(Formatoption):
 
     def _collect_array(self, percmin=None, percmax=None):
         """Collect the data from the shared formatoptions (if necessary)."""
+
+        def nanmin(arr):
+            try:
+                return np.nanmin(arr)
+            except TypeError:
+                return arr.min()
+
+        def nanmax(arr):
+            try:
+                return np.nanmax(arr)
+            except TypeError:
+                return arr.max()
+
+        def minmax(arr):
+            return [nanmin(arr), nanmax(arr)]
 
         def shared_arrays():
             for fmto in self.shared:
@@ -473,7 +488,9 @@ class DataTicksCalculator(Formatoption):
                     [self.array], shared_arrays()))))
         return arr
 
-    def _calc_vmin_vmax(self, percmin=None, percmax=None, vmin=None, vmax=None):
+    def _calc_vmin_vmax(self, percmin=None, percmax=None,
+                        vmin=None, vmax=None):
+
         def nanmin(arr):
             try:
                 return np.nanmin(arr)
@@ -485,9 +502,6 @@ class DataTicksCalculator(Formatoption):
                 return np.nanmax(arr)
             except TypeError:
                 return arr.max()
-
-        def minmax(arr):
-            return [nanmin(arr), nanmax(arr)]
 
         if vmin is not None and vmax is not None:
             return vmin, vmax
