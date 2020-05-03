@@ -8,7 +8,7 @@ import contextlib
 from psyplot.data import safe_list
 from psy_simple.widgets import Switch2FmtButton
 from psy_simple.colors import _get_cmaps, get_cmap
-from psy_simple.plugin import BoundsType
+from psy_simple.plugin import BoundsType, CTicksType
 from psyplot.docstring import docstrings
 import numpy as np
 import xarray as xr
@@ -287,7 +287,8 @@ class DataTicksCalculatorFmtWidget(QWidget):
     for the number of increments and two text widgets for minimum and maximum
     percentile"""
 
-    def __init__(self, parent, method=None):
+    def __init__(self, parent, method=None, methods_type=BoundsType):
+        self.methods_type = methods_type
         QWidget.__init__(self, parent)
 
         self.method = method
@@ -340,12 +341,17 @@ class DataTicksCalculatorFmtWidget(QWidget):
             key = 'vmax' if self.combo_max.currentText() == 'absolute' else \
                 'percmax'
             obj[key] = float(self.txt_max_pctl.text().strip())
-        self.parent().set_obj(list(BoundsType(**obj)))
+        val = list(self.methods_type(**obj))
+        try:
+            val[0] = val[0].name
+        except AttributeError:
+            pass
+        self.parent().set_obj(val)
 
     def refresh(self, method, fmto):
         value = fmto.value
         try:
-            value = BoundsType(*fmto.value)
+            value = self.methods_type(*fmto.value)
         except (ValueError, TypeError):
             pass
         else:
@@ -575,6 +581,8 @@ class BoundsFmtWidget(QWidget):
 
     current_widget = None
 
+    methods_type = BoundsType
+
     norm_map = {
         'No normalization': mcol.Normalize,
         'log': mcol.LogNorm,
@@ -587,13 +595,15 @@ class BoundsFmtWidget(QWidget):
         'power-law': [1.0]  # gamma
         }
 
+    methods = ['Discrete', 'Continuous']
+
     def __init__(self, parent, fmto, project, properties=True):
         QWidget.__init__(self, parent)
         self._editor = parent
         hbox = QHBoxLayout()
 
         self.type_combo = QComboBox(self)
-        self.type_combo.addItems(['Discrete', 'Continuous'])
+        self.type_combo.addItems(self.methods)
 
         self.method_combo = QComboBox(self)
 
@@ -694,7 +704,7 @@ class BoundsFmtWidget(QWidget):
             self._auto_array_widget.method = method
         else:
             self._auto_array_widget = DataTicksCalculatorFmtWidget(
-                self._editor, method)
+                self._editor, method, self.methods_type)
             self.layout().insertWidget(3, self._auto_array_widget)
 
         fmto = self._editor.fmto
@@ -727,3 +737,39 @@ class BoundsFmtWidget(QWidget):
 
     def set_obj(self, obj):
         self._editor.set_obj(obj)
+
+
+class CTicksFmtWidget(BoundsFmtWidget):
+    """The formatoptions widget for the colorbar ticks."""
+
+    methods = ['Discrete', 'Auto']
+
+    norm_map = {}
+
+    methods_type = CTicksType
+
+    def set_value(self, value):
+        if value is None:
+            with self.block_widgets(self.method_combo, self.type_combo):
+                self.type_combo.setCurrentText('Auto')
+            self.refresh_methods('Auto')
+        else:
+            super().set_value(value)
+
+    def refresh_methods(self, text):
+        if text == 'Auto':
+            with self.block_widgets(self.method_combo):
+                self.method_combo.clear()
+            self.set_obj(None)
+            self.refresh_current_widget()
+        else:
+            super().refresh_methods(text)
+
+    def refresh_current_widget(self):
+        w = self.current_widget
+        auto_ticks = self.type_combo.currentText() == 'Auto'
+        if auto_ticks and w is not None:
+            w.setVisible(False)
+            self.current_widget = None
+        if not auto_ticks:
+            super().refresh_current_widget()

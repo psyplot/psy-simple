@@ -4185,6 +4185,8 @@ class CTicks(CbarOptions, TicksBase):
 
     dependencies = CbarOptions.dependencies + ['bounds']
 
+    connections = CbarOptions.connections + ['cmap']
+
     name = 'Colorbar ticks'
 
     _default_locator = None
@@ -4207,13 +4209,14 @@ class CTicks(CbarOptions, TicksBase):
     def set_ticks(self, value):
         self.colorbar.set_ticks(value)
 
-    def _bounds_ticks(self, step=None):
+    def _bounds_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         return self.bounds.bounds[::step]
 
     def update(self, value):
         # reset the locators if the colorbar has been drawn from scratch
-        if self.cbar._just_drawn or self.value is None:
+        if self.cbar._just_drawn or (
+                not self.plotter.has_changed(self.key) and self.value is None):
             try:
                 del self._colorbar
             except AttributeError:
@@ -4234,6 +4237,11 @@ class CTicks(CbarOptions, TicksBase):
         if self.cbar.cbars:
             self.default_locator = self.colorbar.locator
             self.default_formatter = self.colorbar.formatter
+
+    def get_fmt_widget(self, parent, project):
+        """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
+        from psy_simple.widgets.colors import CTicksFmtWidget
+        return CTicksFmtWidget(parent, self, project)
 
 
 class VectorCTicks(CTicks):
