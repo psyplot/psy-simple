@@ -3902,12 +3902,12 @@ class Cbar(Formatoption):
                     fmto.update(fmto.value)
             else:
                 self.remove(positions=cbars2delete)
-        if self.plot.value is None:
-            return
         for pos in value.intersection(self.cbars):
-            self.update_colorbar(pos)
+            if self.plot.value is not None:
+                self.update_colorbar(pos)
         for pos in sorted(value.difference(self.cbars)):
-            self.draw_colorbar(pos)
+            if self.plot.value is not None:
+                self.draw_colorbar(pos)
         plotter._figs2draw.update(map(lambda cbar: cbar.ax.get_figure(),
                                       six.itervalues(self.cbars)))
 
@@ -4149,7 +4149,10 @@ class CbarOptions(Formatoption):
 
     @property
     def data(self):
-        return self.plot.data
+        try:
+            return self.plot.data
+        except AttributeError:
+            return super().data
 
     axis_locations = CLabel.axis_locations
 
@@ -4174,6 +4177,8 @@ class CTicks(CbarOptions, TicksBase):
                 let the :attr:`bounds` keyword determine the ticks. An
                 additional integer `i` may be specified to only use every i-th
                 bound as a tick (see also `int` below)
+            midbounds
+                Same as `bounds` but in the middle between two bounds
     int
         Specifies how many ticks to use with the ``'bounds'`` option. I.e. if
         integer ``i``, then this is the same as ``['bounds', i]``.
@@ -4205,23 +4210,31 @@ class CTicks(CbarOptions, TicksBase):
     def __init__(self, *args, **kwargs):
         super(CTicks, self).__init__(*args, **kwargs)
         self.calc_funcs['bounds'] = self._bounds_ticks
+        self.calc_funcs['midbounds'] = self._mid_bounds_ticks
 
     def set_ticks(self, value):
+        self.ticks = value
         self.colorbar.set_ticks(value)
 
     def _bounds_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         return self.bounds.bounds[::step]
 
+    def _mid_bounds_ticks(self, step=None, *args, **kwargs):
+        step = step or 1
+        ret = 0.5 * (self.bounds.bounds[1:] + self.bounds.bounds[:-1])
+        return ret[::step]
+
     def update(self, value):
         # reset the locators if the colorbar has been drawn from scratch
         if self.cbar._just_drawn or (
                 not self.plotter.has_changed(self.key) and self.value is None):
-            try:
-                del self._colorbar
-            except AttributeError:
-                pass
-            self.set_default_locators()
+            if self.cbar.cbars:
+                try:
+                    del self._colorbar
+                except AttributeError:
+                    pass
+                self.set_default_locators()
         super(CTicks, self).update(value)
 
     def update_axis(self, value):
@@ -4234,9 +4247,13 @@ class CTicks(CbarOptions, TicksBase):
             TicksBase.update_axis(self, value)
 
     def set_default_locators(self, *args, **kwargs):
-        if self.cbar.cbars:
-            self.default_locator = self.colorbar.locator
-            self.default_formatter = self.colorbar.formatter
+        try:
+            cbar = self.colorbar
+        except AttributeError:
+            pass
+        else:
+            self.default_locator = cbar.locator
+            self.default_formatter = cbar.formatter
 
     def get_fmt_widget(self, parent, project):
         """Open a :class:`psy_simple.widget.CMapFmtWidget`"""

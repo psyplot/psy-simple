@@ -350,15 +350,30 @@ class DataTicksCalculatorFmtWidget(QWidget):
 
     def refresh(self, method, fmto):
         value = fmto.value
+        if value is None:
+            value = self.methods_type(method)
         try:
-            value = self.methods_type(*fmto.value)
+            value = self.methods_type(*value)
         except (ValueError, TypeError):
             pass
         else:
             if value.N is None:
-                self.sb_N.setValue(len(fmto.norm.boundaries))
+                try:
+                    self.sb_N.setValue(len(fmto.bounds))
+                except Exception:
+                    try:
+                        self.sb_N.setValue(len(fmto.ticks))
+                    except Exception:
+                        pass
             else:
                 self.sb_N.setValue(value.N)
+
+            bounds_val = value.method.name in ['bounds', 'midbounds']
+            self.txt_min_pctl.setEnabled(not bounds_val)
+            self.txt_max_pctl.setEnabled(not bounds_val)
+            self.combo_min.setEnabled(not bounds_val)
+            self.combo_max.setEnabled(not bounds_val)
+
             decimals = None
             if value.vmin is not None and value.vmax is not None:
                 decimals = self.get_decimals(value.vmin, value.vmax)

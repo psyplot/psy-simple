@@ -63,10 +63,11 @@ BoundsMethod = strEnum(
     'BoundsMethod', zip(bound_strings, bound_strings), module=__name__)
 
 
+cticks_strings = bound_strings + ['bounds', 'midbounds']
+
+
 CTicksMethod = strEnum(
-    'CTicksMethod',
-    zip(bound_strings + ['bounds'], bound_strings + ['bounds']),
-    module=__name__)
+    'CTicksMethod', zip(cticks_strings, cticks_strings), module=__name__)
 
 TicksMethod = strEnum(
     'TicksMethod', zip(tick_strings, tick_strings), module=__name__)
