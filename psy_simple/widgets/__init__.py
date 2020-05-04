@@ -7,14 +7,14 @@ are
 """
 import os.path as osp
 from functools import partial
-from psyplot_gui.compat.qtcompat import QToolButton, QMenu
+from PyQt5 import QtWidgets
 
 
-def get_icon(fname):
-    return osp.join(osp.dirname(__file__), 'icons', fname)
+def get_icon(fname, ending='.png'):
+    return osp.join(osp.dirname(__file__), 'icons', fname + ending)
 
 
-class Switch2FmtButton(QToolButton):
+class Switch2FmtButton(QtWidgets.QToolButton):
     """A button that contains a menu to switch to other formatoptions"""
 
     def __init__(self, parent, *fmtos):
@@ -27,10 +27,10 @@ class Switch2FmtButton(QToolButton):
             Instances of the :class:`psyplot.plotter.Formatoption` for which
             the links should be created
         """
-        QToolButton.__init__(self, parent=parent)
+        super().__init__(parent=parent)
         self.setText('fmt')
-        self.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu()
+        self.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        menu = QtWidgets.QMenu()
         for fmto in fmtos:
             name = parent.get_name(fmto)
             menu.addAction(name, partial(parent.set_fmto, name))

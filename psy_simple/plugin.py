@@ -1103,6 +1103,14 @@ rcParams = RcParams(defaultParams={
         'User defined color lists that shall be accessible through the '
         ':meth:`psyplot.plotter.colors.get_cmap` function'],
 
+    'widgets.colors.cmaps': [
+        ["viridis", "Reds", "Blues", "Greens", "binary", "RdBu", "coolwarm",
+         "red_white_blue", "winter", "jet", "white_blue_red", "gist_ncar",
+         "gist_earth", "Paired", "gnuplot", "gnuplot2"],
+        validate_stringlist,
+        'Colormaps that should be listed in the context menu of the cmap '
+        'button'],
+
     'ticks.which': ['major', ValidateInStrings(
         'ticks.which', ['major', 'minor'], True),
         'default tick that is used when using a x- or y-tick formatoption'],

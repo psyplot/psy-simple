@@ -3,26 +3,20 @@
 This module corresponds to the :mod:`psy_simple.colors` module as a version for
 the usage in the psyplot GUI."""
 import six
+import os.path as osp
+from itertools import chain
 from functools import partial
 import contextlib
-from psyplot.data import safe_list
-from psy_simple.widgets import Switch2FmtButton
-from psy_simple.colors import _get_cmaps, get_cmap
+from psyplot.data import safe_list, rcParams
+from psy_simple.widgets import Switch2FmtButton, get_icon
+import psy_simple.colors as psc
 from psy_simple.plugin import BoundsType, CTicksType
 from psyplot.docstring import docstrings
 import numpy as np
 import xarray as xr
 import matplotlib.colors as mcol
-from psyplot_gui.compat.qtcompat import (
-    QDialog, QTableView, Qt, QtCore, QtGui, with_qt5, QVBoxLayout,
-    QDialogButtonBox, QDesktopWidget, QWidget, QHBoxLayout, QPushButton,
-    QComboBox, QLineEdit, QLabel, QDoubleValidator)
-
-
-if with_qt5:
-    from PyQt5.QtWidgets import QColorDialog, QSpinBox
-else:
-    from PyQt4.QtGui import QColorDialog, QSpinBox
+from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import Qt
 
 
 docstrings.delete_params('show_colormaps.parameters', 'show', 'use_qt')
@@ -45,7 +39,7 @@ class ColormapModel(QtCore.QAbstractTableModel):
             Anything else that is passed to the QAbstractTableModel
         """
         super(ColormapModel, self).__init__(*args, **kwargs)
-        names = _get_cmaps(names)
+        names = psc._get_cmaps(names)
         self.set_colors(N, names)
 
     def set_colors(self, N=None, names=None):
@@ -54,7 +48,7 @@ class ColormapModel(QtCore.QAbstractTableModel):
 
         colors = np.zeros((len(names), N, 4))
         a = np.linspace(0, 1, N)
-        for i, cmap in enumerate(map(lambda name: get_cmap(name, N),
+        for i, cmap in enumerate(map(lambda name: psc.get_cmap(name, N),
                                      names)):
             colors[i, :, :] = cmap(a)
 
@@ -93,11 +87,11 @@ class ColormapModel(QtCore.QAbstractTableModel):
         self.endResetModel()
 
 
-class ColormapTable(QTableView):
+class ColormapTable(QtWidgets.QTableView):
     """A table for displaying colormaps"""
 
     @docstrings.with_indent(8)
-    def __init__(self, names=[], N=10, *args, **kwargs):
+    def __init__(self, names=[], N=10, editable=True, *args, **kwargs):
         """
         Parameters
         ----------
@@ -106,13 +100,14 @@ class ColormapTable(QTableView):
         Other Parameters
         ----------------
         ``*args, **kwargs``
-            Anything else that is passed to the QTableView
+            Anything else that is passed to the QtWidgets.QTableView
         """
         super(ColormapTable, self).__init__(*args, **kwargs)
         self.setModel(ColormapModel(names, N))
-        self.doubleClicked.connect(self.change_color)
-        self.setSelectionMode(QTableView.SingleSelection)
-        self.setSelectionBehavior(QTableView.SelectRows)
+        if editable:
+            self.doubleClicked.connect(self.change_color)
+        self.setSelectionMode(QtWidgets.QTableView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
 
     def setModel(self, model):
         super(ColormapTable, self).setModel(model)
@@ -123,10 +118,10 @@ class ColormapTable(QTableView):
         current = model.data(index, Qt.BackgroundColorRole)
         if current is None:
             return
-        color = QColorDialog.getColor(current, parent=self)
+        color = QtWidgets.QColorDialog.getColor(current, parent=self)
         if not color.isValid():
             return
-        model.color_da[index.row(), index.column()] = color.getRgbF()
+        model.color_da[index.row(), index.column(), :] = list(color.getRgbF())
         indices = self.selectedIndexes()
         model.reset()
         self.selectRow(indices[0].row())
@@ -153,11 +148,11 @@ class ColormapTable(QTableView):
             name, colors, N=self.columnCount())
 
 
-class ColormapDialog(QDialog):
+class ColormapDialog(QtWidgets.QDialog):
     """A widget for selecting a colormap"""
 
     @docstrings.with_indent(8)
-    def __init__(self, names=[], N=10, *args, **kwargs):
+    def __init__(self, names=[], N=10, editable=True, *args, **kwargs):
         """
         Parameters
         ----------
@@ -168,15 +163,15 @@ class ColormapDialog(QDialog):
         ``*args, **kwargs``
             Anything else that is passed to the ColormapDialog
         """
-        super(QDialog, self).__init__(*args, **kwargs)
-        vbox = QVBoxLayout()
-        self.table = ColormapTable(names=names, N=N)
+        super(QtWidgets.QDialog, self).__init__(*args, **kwargs)
+        vbox = QtWidgets.QVBoxLayout()
+        self.table = ColormapTable(names=names, N=N, editable=editable)
         vbox.addWidget(self.table)
         self.setLayout(vbox)
         col_width = self.table.columnWidth(0)
         header_width = self.table.verticalHeader().width()
         row_height = self.table.rowHeight(0)
-        available = QDesktopWidget().availableGeometry()
+        available = QtWidgets.QDesktopWidget().availableGeometry()
         height = int(min(row_height * (self.table.rowCount() + 1),
                          2. * available.height() / 3.))
         width = int(min(header_width + col_width * N + 0.5 * col_width,
@@ -206,15 +201,15 @@ class ColormapDialog(QDialog):
         names = safe_list(names)
         obj = cls(names, N, *args, **kwargs)
         vbox = obj.layout()
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=obj)
-        buttons.button(QDialogButtonBox.Ok).setEnabled(False)
+        buttons = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel, parent=obj)
+        buttons.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
         vbox.addWidget(buttons)
         buttons.accepted.connect(obj.accept)
         buttons.rejected.connect(obj.reject)
 
         obj.table.selectionModel().selectionChanged.connect(
-            lambda indices: buttons.button(QDialogButtonBox.Ok).setEnabled(
+            lambda indices: buttons.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(
                 bool(indices)))
         accepted = obj.exec_()
         if accepted:
@@ -233,7 +228,7 @@ class ColormapDialog(QDialog):
         names = safe_list(names)
         obj = cls(names, N, *args, **kwargs)
         vbox = obj.layout()
-        buttons = QDialogButtonBox(QDialogButtonBox.Close, parent=obj)
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Close, parent=obj)
         buttons.rejected.connect(obj.close)
         vbox.addWidget(buttons)
         if show:
@@ -241,45 +236,184 @@ class ColormapDialog(QDialog):
         return obj
 
 
-class CMapFmtWidget(QWidget):
+def create_cmap_thumb(cmap, output=None):
+    from matplotlib.figure import Figure
+    from matplotlib.cm import ScalarMappable
+
+    fig = Figure(figsize=(4., 0.2))
+    cax = fig.add_axes([0, 0, 1, 1])
+    _cmap = psc.get_cmap(cmap)
+    mappable = ScalarMappable(cmap=_cmap)
+    mappable.set_array([])
+    fig.colorbar(mappable, cmap=_cmap, cax=cax, orientation='horizontal')
+    if output:
+        fig.savefig(output, dpi=72)
+    return fig
+
+
+class HighlightWidget(QtWidgets.QWidget):
+
+    def set_highlighted(self, b):
+        self.setBackgroundRole(QtGui.QPalette.Highlight if b else
+                               QtGui.QPalette.Window)
+        self.setAutoFillBackground(b)
+
+    def enterEvent(self, event):
+        self.set_highlighted(True)
+
+    def leaveEvent(self, event):
+        self.set_highlighted(False)
+
+
+class CmapButton(QtWidgets.QToolButton):
+    """A button with a dropdown menu to select colormaps"""
+
+    # a signal that is triggered if the colormap has been changed
+    colormap_changed = QtCore.pyqtSignal([str], [mcol.Colormap])
+
+    def __init__(self, cmaps=None, current=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if cmaps is None:
+            cmaps = list(rcParams['widgets.colors.cmaps'])
+
+        self.cmaps = cmaps
+
+        self.setText(current or cmaps[0])
+        self.cmap_menu = self.setup_cmap_menu()
+        self.setMenu(self.cmap_menu)
+
+        max_width = max(map(self.fontMetrics().width, cmaps)) * 2
+        self.setMinimumWidth(max_width)
+        self.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+
+    def setup_cmap_menu(self):
+        menu = QtWidgets.QMenu()
+        for cmap in self.cmaps:
+            icon = get_icon(osp.join('cmaps', cmap))
+            if osp.exists(icon):
+                action = QtWidgets.QWidgetAction(menu)
+                w = HighlightWidget()
+                hbox = QtWidgets.QVBoxLayout()
+                label = QtWidgets.QLabel()
+                label.setPixmap(QtGui.QPixmap(icon))
+                hbox.addWidget(label)
+                cmap_label = QtWidgets.QLabel(cmap)
+                hbox.addWidget(cmap_label)
+                w.setLayout(hbox)
+                action.setDefaultWidget(w)
+                action.triggered.connect(partial(self.set_cmap, cmap))
+                menu.addAction(action)
+            else:
+                menu.addAction(cmap, partial(self.set_cmap, cmap))
+        return menu
+
+    def set_cmap(self, cmap):
+        if isinstance(cmap, str):
+            self.setText(str(cmap))
+            self.colormap_changed[str].emit(cmap)
+        else:
+            self.setText('Custom')
+            self.colormap_changed[mcol.Colormap].emit(cmap)
+
+    def open_cmap_dialog(self, N=10):
+        cmap = ColormapDialog.get_colormap(N=N)
+        if cmap is not None:
+            self.set_cmap(cmap)
+
+
+class CMapFmtWidget(QtWidgets.QWidget):
     """The widget for modifying the :class:`psy_simple.plotters.CMap` fmt"""
 
     def __init__(self, parent, fmto, project):
-        QWidget.__init__(self, parent)
-        hbox = QHBoxLayout()
+        QtWidgets.QWidget.__init__(self, parent)
+        hbox = QtWidgets.QHBoxLayout()
+
+        self.editor = parent
 
         # add a select colormap button
-        self.btn_choose = button = QPushButton('Choose...')
-        button.clicked.connect(partial(self.choose_cmap, None))
+        self.btn_choose = button = CmapButton()
+        button.colormap_changed.connect(self.set_obj)
+        button.colormap_changed[mcol.Colormap].connect(self.set_obj)
+        self.btn_choose.cmap_menu.addSeparator()
+        self.btn_choose.cmap_menu.addAction(
+            'More...', partial(self.choose_cmap, None))
+
+        if isinstance(fmto.value, str):
+            self.btn_choose.setText(fmto.value)
+        else:
+            self.btn_choose.setText("Custom")
+
         hbox.addWidget(button)
 
         # add a show colormap button
-        self.btn_show = button = QPushButton('Show...')
-        button.clicked.connect(self.show_cmap)
+        self.btn_show = button = QtWidgets.QPushButton('Edit...')
+        button.clicked.connect(self.edit_cmap)
         hbox.addWidget(button)
+
+        # add a checkbox to invert the colormap
+        self.cb_invert = QtWidgets.QCheckBox("Inverted")
+        self.cb_invert.setEnabled(isinstance(fmto.value, str))
+        self.cb_invert.setChecked(fmto.value.endswith('_r'))
+        self.cb_invert.stateChanged.connect(self.invert_cmap)
+        hbox.addWidget(self.cb_invert)
+
+        hbox.addStretch(0)
 
         hbox.addWidget(Switch2FmtButton(parent, fmto.bounds, fmto.cbar))
 
         self.setLayout(hbox)
 
-    def choose_cmap(self, cmap=None):
-        parent = self.parent()
-        if cmap is None:
-            cmap = ColormapDialog.get_colormap(
-                N=getattr(parent.fmto.bounds.norm, 'Ncmap', 10))
-        if cmap is not None:
-            parent.set_obj(cmap)
+    def set_obj(self, obj):
+        self.editor.set_obj(obj)
+        self.invert_cmap()
 
-    def show_cmap(self):
+    def invert_cmap(self):
+        try:
+            value = self.editor.get_obj()
+        except Exception:
+            return
+        if isinstance(value, str):
+            self.cb_invert.setEnabled(True)
+            if self.cb_invert.isChecked() and not value.endswith('_r'):
+                self.editor.set_obj(value + '_r')
+            elif value.endswith('_r'):
+                self.editor.set_obj(value[:-2])
+        else:
+            self.refresh_cb_invert(value)
+
+    def refresh_cb_invert(self, obj):
+        try:
+            self.cb_invert.blockSignals(True)
+            if isinstance(obj, str):
+                self.cb_invert.setEnabled(True)
+                self.cb_invert.setChecked(obj.endswith('_r'))
+            else:
+                self.cb_invert.setEnabled(False)
+                self.cb_invert.setChecked(False)
+        finally:
+            self.cb_invert.blockSignals(False)
+
+    def choose_cmap(self, cmap=None):
+        if cmap is None:
+            editor = self.editor()
+            N = getattr(editor.gitfmto.bounds.norm, 'Ncmap', 10)
+            self.btn_choose.open_cmap_dialog(N)
+        else:
+            self.set_obj(cmap)
+
+    def edit_cmap(self):
         parent = self.parent()
         cmap = parent.get_obj()
         if cmap is not None:
-            return ColormapDialog.show_colormap(
+            cmap = ColormapDialog.get_colormap(
                 cmap, N=getattr(parent.fmto.bounds.norm, 'Ncmap', 10),
                 parent=self)
+            if cmap is not None:
+                parent.set_obj(cmap)
 
 
-class DataTicksCalculatorFmtWidget(QWidget):
+class DataTicksCalculatorFmtWidget(QtWidgets.QWidget):
     """Fmt widget for :class:`psy_simple.plotters.DataTicksCalculator`
 
     This widget contains a combo box with the different options from the
@@ -289,32 +423,32 @@ class DataTicksCalculatorFmtWidget(QWidget):
 
     def __init__(self, parent, method=None, methods_type=BoundsType):
         self.methods_type = methods_type
-        QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
         self.method = method
 
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
 
-        self.sb_N = QSpinBox()
+        self.sb_N = QtWidgets.QSpinBox()
         hbox.addWidget(self.sb_N)
 
-        self.txt_min_pctl = QLineEdit()
-        self.txt_min_pctl.setValidator(QDoubleValidator(0., 100., 10))
+        self.txt_min_pctl = QtWidgets.QLineEdit()
+        self.txt_min_pctl.setValidator(QtGui.QDoubleValidator(0., 100., 10))
 
 
-        hbox.addWidget(QLabel('Min.:'))
+        hbox.addWidget(QtWidgets.QLabel('Min.:'))
 
-        self.combo_min = QComboBox()
+        self.combo_min = QtWidgets.QComboBox()
         self.combo_min.addItems(['absolute', 'percentile'])
         hbox.addWidget(self.combo_min)
 
         hbox.addWidget(self.txt_min_pctl)
 
-        self.txt_max_pctl = QLineEdit()
-        self.txt_max_pctl.setValidator(QDoubleValidator(0., 100., 10))
-        hbox.addWidget(QLabel('Max.:'))
+        self.txt_max_pctl = QtWidgets.QLineEdit()
+        self.txt_max_pctl.setValidator(QtGui.QDoubleValidator(0., 100., 10))
+        hbox.addWidget(QtWidgets.QLabel('Max.:'))
 
-        self.combo_max = QComboBox()
+        self.combo_max = QtWidgets.QComboBox()
         self.combo_max.addItems(['absolute', 'percentile'])
         hbox.addWidget(self.combo_max)
 
@@ -404,7 +538,7 @@ class DataTicksCalculatorFmtWidget(QWidget):
         return int(decimals)
 
 
-class ArrayFmtWidget(QWidget):
+class ArrayFmtWidget(QtWidgets.QWidget):
     """Fmt widget for :class:`psy_simple.plotters.DataTicksCalculator`
 
     This formatoption widgets contains 3 line edits, one for the minimum, one
@@ -412,16 +546,16 @@ class ArrayFmtWidget(QWidget):
     of increments"""
 
     def __init__(self, parent, array=None):
-        QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
 
-        self.txt_min = QLineEdit()
-        self.txt_min.setValidator(QDoubleValidator())
-        self.txt_max = QLineEdit()
-        self.txt_max.setValidator(QDoubleValidator())
-        self.txt_step = QLineEdit()
-        self.txt_step.setValidator(QDoubleValidator(1e-10, 1e10, 10))
-        self.sb_nsteps = QSpinBox()
-        self.step_inc_combo = combo = QComboBox()
+        self.txt_min = QtWidgets.QLineEdit()
+        self.txt_min.setValidator(QtGui.QDoubleValidator())
+        self.txt_max = QtWidgets.QLineEdit()
+        self.txt_max.setValidator(QtGui.QDoubleValidator())
+        self.txt_step = QtWidgets.QLineEdit()
+        self.txt_step.setValidator(QtGui.QDoubleValidator(1e-10, 1e10, 10))
+        self.sb_nsteps = QtWidgets.QSpinBox()
+        self.step_inc_combo = combo = QtWidgets.QComboBox()
         combo.addItems(['Step', '# Steps'])
 
         if array is not None:
@@ -440,10 +574,10 @@ class ArrayFmtWidget(QWidget):
 
         self.toggle_txt_step(combo.currentText())
 
-        hbox = QHBoxLayout()
-        hbox.addWidget(QLabel('Min.'))
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel('Min.'))
         hbox.addWidget(self.txt_min)
-        hbox.addWidget(QLabel('Max.'))
+        hbox.addWidget(QtWidgets.QLabel('Max.'))
         hbox.addWidget(self.txt_max)
         hbox.addWidget(combo)
         hbox.addWidget(self.txt_step)
@@ -496,37 +630,37 @@ class ArrayFmtWidget(QWidget):
         self.set_array()
 
 
-class NormalizationWidget(QWidget):
+class NormalizationWidget(QtWidgets.QWidget):
     """A simple widget representing a boundary norm"""
 
     def __init__(self, parent, norm):
-        QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self.norm = norm
 
-        validator = QDoubleValidator()
-        self.txt_min = QLineEdit()
+        validator = QtGui.QDoubleValidator()
+        self.txt_min = QtWidgets.QLineEdit()
         self.txt_min.setValidator(validator)
-        self.txt_max = QLineEdit()
+        self.txt_max = QtWidgets.QLineEdit()
         self.txt_max.setValidator(validator)
 
-        self.lbl_linthresh = QLabel('linthresh:')
-        self.txt_linthresh = QLineEdit()  # linthresh for SymLogNorm
+        self.lbl_linthresh = QtWidgets.QLabel('linthresh:')
+        self.txt_linthresh = QtWidgets.QLineEdit()  # linthresh for SymLogNorm
         self.txt_linthresh.setValidator(validator)
         self.txt_linthresh.setToolTip(
             'The threshold for linear scaling. Within this distance from 0, '
             'the scaling will be linear, not logarithmic.')
 
-        self.lbl_gamma = QLabel('gamma:')
-        self.txt_gamma = QLineEdit()  # gamma for PowerNorm
+        self.lbl_gamma = QtWidgets.QLabel('gamma:')
+        self.txt_gamma = QtWidgets.QLineEdit()  # gamma for PowerNorm
         self.txt_gamma.setValidator(validator)
         self.txt_gamma.setToolTip('The power value for the PowerNorm')
 
         self.fill_from_norm()
 
-        hbox = QHBoxLayout()
-        hbox.addWidget(QLabel('Min.:'))
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel('Min.:'))
         hbox.addWidget(self.txt_min)
-        hbox.addWidget(QLabel('Max.:'))
+        hbox.addWidget(QtWidgets.QLabel('Max.:'))
         hbox.addWidget(self.txt_max)
         hbox.addWidget(self.lbl_linthresh)
         hbox.addWidget(self.txt_linthresh)
@@ -585,7 +719,7 @@ class NormalizationWidget(QWidget):
             self.parent().set_obj(norm)
 
 
-class BoundsFmtWidget(QWidget):
+class BoundsFmtWidget(QtWidgets.QWidget):
     """The widget for modifying the :class:`psy_simple.plotters.Bounds` fmt"""
 
     _array_widget = None
@@ -613,14 +747,14 @@ class BoundsFmtWidget(QWidget):
     methods = ['Discrete', 'Continuous']
 
     def __init__(self, parent, fmto, project, properties=True):
-        QWidget.__init__(self, parent)
+        QtWidgets.QWidget.__init__(self, parent)
         self._editor = parent
-        hbox = QHBoxLayout()
+        hbox = QtWidgets.QHBoxLayout()
 
-        self.type_combo = QComboBox(self)
+        self.type_combo = QtWidgets.QComboBox(self)
         self.type_combo.addItems(self.methods)
 
-        self.method_combo = QComboBox(self)
+        self.method_combo = QtWidgets.QComboBox(self)
 
         self.discrete_items = sorted(fmto.calc_funcs) + ['Custom']
 
@@ -788,3 +922,14 @@ class CTicksFmtWidget(BoundsFmtWidget):
             self.current_widget = None
         if not auto_ticks:
             super().refresh_current_widget()
+
+
+if __name__ == '__main__':
+    # build colormap thumbnails
+    import matplotlib.pyplot as plt
+    available_cmaps = set(
+        chain(plt.cm.cmap_d, psc._cmapnames, rcParams['colors.cmaps']))
+    N = len(available_cmaps)
+    for i, cmap in enumerate(available_cmaps, 1):
+        print("%i of %i: Generating thumb %s" % (i, N, cmap))
+        create_cmap_thumb(cmap, get_icon(osp.join('cmaps', cmap)))

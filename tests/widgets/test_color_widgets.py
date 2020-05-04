@@ -62,22 +62,17 @@ class CMapWidgetTest(bt.PsyPlotGuiTestCase):
         self.assertIsInstance(chosen, mcol.Colormap)
         self.assertColormapEqual(chosen, cmap)
 
-    def test_show_colormap_01_standard(self):
-        fmt_w = self.fmt_widget
-        fmt_w.fmt_widget.choose_cmap('Blues')
-        dialog = fmt_w.fmt_widget.show_cmap()
+    def test_edit_colormap_01_standard(self):
+        dialog = pswc.ColormapDialog('Blues')
         self.assertIsInstance(dialog, pswc.ColormapDialog)
         self.assertEqual(dialog.table.rowCount(), 1)
         dialog.table.selectRow(0)
         self.assertColormapEqual(dialog.table.chosen_colormap, 'Blues', True)
         dialog.close()
 
-    def test_show_colormap_02_custom(self):
-        fmt_w = self.fmt_widget
+    def test_edit_colormap_02_custom(self):
         cmap = get_cmap('Blues')
-        fmt_w.fmt_widget.choose_cmap(cmap)
-        dialog = fmt_w.fmt_widget.show_cmap()
-        self.assertIsInstance(dialog, pswc.ColormapDialog)
+        dialog = pswc.ColormapDialog(cmap)
         self.assertEqual(dialog.table.rowCount(), 1)
         dialog.table.selectRow(0)
         self.assertIsInstance(dialog.table.chosen_colormap, mcol.Colormap)
