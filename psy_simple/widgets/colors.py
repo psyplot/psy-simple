@@ -404,14 +404,14 @@ class CMapFmtWidget(QtWidgets.QWidget):
             self.set_obj(cmap)
 
     def edit_cmap(self):
-        parent = self.parent()
-        cmap = parent.get_obj()
+        editor = self.editor
+        cmap = editor.get_obj()
         if cmap is not None:
             cmap = ColormapDialog.get_colormap(
                 cmap, N=getattr(parent.fmto.bounds.norm, 'Ncmap', 10),
                 parent=self)
             if cmap is not None:
-                parent.set_obj(cmap)
+                editor.set_obj(cmap)
 
 
 class DataTicksCalculatorFmtWidget(QtWidgets.QWidget):
