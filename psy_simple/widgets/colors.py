@@ -354,7 +354,8 @@ class CMapFmtWidget(QtWidgets.QWidget):
         # add a checkbox to invert the colormap
         self.cb_invert = QtWidgets.QCheckBox("Inverted")
         self.cb_invert.setEnabled(isinstance(fmto.value, str))
-        self.cb_invert.setChecked(fmto.value.endswith('_r'))
+        if isinstance(fmto.value, str):
+            self.cb_invert.setChecked(fmto.value.endswith('_r'))
         self.cb_invert.stateChanged.connect(self.invert_cmap)
         hbox.addWidget(self.cb_invert)
 
