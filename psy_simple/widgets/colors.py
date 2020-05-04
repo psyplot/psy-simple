@@ -325,7 +325,7 @@ class CmapButton(QtWidgets.QToolButton):
 class CMapFmtWidget(QtWidgets.QWidget):
     """The widget for modifying the :class:`psy_simple.plotters.CMap` fmt"""
 
-    def __init__(self, parent, fmto, project):
+    def __init__(self, parent, fmto, project, properties=True):
         QtWidgets.QWidget.__init__(self, parent)
         hbox = QtWidgets.QHBoxLayout()
 
@@ -360,7 +360,8 @@ class CMapFmtWidget(QtWidgets.QWidget):
 
         hbox.addStretch(0)
 
-        hbox.addWidget(Switch2FmtButton(parent, fmto.bounds, fmto.cbar))
+        if properties:
+            hbox.addWidget(Switch2FmtButton(parent, fmto.bounds, fmto.cbar))
 
         self.setLayout(hbox)
 
@@ -396,8 +397,8 @@ class CMapFmtWidget(QtWidgets.QWidget):
 
     def choose_cmap(self, cmap=None):
         if cmap is None:
-            editor = self.editor()
-            N = getattr(editor.gitfmto.bounds.norm, 'Ncmap', 10)
+            editor = self.editor
+            N = getattr(editor.fmto.bounds.norm, 'Ncmap', 10)
             self.btn_choose.open_cmap_dialog(N)
         else:
             self.set_obj(cmap)
