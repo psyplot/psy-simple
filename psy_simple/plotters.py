@@ -4127,7 +4127,10 @@ class CbarOptions(Formatoption):
         try:
             return self._colorbar
         except AttributeError:
-            pos, cbar = next(six.iteritems(self.cbar.cbars))
+            try:
+                pos, cbar = next(six.iteritems(self.cbar.cbars))
+            except StopIteration:
+                raise AttributeError("No colorbar set")
             self.position = pos
             self.colorbar = cbar
             return self.colorbar
