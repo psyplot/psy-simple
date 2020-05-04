@@ -1,3 +1,4 @@
 include README.rst
 include LICENSE
 include psy_simple/widgets/icons/*.png
+include psy_simple/widgets/icons/cmaps/*.png
