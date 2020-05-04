@@ -409,7 +409,7 @@ class CMapFmtWidget(QtWidgets.QWidget):
         cmap = editor.get_obj()
         if cmap is not None:
             cmap = ColormapDialog.get_colormap(
-                cmap, N=getattr(parent.fmto.bounds.norm, 'Ncmap', 10),
+                cmap, N=getattr(editor.fmto.bounds.norm, 'Ncmap', 10),
                 parent=self)
             if cmap is not None:
                 editor.set_obj(cmap)
