@@ -166,6 +166,8 @@ class ColormapDialog(QtWidgets.QDialog):
         super(QtWidgets.QDialog, self).__init__(*args, **kwargs)
         vbox = QtWidgets.QVBoxLayout()
         self.table = ColormapTable(names=names, N=N, editable=editable)
+        if editable:
+            vbox.addWidget(QtWidgets.QLabel("Double-click a color to edit"))
         vbox.addWidget(self.table)
         self.setLayout(vbox)
         col_width = self.table.columnWidth(0)
