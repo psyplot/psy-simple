@@ -434,6 +434,8 @@ class DataTicksCalculatorFmtWidget(QtWidgets.QWidget):
         hbox = QtWidgets.QHBoxLayout()
 
         self.sb_N = QtWidgets.QSpinBox()
+        self.sb_N.setSpecialValueText('auto')
+        self.sb_N.setMinimum(0)
         hbox.addWidget(self.sb_N)
 
         self.txt_min_pctl = QtWidgets.QLineEdit()
@@ -469,7 +471,7 @@ class DataTicksCalculatorFmtWidget(QtWidgets.QWidget):
     def set_obj(self):
         obj = {
             'method': self.method,
-            'N': self.sb_N.value(),
+            'N': self.sb_N.value() or None,
             }
         if self.txt_min_pctl.text().strip():
             key = 'vmin' if self.combo_min.currentText() == 'absolute' else \
@@ -495,16 +497,7 @@ class DataTicksCalculatorFmtWidget(QtWidgets.QWidget):
         except (ValueError, TypeError):
             pass
         else:
-            if value.N is None:
-                try:
-                    self.sb_N.setValue(len(fmto.bounds))
-                except Exception:
-                    try:
-                        self.sb_N.setValue(len(fmto.ticks))
-                    except Exception:
-                        pass
-            else:
-                self.sb_N.setValue(value.N)
+            self.sb_N.setValue(value.N or 0)
 
             bounds_val = value.method.name in ['bounds', 'midbounds']
             self.txt_min_pctl.setEnabled(not bounds_val)
