@@ -362,38 +362,61 @@ class DataTicksCalculator(Formatoption):
     numeric array
         specifies the ticks manually
     str or list [str, ...]
-        Automatically determine the ticks corresponding to the data. The given
-        string determines how the ticks are calculated. If not a single string
-        but a list, the second value determines the number of ticks (see
-        below). A string can be one of the following:
+        A list of the below mentioned values of the mapping like
+        ``[method, N, percmin, percmax, vmin, vmax]``, where only the first
+        one is absolutely necessary
+    dict
+        Automatically determine the ticks corresponding to the data. The
+        mapping can have the following keys, but only `method` is not optional.
 
-        data
-            plot the ticks exactly where the data is.
-        mid
-            plot the ticks in the middle of the data.
-        rounded
-            Sets the minimum and maximum of the ticks to the rounded data
-            minimum or maximum. Ticks are rounded to the next 0.5 value with
-            to the difference between data max- and minimum. The minimal tick
-            will always be lower or equal than the data minimum, the maximal
-            tick will always be higher or equal than the data maximum.
-        roundedsym
-            Same as `rounded` above but the ticks are chose such that they are
-            symmetric around zero
-        minmax
-            Uses the minimum as minimal tick and maximum as maximal tick
-        sym
-            Same as minmax but symmetric around zero
-        log
-            Use logarithmic bounds. In this case, the given second number N
-            determines the number of bounds per power of tenth (i.e. ``N == 2``
-            results in something like ``1.0, 5.0, 10.0, 50.0``, etc., If this
-            second number is None, then it will be chosen such that we have
-            around 11 boundaries but at least one per power of ten.
-        symlog
-            The same as ``log`` but symmetric around 0. If the second number is
-            None, then we have around 12 boundaries but at least one per power
-            of ten"""
+        N
+            An integer describing the number of boundaries (or ticks per
+            power of ten, see `log` and `symlog` above)
+        percmin
+            The percentile to use for the minimum (by default, 0, i.e. the
+            minimum of the array)
+        percmax
+            The percentile to use for the maximum (by default, 100, i.e. the
+            maximum of the array)
+        vmin
+            The minimum to use (in which case it is not calculated from the
+            specified `method`)
+        vmax
+            The maximum to use (in which case it is not calculated from the
+            specified `method`)
+        method
+            A string that defines how minimum and maximum shall be set. This
+            argument is **not optional** and can be one of the following:
+
+            data
+                plot the ticks exactly where the data is.
+            mid
+                plot the ticks in the middle of the data.
+            rounded
+                Sets the minimum and maximum of the ticks to the rounded data
+                minimum or maximum. Ticks are rounded to the next 0.5 value
+                with to the difference between data max- and minimum. The
+                minimal tick will always be lower or equal than the data
+                minimum, the maximal tick will always be higher or equal than
+                the data maximum.
+            roundedsym
+                Same as `rounded` above but the ticks are chose such that they
+                are symmetric around zero
+            minmax
+                Uses the minimum as minimal tick and maximum as maximal tick
+            sym
+                Same as minmax but symmetric around zero
+            log
+                Use logarithmic bounds. In this case, the given number `N`
+                determines the number of bounds per power of tenth (i.e.
+                ``N == 2`` results in something like ``1.0, 5.0, 10.0, 50.0``,
+                etc., If this second number is None, then it will be chosen
+                such that we have around 11 boundaries but at least one per
+                power of ten.
+            symlog
+                The same as ``log`` but symmetric around 0. If the number `N`
+                is None, then we have around 12 boundaries but at least one
+                per power of ten"""
 
     data_dependent = True
 
@@ -412,12 +435,12 @@ class DataTicksCalculator(Formatoption):
         mask = np.asarray(data.notnull())
         return data.values[mask]
 
-    def _data_ticks(self, step=None):
+    def _data_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         """Array of ticks that match exactly the data"""
         return np.unique(self.array)[::step]
 
-    def _mid_data_ticks(self, step=None):
+    def _mid_data_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         """Array of ticks in the middle between the data points"""
         arr = np.unique(self.array)
@@ -425,6 +448,21 @@ class DataTicksCalculator(Formatoption):
 
     def _collect_array(self, percmin=None, percmax=None):
         """Collect the data from the shared formatoptions (if necessary)."""
+
+        def nanmin(arr):
+            try:
+                return np.nanmin(arr)
+            except TypeError:
+                return arr.min()
+
+        def nanmax(arr):
+            try:
+                return np.nanmax(arr)
+            except TypeError:
+                return arr.max()
+
+        def minmax(arr):
+            return [nanmin(arr), nanmax(arr)]
 
         def shared_arrays():
             for fmto in self.shared:
@@ -450,7 +488,9 @@ class DataTicksCalculator(Formatoption):
                     [self.array], shared_arrays()))))
         return arr
 
-    def _calc_vmin_vmax(self, percmin=None, percmax=None):
+    def _calc_vmin_vmax(self, percmin=None, percmax=None,
+                        vmin=None, vmax=None):
+
         def nanmin(arr):
             try:
                 return np.nanmin(arr)
@@ -463,17 +503,21 @@ class DataTicksCalculator(Formatoption):
             except TypeError:
                 return arr.max()
 
-        def minmax(arr):
-            return [nanmin(arr), nanmax(arr)]
+        if vmin is not None and vmax is not None:
+            return vmin, vmax
 
         percentiles = []
-        arr = self._collect_array(percmin=None, percmax=None)
+        arr = self._collect_array(percmin, percmax)
         try:
-            if not percmin:
+            if vmin is not None:
+                pass
+            elif not percmin:
                 vmin = nanmin(arr)
             else:
                 percentiles.append(percmin)
-            if percmax is None or percmax == 100:
+            if vmax is not None:
+                pass
+            elif percmax is None or percmax == 100:
                 vmax = nanmax(arr)
             else:
                 percentiles.append(percmax)
@@ -712,18 +756,18 @@ class DtTicksBase(TicksBase, TicksManager):
     %(TicksManager.possible_types)s
     %(TicksBase.possible_types)s
     %(DataTicksCalculator.possible_types)s
-        hour
-            draw ticks every hour
-        day
-            draw ticks every day
-        week
-            draw ticks every week
-        month, monthend, monthbegin
-            draw ticks in the middle, at the end or at the beginning of each
-            month
-        year, yearend, yearbegin
-            draw ticks in the middle, at the end or at the beginning of each
-            year
+            hour
+                draw ticks every hour
+            day
+                draw ticks every day
+            week
+                draw ticks every week
+            month, monthend, monthbegin
+                draw ticks in the middle, at the end or at the beginning of each
+                month
+            year, yearend, yearbegin
+                draw ticks in the middle, at the end or at the beginning of each
+                year
 
         For data, mid, hour, day, week, month, etc., the optional second value
         can be an integer i determining that every i-th data point shall be
@@ -768,8 +812,8 @@ class DtTicksBase(TicksBase, TicksManager):
             return data
 
     def _frequent_ticks(self, freq, onset=None, offset=None):
-        def func(step=None):
-            step = step or 1
+        def func(N=None, *args, **kwargs):
+            step = N or 1
             data = self.dtdata
             if data is None:
                 return
@@ -780,8 +824,8 @@ class DtTicksBase(TicksBase, TicksManager):
         return func
 
     def _mid_dt_ticks(self, freq):
-        def func(step=None):
-            step = step or 1
+        def func(N=None, *args, **kwargs):
+            step = N or 1
             data = self.dtdata
             if data is None:
                 return
@@ -2994,23 +3038,40 @@ class Bounds(DataTicksCalculator):
 
     Examples
     --------
-    Plot 11 bounds over the whole data range::
+    - Plot 11 bounds over the whole data range::
 
-    >>> plotter.update(bounds='rounded')
+          >>> plotter.update(bounds='rounded')
 
-    Plot 7 ticks over the whole data range where the maximal and minimal
-    tick matches the data maximum and minimum::
+      which is equivalent to::
 
-    >>> plotter.update(bounds=['minmax', 7])
+          >>> plotter.update(bounds={'method': 'rounded'})
 
-    Plot 3 bounds per power of ten
+    - Plot 7 ticks over the whole data range where the maximal and minimal
+      tick matches the data maximum and minimum::
 
-    >>> plotter.update(bounds=['log', 3])
+          >>> plotter.update(bounds=['minmax', 7])
 
-    Plot continuous logarithmic bounds::
+      which is equivaluent to::
 
-    >>> from matplotlib.colors import LogNorm
-    >>> plotter.update(bounds=LogNorm())
+          >>> plotter.update(bounds={'method': 'minmax', 'N': 7})
+
+    - chop the first and last five percentiles::
+
+          >>> plotter.update(bounds=['rounded', None, 5, 95])
+
+      which is equivalent to::
+
+          >>> plotter.update(bounds={'method': 'rounded', 'percmin': 5,
+          ...                        'percmax': 95})
+
+    - Plot 3 bounds per power of ten::
+
+          >>> plotter.update(bounds=['log', 3])
+
+    - Plot continuous logarithmic bounds::
+
+          >>> from matplotlib.colors import LogNorm
+          >>> plotter.update(bounds=LogNorm())
 
 
     See Also
@@ -3841,12 +3902,12 @@ class Cbar(Formatoption):
                     fmto.update(fmto.value)
             else:
                 self.remove(positions=cbars2delete)
-        if self.plot.value is None:
-            return
         for pos in value.intersection(self.cbars):
-            self.update_colorbar(pos)
+            if self.plot.value is not None:
+                self.update_colorbar(pos)
         for pos in sorted(value.difference(self.cbars)):
-            self.draw_colorbar(pos)
+            if self.plot.value is not None:
+                self.draw_colorbar(pos)
         plotter._figs2draw.update(map(lambda cbar: cbar.ax.get_figure(),
                                       six.itervalues(self.cbars)))
 
@@ -4066,7 +4127,10 @@ class CbarOptions(Formatoption):
         try:
             return self._colorbar
         except AttributeError:
-            pos, cbar = next(six.iteritems(self.cbar.cbars))
+            try:
+                pos, cbar = next(six.iteritems(self.cbar.cbars))
+            except StopIteration:
+                raise AttributeError("No colorbar set")
             self.position = pos
             self.colorbar = cbar
             return self.colorbar
@@ -4088,7 +4152,10 @@ class CbarOptions(Formatoption):
 
     @property
     def data(self):
-        return self.plot.data
+        try:
+            return self.plot.data
+        except AttributeError:
+            return super().data
 
     axis_locations = CLabel.axis_locations
 
@@ -4109,10 +4176,12 @@ class CTicks(CbarOptions, TicksBase):
     None
         use the default ticks
     %(DataTicksCalculator.possible_types)s
-        bounds
-            let the :attr:`bounds` keyword determine the ticks. An additional
-            integer `i` may be specified to only use every i-th bound as a tick
-            (see also `int` below)
+            bounds
+                let the :attr:`bounds` keyword determine the ticks. An
+                additional integer `i` may be specified to only use every i-th
+                bound as a tick (see also `int` below)
+            midbounds
+                Same as `bounds` but in the middle between two bounds
     int
         Specifies how many ticks to use with the ``'bounds'`` option. I.e. if
         integer ``i``, then this is the same as ``['bounds', i]``.
@@ -4123,6 +4192,8 @@ class CTicks(CbarOptions, TicksBase):
     """
 
     dependencies = CbarOptions.dependencies + ['bounds']
+
+    connections = CbarOptions.connections + ['cmap']
 
     name = 'Colorbar ticks'
 
@@ -4142,22 +4213,31 @@ class CTicks(CbarOptions, TicksBase):
     def __init__(self, *args, **kwargs):
         super(CTicks, self).__init__(*args, **kwargs)
         self.calc_funcs['bounds'] = self._bounds_ticks
+        self.calc_funcs['midbounds'] = self._mid_bounds_ticks
 
     def set_ticks(self, value):
+        self.ticks = value
         self.colorbar.set_ticks(value)
 
-    def _bounds_ticks(self, step=None):
+    def _bounds_ticks(self, step=None, *args, **kwargs):
         step = step or 1
         return self.bounds.bounds[::step]
 
+    def _mid_bounds_ticks(self, step=None, *args, **kwargs):
+        step = step or 1
+        ret = 0.5 * (self.bounds.bounds[1:] + self.bounds.bounds[:-1])
+        return ret[::step]
+
     def update(self, value):
         # reset the locators if the colorbar has been drawn from scratch
-        if self.cbar._just_drawn:
-            try:
-                del self._colorbar
-            except AttributeError:
-                pass
-            self.set_default_locators()
+        if self.cbar._just_drawn or (
+                not self.plotter.has_changed(self.key) and self.value is None):
+            if self.cbar.cbars:
+                try:
+                    del self._colorbar
+                except AttributeError:
+                    pass
+                self.set_default_locators()
         super(CTicks, self).update(value)
 
     def update_axis(self, value):
@@ -4170,9 +4250,18 @@ class CTicks(CbarOptions, TicksBase):
             TicksBase.update_axis(self, value)
 
     def set_default_locators(self, *args, **kwargs):
-        if self.cbar.cbars:
-            self.default_locator = self.colorbar.locator
-            self.default_formatter = self.colorbar.formatter
+        try:
+            cbar = self.colorbar
+        except AttributeError:
+            pass
+        else:
+            self.default_locator = cbar.locator
+            self.default_formatter = cbar.formatter
+
+    def get_fmt_widget(self, parent, project):
+        """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
+        from psy_simple.widgets.colors import CTicksFmtWidget
+        return CTicksFmtWidget(parent, self, project)
 
 
 class VectorCTicks(CTicks):

@@ -56,6 +56,7 @@ setup(name='psy-simple',
       ],
       package_data={'psy_simple': [
           osp.join('psy_simple', 'widgets', 'icons', '*.png'),
+          osp.join('psy_simple', 'widgets', 'icons', 'cmaps', '*.png'),
           ]},
       include_package_data=True,
       tests_require=['pytest'],

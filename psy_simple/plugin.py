@@ -4,7 +4,9 @@ This module defines the rcParams for the psy-simple plugin"""
 import six
 import re
 import matplotlib as mpl
+import dataclasses
 import numpy as np
+import enum
 from matplotlib.patches import ArrowStyle
 from warnings import warn
 from itertools import repeat
@@ -51,6 +53,53 @@ bound_strings = ['data', 'mid', 'rounded', 'roundedsym', 'minmax', 'sym',
 
 tick_strings = bound_strings + ['hour', 'day', 'week', 'month', 'monthend',
                                 'monthbegin', 'year', 'yearend', 'yearbegin']
+
+
+class strEnum(str, enum.Enum):
+    pass
+
+
+BoundsMethod = strEnum(
+    'BoundsMethod', zip(bound_strings, bound_strings), module=__name__)
+
+
+cticks_strings = bound_strings + ['bounds', 'midbounds']
+
+
+CTicksMethod = strEnum(
+    'CTicksMethod', zip(cticks_strings, cticks_strings), module=__name__)
+
+TicksMethod = strEnum(
+    'TicksMethod', zip(tick_strings, tick_strings), module=__name__)
+
+
+@dataclasses.dataclass
+class BoundsType:
+    method: BoundsMethod
+    N: int = None
+    percmin: float = 0
+    percmax: float = 100
+    vmin: float = None
+    vmax: float = None
+
+    def __post_init__(self):
+        for field, val in zip(dataclasses.fields(self), self):
+            if val is not None or field.name == 'method':
+                val = field.type(val)
+                setattr(self, field.name, val)
+
+    def __iter__(self):
+        return iter(dataclasses.astuple(self))
+
+
+@dataclasses.dataclass
+class CTicksType(BoundsType):
+    method: CTicksMethod
+
+
+@dataclasses.dataclass
+class TicksType(BoundsType):
+    method: TicksMethod
 
 
 def try_and_error(*funcs):
@@ -572,17 +621,19 @@ class TicksValidator(ValidateInStrings):
             return val
         # strings must be in the given list
         elif isinstance(val, six.string_types):
-            return [ValidateInStrings.__call__(self, val), None]
+            return list(TicksType(val))
+        elif isinstance(val, dict):
+            return list(TicksType(**val))
         elif len(val) and isinstance(val[0], six.string_types):
-            return [ValidateInStrings.__call__(self, val[0])] + list(val[1:])
+            return list(TicksType(*val))
         # otherwise we assume an array
         else:
             return ValidateList()(val)
 
 
-class BoundsValidator(ValidateInStrings):
+class BoundsValidator:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, type, default='rounded', possible_instances=None):
         """
         For parameter description see
         :class:`matplotlib.rcsetup.ValidateInStrings`.
@@ -593,9 +644,9 @@ class BoundsValidator(ValidateInStrings):
             Tuple of object types that may pass the check
         default: str
             The default string to use for an integer (Default: 'rounded')"""
-        self.possible_instances = kwargs.pop('inis', None)
-        self.default = kwargs.pop('default', 'rounded')
-        ValidateInStrings.__init__(self, *args, **kwargs)
+        self.type = type
+        self.possible_instances = possible_instances
+        self.default = default
 
     def instance_check(self, val):
         if self.possible_instances:
@@ -605,12 +656,14 @@ class BoundsValidator(ValidateInStrings):
     def __call__(self, val):
         if val is None or self.instance_check(val):
             return val
+        elif isinstance(val, dict):
+            return list(self.type(**val))
         elif isinstance(val, int):
-            return [self.default, val]
+            return list(self.type(self.default, val))
         elif isinstance(val, six.string_types):
-            return [ValidateInStrings.__call__(self, val), None]
+            return list(self.type(val))
         elif isinstance(val[0], six.string_types):
-            return [ValidateInStrings.__call__(self, val[0])] + list(val[1:])
+            return list(self.type(*val))
         # otherwise we assume an array
         else:
             return ValidateList(float)(val)
@@ -978,7 +1031,7 @@ rcParams = RcParams(defaultParams={
         'white_blue_red', validate_cmap, 'fmt key to specify the colormap'],
     'plotter.plot2d.cticks': [
         None, try_and_error(validate_none, BoundsValidator(
-            'bounds', ['bounds'] + bound_strings, True, default='bounds')),
+            CTicksType, default='bounds')),
         'fmt key to specify the ticks of the colorbar'],
     'plotter.plot2d.cticklabels': [
         None, validate_ticklabels,
@@ -987,11 +1040,10 @@ rcParams = RcParams(defaultParams={
         'neither', validate_extend,
         'fmt key to specify the style of the colorbar on minimum and maximum'],
     'plotter.plot2d.bounds': [
-        'rounded', BoundsValidator('bounds', bound_strings, True,
-                                   inis=mpl.colors.Normalize),
+        'rounded', BoundsValidator(BoundsType, 'bounds', mpl.colors.Normalize),
         'fmt key to specify bounds and norm of the colorbar'],
     'plotter.plot2d.levels': [
-        None, BoundsValidator('levels', bound_strings, True),
+        None, BoundsValidator(BoundsType),
         'fmt key to specify the levels for a contour plot'],
     # TODO: Implement opacity
     # 'plotter.plot2d.opacity': [None, try_and_error(validate_none,
@@ -1050,6 +1102,14 @@ rcParams = RcParams(defaultParams={
         {}, validate_cmaps,
         'User defined color lists that shall be accessible through the '
         ':meth:`psyplot.plotter.colors.get_cmap` function'],
+
+    'widgets.colors.cmaps': [
+        ["viridis", "Reds", "Blues", "Greens", "binary", "RdBu", "coolwarm",
+         "red_white_blue", "winter", "jet", "white_blue_red", "gist_ncar",
+         "gist_earth", "Paired", "gnuplot", "gnuplot2"],
+        validate_stringlist,
+        'Colormaps that should be listed in the context menu of the cmap '
+        'button'],
 
     'ticks.which': ['major', ValidateInStrings(
         'ticks.which', ['major', 'minor'], True),

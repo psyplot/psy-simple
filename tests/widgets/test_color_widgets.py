@@ -62,22 +62,17 @@ class CMapWidgetTest(bt.PsyPlotGuiTestCase):
         self.assertIsInstance(chosen, mcol.Colormap)
         self.assertColormapEqual(chosen, cmap)
 
-    def test_show_colormap_01_standard(self):
-        fmt_w = self.fmt_widget
-        fmt_w.fmt_widget.choose_cmap('Blues')
-        dialog = fmt_w.fmt_widget.show_cmap()
+    def test_edit_colormap_01_standard(self):
+        dialog = pswc.ColormapDialog('Blues')
         self.assertIsInstance(dialog, pswc.ColormapDialog)
         self.assertEqual(dialog.table.rowCount(), 1)
         dialog.table.selectRow(0)
         self.assertColormapEqual(dialog.table.chosen_colormap, 'Blues', True)
         dialog.close()
 
-    def test_show_colormap_02_custom(self):
-        fmt_w = self.fmt_widget
+    def test_edit_colormap_02_custom(self):
         cmap = get_cmap('Blues')
-        fmt_w.fmt_widget.choose_cmap(cmap)
-        dialog = fmt_w.fmt_widget.show_cmap()
-        self.assertIsInstance(dialog, pswc.ColormapDialog)
+        dialog = pswc.ColormapDialog(cmap)
         self.assertEqual(dialog.table.rowCount(), 1)
         dialog.table.selectRow(0)
         self.assertIsInstance(dialog.table.chosen_colormap, mcol.Colormap)
@@ -104,24 +99,6 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
             name='t2m')
         self.fmt_widget.fmto = self.plotter.bounds
 
-    def assertColormapEqual(self, cmap, reference, force_string=False):
-        """Test whether two colormaps are the same
-
-        Parameters
-        ----------
-        cmap: str or :class:`matplotlib.colors.Colormap`
-            The colormap to test
-        reference: str or :class:`matplotlib.colors.Colormap`
-            The reference colormap"""
-        if force_string or (isstring(cmap) and isstring(reference)):
-            self.assertEqual(cmap, reference)
-        if isstring(cmap):
-            cmap = get_cmap(cmap)
-        if isstring(reference):
-            reference = get_cmap(reference)
-        colors = np.linspace(0, 1, 4)
-        self.assertAlmostArrayEqual(cmap(colors), reference(colors))
-
     def test_instance(self):
         """Test changes"""
         self.assertIsInstance(self.fmt_widget.fmt_widget, pswc.BoundsFmtWidget)
@@ -138,7 +115,7 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
         self.assertEqual(float(w.txt_max_pctl.text()), 95)
 
         w.txt_min_pctl.setText('10')
-        self.assertEqual(fmt_w.get_obj(), ['minmax', 14, 10, 95])
+        self.assertEqual(fmt_w.get_obj(), ['minmax', 14, 10, 95, None, None])
 
     def test_powernorm(self):
         """Test a :class:`matplotlib.colors.PowerNorm`"""
@@ -185,6 +162,55 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
         w.set_array()
         self.assertAlmostArrayEqual(
             fmt_w.get_obj(), np.round(np.linspace(280, 290, 12), 3))
+
+
+class CTicksWidgetTest(bt.PsyPlotGuiTestCase):
+    """Test case for the :class:`psy_simple.widgets.colors.BoundsFmtWidget`"""
+
+    @property
+    def fmt_widget(self):
+        return self.window.fmt_widget
+
+    @property
+    def plotter(self):
+        return self.project.plotters[0]
+
+    def setUp(self):
+        import psyplot.project as psy
+        super(CTicksWidgetTest, self).setUp()
+        self.project = psy.plot.plot2d(
+            self.get_file(osp.join('..', 'test-t2m-u-v.nc')),
+            name='t2m')
+        self.fmt_widget.fmto = self.plotter.cticks
+
+    def test_instance(self):
+        """Test changes"""
+        self.assertIsInstance(self.fmt_widget.fmt_widget,
+                              pswc.CTicksFmtWidget)
+
+    def test_minmax(self):
+        self.project.update(cticks=['minmax', 14, 5, 95])
+        fmt_w = self.fmt_widget
+        fmt_w.reset_fmt_widget()
+        w = fmt_w.fmt_widget.current_widget
+        self.assertIs(w, fmt_w.fmt_widget._auto_array_widget)
+        self.assertEqual(fmt_w.fmt_widget.method_combo.currentText(), 'minmax')
+        self.assertEqual(w.sb_N.value(), 14)
+        self.assertEqual(float(w.txt_min_pctl.text()), 5)
+        self.assertEqual(float(w.txt_max_pctl.text()), 95)
+
+        w.txt_min_pctl.setText('10')
+        self.assertEqual(fmt_w.get_obj(), ['minmax', 14, 10, 95, None, None])
+
+    def test_bounds(self):
+        self.project.update(cticks=['bounds', 3])
+
+        fmt_w = self.fmt_widget
+        fmt_w.reset_fmt_widget()
+        w = fmt_w.fmt_widget.current_widget
+        self.assertIs(w, fmt_w.fmt_widget._auto_array_widget)
+        self.assertEqual(fmt_w.fmt_widget.method_combo.currentText(), 'bounds')
+        self.assertEqual(w.sb_N.value(), 3)
 
 
 if __name__ == '__main__':

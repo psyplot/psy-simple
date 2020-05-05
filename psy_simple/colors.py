@@ -203,7 +203,7 @@ def _get_cmaps(names):
     import matplotlib.pyplot as plt
     available_cmaps = list(
         chain(plt.cm.cmap_d, _cmapnames, rcParams['colors.cmaps']))
-    names = list(names)
+    names = safe_list(names)
     wrongs = []
     for arg in (arg for arg in names if (not isinstance(arg, Colormap) and
                                          arg not in available_cmaps)):

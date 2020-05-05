@@ -301,13 +301,13 @@ class FontPropertiesWidget(QWidget):
 
         # font color button
         self.btn_font_color = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('font_color.png')))
+        button.setIcon(QIcon(get_icon('font_color')))
         button.clicked.connect(partial(self.choose_color, None))
         hbox.addWidget(button)
 
         # bold button
         self.btn_bold = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('bold.png')))
+        button.setIcon(QIcon(get_icon('bold')))
         button.clicked.connect(self.toggle_bold)
         button.setCheckable(True)
         if artist is not None:
@@ -316,7 +316,7 @@ class FontPropertiesWidget(QWidget):
 
         # italic button
         self.btn_italic = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('italic.png')))
+        button.setIcon(QIcon(get_icon('italic')))
         button.clicked.connect(self.toggle_italic)
         button.setCheckable(True)
         if artist is not None:
