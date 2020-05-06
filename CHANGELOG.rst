@@ -2,6 +2,9 @@ v1.2.1
 ======
 Added
 -----
+* a new ``mask`` formatoption has been implemented that allows to mask the
+  data based on a mask that can either be in the dataset or in a separate
+  file (see `#15 <https://github.com/psyplot/psy-simple/pull/15>`__)
 * the ``bounds`` and other ``ticks`` (e.g. ``xticks, yticks, cticks``)
   formatoptions have gained multiple new  values (all backwards-compatible, see
   `#13 <https://github.com/psyplot/psy-simple/pull/13>`__):

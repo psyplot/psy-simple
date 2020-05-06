@@ -7,7 +7,7 @@ import inspect
 import pandas as pd
 import matplotlib.pyplot as plt
 from psyplot.docstring import docstrings, safe_modulo, dedent
-from psyplot.data import InteractiveList
+from psyplot.data import InteractiveList, open_dataset
 from psyplot.compat.pycompat import filter
 from psyplot.plotter import (
     Plotter, Formatoption, rcParams, START)
@@ -750,7 +750,7 @@ class ValueMaskBase(Formatoption):
                 self.set_data(self._mask_data(data, value), i)
 
     def _mask_data(self, data, value):
-        data = data.copy(True).load()
+        data = data.copy(data=np.copy(data.values))
         data.values[~np.isnan(data.values)] = self.mask_func(
             data.values[~np.isnan(data.values)], value)
         return data
@@ -861,6 +861,102 @@ class MaskBetween(ValueMaskBase):
         return data
 
 
+class Mask(Formatoption):
+    """Mask the data where a certain condition is True
+
+    This formatoption can be used to mask the plotting data based on another
+    array. This array can be the name of a variable in the base dataset,
+    or it can be a numeric array. Note that the data needs to be on exactly
+    the same coordinates as the data shown here
+
+    Possible types
+    --------------
+    None
+        Apply no mask
+    str
+        The name of a variable in the base dataset to use.
+
+        - dimensions that are in the given `mask` but not in the visualized
+          base variable will be aggregated using :func:`numpy.any`
+        - if the given `mask` misses dimensions that are in the visualized
+          data (i.e. the data of this plotter), we broadcast the `mask` to
+          match the shape of the data
+        - dimensions that are in `mask` and the base variable, but not in the
+          visualized data will be matched against each other
+    str
+        The path to a netCDF file that shall be loaded
+    xr.DataArray or np.ndarray
+        An array that can be broadcasted to the shape of the data
+    """
+
+    priority = START
+
+    group = 'masking'
+
+    name = "Apply a mask"
+
+    def update(self, value):
+        if value is None:
+            return
+        for i, data in enumerate(self.iter_data):
+            mask = self.load_mask(data, value)
+            new_data = data.where(mask.astype(bool))
+            new_data.psy.base = data.psy.base
+            new_data.psy.idims = data.psy.idims
+            self.set_data(new_data, i)
+
+    def diff(self, value):
+        try:
+            return bool(self.value != value)
+        except ValueError:
+            if hasattr(value, 'shape') and hasattr(self.value, 'shape'):
+                return ((value.shape != self.value.shape) |
+                        (value != self.value).any())
+            else:
+                return True
+
+    def load_mask(self, data, value):
+        if isinstance(value, str) and value in data.psy.base:
+            mask = data.psy.base[value]
+            if not set(mask.dims).intersection(data.dims):
+                raise ValueError("No intersection between dimensions of mask "
+                                 f"{value}: {mask.dims}, and the data: "
+                                 f"{data.dims}")
+        elif isinstance(value, str):
+            try:
+                mask = open_dataset(value)
+            except Exception:
+                raise ValueError(
+                    f"{value} is not in the base dataset of "
+                    f"{data.psy.arr_name} and could not be loaded with "
+                    f"psy.open_dataset({repr(value)})")
+            else:
+                available_vars = [
+                    v for v in mask
+                    if set(mask[v].dims).intersection(data.dims)]
+                if not available_vars:
+                    raise ValueError(f"No variable in {value} has an overlap "
+                                     f"with the data dimensions {data.dims}")
+                else:
+                    mask = mask[available_vars[0]]
+        else:
+            mask = value
+        base_var = next(data.psy.iter_base_variables)
+
+        # aggregate mask over dimensions that are not in the base variable
+        dims2agg = set(mask.dims).difference(set(base_var.dims))
+        if dims2agg:
+            mask = mask.any(list(dims2agg))
+
+        # select idims of mask
+        idims = {d: sl for d, sl in data.psy.idims.items()
+                 if d in mask.dims and d not in data.dims}
+        if idims:
+            mask = mask.isel(**idims)
+
+        return mask
+
+
 class TitlesPlotter(Plotter):
     """Plotter class for labels"""
     _rcparams_string = ['plotter.baseplotter.']
@@ -885,3 +981,4 @@ class BasePlotter(TitlesPlotter):
     maskgreater = MaskGreater('maskgreater')
     maskgeq = MaskGeq('maskgeq')
     maskbetween = MaskBetween('maskbetween')
+    mask = Mask('mask')

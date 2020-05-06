@@ -5,6 +5,7 @@ import six
 import pytest
 from functools import wraps
 from itertools import chain
+import tempfile
 import unittest
 import numpy as np
 import xarray as xr
@@ -162,6 +163,53 @@ class LinePlotterTest(tb.BasePlotterTest):
         self.update(plot='stacked')
         self.compare_figures(next(iter(args),
                                   self.get_ref_file('plot_stacked')))
+
+    def test_mask_01_var(self):
+        def get_data(data):
+            if isinstance(data, InteractiveList):
+                return data[0]
+            else:
+                return data
+        data = get_data(self.data)
+        mask = data.copy(data=np.ones_like(data, dtype=bool))
+        mask[..., 3] = False
+        data.psy.base['mask'] = mask
+        try:
+            self.update(mask='mask')
+            self.assertTrue(
+                np.all(get_data(self.plotter.plot_data).isnull()[..., 3]))
+        finally:
+            del data.psy.base['mask']
+
+    def test_mask_02_da(self):
+        def get_data(data):
+            if isinstance(data, InteractiveList):
+                return data[0]
+            else:
+                return data
+        data = get_data(self.data)
+        mask = data.copy(data=np.ones_like(data, dtype=bool))
+        mask[..., 3] = False
+        self.update(mask=mask)
+        self.assertTrue(
+            np.all(get_data(self.plotter.plot_data).isnull()[..., 3]))
+
+    def test_mask_03_fname(self):
+        def get_data(data):
+            if isinstance(data, InteractiveList):
+                return data[0]
+            else:
+                return data
+        data = get_data(self.data)
+        mask = data.copy(data=np.ones_like(data, dtype=bool))
+        mask[..., 3] = False
+        with tempfile.TemporaryDirectory(prefix='psyplot_') as tmpdir:
+            maskfile = os.path.join(tmpdir, 'mask.nc')
+            mask.drop_vars(set(mask.coords) - set(mask.dims)).to_netcdf(
+                maskfile)
+            self.update(mask=maskfile)
+            self.assertTrue(
+                np.all(get_data(self.plotter.plot_data).isnull()[..., 3]))
 
     def test_append_data(self):
         """Test appending new data to the list"""
@@ -1352,6 +1400,18 @@ class IconSimplePlotterContourTest(IconSimplePlotterTest):
     def ref_miss_color(self):
         pass
 
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_01_var(self):
+        pass
+
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_02_da(self):
+        pass
+
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_03_fname(self):
+        pass
+
 
 class LinePlotterTest2D(tb.TestBase2D, LinePlotterTest):
     """Test :class:`psy_simple.plotters.LinePlotter` class without
@@ -2232,6 +2292,18 @@ class FldmeanPlotterTest(LinePlotterTest):
 
     def test_ylim(self, test_pctls=False):
         super(FldmeanPlotterTest, self).test_ylim(test_pctls)
+
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_01_var(self):
+        pass
+
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_02_da(self):
+        pass
+
+    @unittest.skip('nan not supported for icon contour')
+    def test_mask_03_fname(self):
+        pass
 
 
 @unittest.skipIf(not with_cdo, 'CDOs are required for unstructured grids.')
