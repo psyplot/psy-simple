@@ -863,6 +863,8 @@ rcParams = RcParams(defaultParams={
         'fmt key for the additional properties of the colorbar ticklabels'],
 
     # mask formatoptions
+    'plotter.baseplotter.mask': [
+        None, try_and_error(validate_none, validate_str, validate_dataarray)],
     'plotter.baseplotter.maskleq': [
         None, try_and_error(validate_none, validate_float),
         'fmt key to mask values less or equal than a certain threshold'],

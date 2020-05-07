@@ -22,7 +22,7 @@ from psyplot.plotter import (
     START)
 from psy_simple.base import (
     BasePlotter, TextBase, label_size, label_weight, label_props, MaskLess,
-    MaskGreater, MaskBetween, MaskLeq, MaskGeq)
+    MaskGreater, MaskBetween, MaskLeq, MaskGeq, Mask)
 from psy_simple.colors import get_cmap
 from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
@@ -6079,4 +6079,5 @@ class FldmeanPlotter(LinePlotter):
     maskgreater = MaskGreater('maskgreater', additional_children=['err_calc'])
     maskless = MaskLess('maskless', additional_children=['err_calc'])
     maskbetween = MaskBetween('maskbetween', additional_children=['err_calc'])
+    mask = Mask('mask', additional_children=['err_calc'])
     coord = AlternativeXCoordPost('coord', additional_children=['err_calc'])
