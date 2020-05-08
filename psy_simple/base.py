@@ -729,6 +729,39 @@ class Tight(Formatoption):
             plt.tight_layout()
 
 
+class BackgroundColor(Formatoption):
+    """The background color for the matplotlib axes.
+
+    Possible types
+    --------------
+    'rc'
+        to use matplotlibs rc params
+    None
+        to use a transparent color
+    color
+        Any possible matplotlib color
+    """
+
+    group = 'axes'
+
+    name = 'Background color of the plot'
+
+    def update(self, value):
+        if value == 'rc':
+            self.ax.patch.set_facecolor(plt.rcParams['axes.facecolor'])
+            self.ax.set_facecolor(plt.rcParams['axes.facecolor'])
+        elif value is None:
+            self.ax.patch.set_facecolor('none')
+            self.ax.set_facecolor('none')
+        else:
+            self.ax.patch.set_facecolor(value)
+            self.ax.set_facecolor(value)
+
+    def get_fmt_widget(self, parent, project):
+        from psy_simple.widgets.colors import BackGroundColorWidget
+        return BackGroundColorWidget(parent, self, project)
+
+
 class ValueMaskBase(Formatoption):
     """Base class for masking formatoptions"""
     priority = START
@@ -976,6 +1009,7 @@ class BasePlotter(TitlesPlotter):
     _rcparams_string = ['plotter.baseplotter.']
 
     tight = Tight('tight')
+    background = BackgroundColor('background')
     maskless = MaskLess('maskless')
     maskleq = MaskLeq('maskleq')
     maskgreater = MaskGreater('maskgreater')

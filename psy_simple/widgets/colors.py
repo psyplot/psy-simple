@@ -324,6 +324,135 @@ class CmapButton(QtWidgets.QToolButton):
             self.set_cmap(cmap)
 
 
+class ColorLabel(QtWidgets.QTableWidget):
+    """A QTableWidget with one cell and no headers to just display a color"""
+
+    #: a signal that is emitted with an rgba color if the chosen color changes
+    color_changed = QtCore.pyqtSignal(QtGui.QColor)
+
+    #: QtCore.QColor. The current color that is displayed
+    color = None
+
+    def __init__(self, color='w', *args, **kwargs):
+        """The color to display
+
+        Parameters
+        ----------
+        color: object
+            Either a QtGui.QColor object or a color that can be converted
+            to RGBA using the :func:`matplotlib.colors.to_rgba` function"""
+        super(ColorLabel, self).__init__(*args, **kwargs)
+        self.setColumnCount(1)
+        self.setRowCount(1)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.horizontalHeader().setHidden(True)
+        self.horizontalHeader().setSectionResizeMode(
+            QtWidgets.QHeaderView.Stretch)
+        self.verticalHeader().setHidden(True)
+        self.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.setSelectionMode(QtWidgets.QTableWidget.NoSelection)
+        self.itemClicked.connect(self.select_color)
+        self.color_item = QtWidgets.QTableWidgetItem()
+        self.setItem(0, 0, self.color_item)
+        self.adjust_height()
+        self.set_color(color)
+        self.orig_color = self.color
+
+        self.setMaximumWidth(80)
+
+    def select_color(self, *args):
+        """Select a color using :meth:`PyQt5.QtWidgets.QColorDialog.getColor`
+        """
+        color = QtWidgets.QColorDialog.getColor(
+            self.color_item.background().color())
+        if color.isValid():
+            self.set_color(color)
+
+    def set_color(self, color):
+        """Set the color of the label
+
+        This method sets the given `color` as background color for the cell
+        and emits the :attr:`color_changed` signal
+
+        Parameters
+        ----------
+        color: object
+            Either a QtGui.QColor object or a color that can be converted
+            to RGBA using the :func:`matplotlib.colors.to_rgba` function"""
+        color = self._set_color(color)
+        self.color_changed.emit(color)
+
+    def setEnabled(self, b):
+        if not b:
+            self.orig_color = self.color
+            self._set_color('0.75')
+        else:
+            self._set_color(self.orig_color)
+        super().setEnabled(b)
+
+    def _set_color(self, color):
+        if not isinstance(color, QtGui.QColor):
+            color = QtGui.QColor(
+                *map(int, np.round(np.array(mcol.to_rgba(color)) * 255)))
+        self.color_item.setBackground(color)
+        self.color = color
+        return color
+
+    def adjust_height(self):
+        """Adjust the height to match the row height"""
+        h = self.rowHeight(0) * self.rowCount()
+        self.setMaximumHeight(h)
+        self.setMinimumHeight(h)
+
+    def sizeHint(self):
+        """Reimplemented to use the rowHeight as height"""
+        s = super(ColorLabel, self).sizeHint()
+        return QtCore.QSize(s.width(), self.rowHeight(0) * self.rowCount())
+
+
+class BackGroundColorWidget(QtWidgets.QWidget):
+    """The widget to select the axes background color"""
+
+    def __init__(self, parent, fmto, project):
+        super().__init__()
+        ax = fmto.ax
+        self.cb_enable = QtWidgets.QCheckBox('transparent')
+        self.color_label = ColorLabel(ax.patch.get_facecolor())
+        self.editor = parent
+
+        self.cb_enable.setChecked(fmto.value is None)
+
+        self.toggle_color_button()
+
+        self.color_label.color_changed.connect(self.set_color)
+
+        self.cb_enable.stateChanged.connect(self.toggle_color_button)
+        self.cb_enable.stateChanged.connect(self.set_transparent)
+
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(QtWidgets.QLabel('Select color:'))
+        layout.addWidget(self.color_label)
+        layout.addWidget(self.cb_enable)
+        layout.addStretch(0)
+        self.setLayout(layout)
+
+    def set_transparent(self):
+        if self.cb_enable.isChecked():
+            self.editor.set_obj(None)
+        else:
+            self.set_color(self.color_label.color)
+
+    def toggle_color_button(self):
+        self.color_label.setEnabled(not self.cb_enable.isChecked())
+
+    def set_color(self, color):
+        if isinstance(color, QtGui.QColor):
+            color = list(color.getRgbF())
+        self.editor.set_obj(color)
+
+
 class CMapFmtWidget(QtWidgets.QWidget):
     """The widget for modifying the :class:`psy_simple.plotters.CMap` fmt"""
 

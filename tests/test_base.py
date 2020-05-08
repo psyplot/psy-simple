@@ -5,6 +5,7 @@ import _base_testing as bt
 import matplotlib as mpl
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcol
 import psyplot
 from psy_simple.base import BasePlotter
 from psyplot import InteractiveList, open_dataset
@@ -71,6 +72,11 @@ class BasePlotterTest(bt.PsyPlotTestCase):
         self.assertEqual(get_title().get_size(), 22)
         self.assertEqual(get_title().get_weight(), bold)
         self.assertEqual(get_title().get_ha(), 'left')
+
+    def test_background(self):
+        self.update(background='0.5')
+        bc = mcol.to_rgba(self.plotter.ax.patch.get_facecolor())
+        self.assertEqual(bc, (0.5, 0.5, 0.5, 1.0))
 
     def test_figtitle(self):
         """Test figtitle, figtitlesize, figtitleweight, figtitleprops

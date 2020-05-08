@@ -863,6 +863,10 @@ rcParams = RcParams(defaultParams={
         'fmt key for the additional properties of the colorbar ticklabels'],
 
     # mask formatoptions
+    'plotter.baseplotter.background': [
+        'rc', try_and_error(ValidateInStrings('background', ['rc']),
+                            validate_none, validate_color),
+        "The background color for the plot"],
     'plotter.baseplotter.mask': [
         None, try_and_error(validate_none, validate_str, validate_dataarray)],
     'plotter.baseplotter.maskleq': [
