@@ -2,7 +2,7 @@ v1.2.1
 ======
 Added
 -----
-* a new ``background`` formatoption has been implementat that allows to set the
+* a new ``background`` formatoption has been implemented that allows to set the
   facecolor of the axes (i.e. the background color for the plot)
 * a new ``mask`` formatoption has been implemented that allows to mask the
   data based on a mask that can either be in the dataset or in a separate
