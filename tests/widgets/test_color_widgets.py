@@ -164,6 +164,39 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
             fmt_w.get_obj(), np.round(np.linspace(280, 290, 12), 3))
 
 
+class BackgroundColorWidgetTest(bt.PsyPlotGuiTestCase):
+    """Test case for the :class:`BackGroundColorWidget`
+    """
+
+    @property
+    def fmt_widget(self):
+        return self.window.fmt_widget
+
+    @property
+    def plotter(self):
+        return self.project.plotters[0]
+
+    def setUp(self):
+        import psyplot.project as psy
+        super().setUp()
+        self.project = psy.plot.plot2d(
+            self.get_file(osp.join('..', 'test-t2m-u-v.nc')),
+            name='t2m')
+        self.fmt_widget.fmto = self.plotter.background
+
+    def test_transparent(self):
+        w = self.fmt_widget.fmt_widget
+        w.cb_enable.setChecked(True)
+        self.assertIsNone(self.fmt_widget.get_obj())
+        self.assertFalse(w.color_label.isEnabled())
+
+    def test_color_change(self):
+        w = self.fmt_widget.fmt_widget
+        w.color_label.set_color(QtGui.QColor(51, 51, 51, 255))
+        obj = self.fmt_widget.get_obj()
+        self.assertEqual(list(obj), [0.2, 0.2, 0.2, 1.0])
+
+
 class CTicksWidgetTest(bt.PsyPlotGuiTestCase):
     """Test case for the :class:`psy_simple.widgets.colors.BoundsFmtWidget`"""
 
