@@ -386,10 +386,11 @@ class ColorLabel(QtWidgets.QTableWidget):
 
     def setEnabled(self, b):
         if not b:
-            self.orig_color = self.color
+            orig_color = self.color
             self._set_color('0.75')
+            self.color = orig_color
         else:
-            self._set_color(self.orig_color)
+            self._set_color(self.color)
         super().setEnabled(b)
 
     def _set_color(self, color):
