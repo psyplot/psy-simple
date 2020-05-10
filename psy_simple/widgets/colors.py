@@ -1024,8 +1024,10 @@ class CTicksFmtWidget(BoundsFmtWidget):
 
     methods_type = CTicksType
 
+    auto_val = None
+
     def set_value(self, value):
-        if value is None:
+        if value is self.auto_val:
             with self.block_widgets(self.method_combo, self.type_combo):
                 self.type_combo.setCurrentText('Auto')
             self.refresh_methods('Auto')
@@ -1036,7 +1038,7 @@ class CTicksFmtWidget(BoundsFmtWidget):
         if text == 'Auto':
             with self.block_widgets(self.method_combo):
                 self.method_combo.clear()
-            self.set_obj(None)
+            self.set_obj(self.auto_val)
             self.refresh_current_widget()
         else:
             super().refresh_methods(text)
