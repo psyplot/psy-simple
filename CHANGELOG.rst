@@ -26,6 +26,8 @@ Added
 
 Changed
 -------
+* values in the statusbar are only shown, if the drawn artist contains the
+  cursor position, see `#18 <https://github.com/psyplot/psy-simple/pull/18>`__
 * psy-simple now requires matplotlib greater or equal than 2.0
 * psy-simple has been moved from https://github.com/Chilipp/psy-simple to https://github.com/psyplot/psy-simple,
   see `#7 <https://github.com/psyplot/psy-simple/pull/7>`__

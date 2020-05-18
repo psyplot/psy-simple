@@ -14,6 +14,7 @@ import matplotlib as mpl
 import matplotlib.axes
 from matplotlib.ticker import FormatStrFormatter, FixedLocator, FixedFormatter
 from matplotlib.dates import DateFormatter, AutoDateFormatter
+from matplotlib.backend_bases import MouseEvent
 import matplotlib.colors as mcol
 import numpy as np
 from psyplot.docstring import docstrings, dedent
@@ -3407,8 +3408,17 @@ class Plot2D(Formatoption):
                         pass
             del self._plot
 
-    def add2format_coord(self, x, y):
+    def add2format_coord(self, x, y, xorig=None, yorig=None):
         """Additional information for the :meth:`format_coord`"""
+        xt, yt = self.ax.transData.transform(
+            [x if xorig is None else xorig, y if yorig is None else yorig])
+        event = MouseEvent('motion_notify_event', self.ax.figure.canvas,
+                           xt, yt)
+        if not self.value is not None or (
+                not self.mappable.contains(event)[0] and
+                (not hasattr(self, '_wrapped_plot') or
+                 not self._wrapped_plot.contains(event)[0])):
+            return ''
         data = self.data
         xcoord = self.xcoord
         ycoord = self.ycoord
