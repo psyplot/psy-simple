@@ -3465,7 +3465,26 @@ class Plot2D(Formatoption):
         dist = np.abs(xy - (x + 1j * y))
         imin = np.nanargmin(dist)
         xy_min = xy[imin]
-        return xy_min.real, xy_min.imag, data.values.ravel()[imin]
+
+        xb = self.decoder.get_cell_node_coord(
+            data, {xcoord.name: xcoord, ycoord.name: ycoord},
+            axis='x')
+        yb = self.decoder.get_cell_node_coord(
+            data, {xcoord.name: xcoord, ycoord.name: ycoord},
+            axis='y')
+
+        dx_max = np.diff(xb).max()
+        dy_max = np.diff(yb).max()
+
+        x_data = xy_min.real
+        y_data = xy_min.imag
+
+        if abs(x_data - x) > dx_max or abs(y_data - y) > dy_max:
+            val = None
+        else:
+            val = data.values.ravel()[imin]
+
+        return x_data, y_data, val
 
 
 docstrings.delete_types('Bounds.possible_types', 'no_norm|None',
