@@ -3409,6 +3409,8 @@ class Plot2D(Formatoption):
 
     def add2format_coord(self, x, y):
         """Additional information for the :meth:`format_coord`"""
+        if self.value is None:
+            return ''
         data = self.data
         xcoord = self.xcoord
         ycoord = self.ycoord
@@ -3418,6 +3420,8 @@ class Plot2D(Formatoption):
             x, y, z = self.get_xyz_1d(xcoord, x, ycoord, y, data)
         elif xcoord.ndim == 2:
             x, y, z = self.get_xyz_2d(xcoord, x, ycoord, y, data)
+        if z is None:
+            return ''
         xunit = xcoord.attrs.get('units', '')
         if xunit:
             xunit = ' ' + xunit
@@ -3439,10 +3443,20 @@ class Plot2D(Formatoption):
     def get_xyz_1d(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
         1d coords"""
-        xclose = xcoord.indexes[xcoord.name].get_loc(x, method='nearest')
-        yclose = ycoord.indexes[ycoord.name].get_loc(y, method='nearest')
-        val = data[yclose, xclose].values
-        return xcoord[xclose].values, ycoord[yclose].values, val
+        x_idx = xcoord.indexes[xcoord.name]
+        y_idx = ycoord.indexes[ycoord.name]
+        xclose = x_idx.get_loc(x, method='nearest')
+        yclose = y_idx.get_loc(y, method='nearest')
+        dx_max = np.diff(x_idx.sort_values()).max()
+        dy_max = np.diff(y_idx.sort_values()).max()
+
+        x_data = xcoord[xclose].values
+        y_data = ycoord[yclose].values
+        if abs(x_data - x) > dx_max or abs(y_data - y) > dy_max:
+            val = None
+        else:
+            val = data[yclose, xclose].values
+        return x_data, y_data, val
 
     def get_xyz_2d(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
