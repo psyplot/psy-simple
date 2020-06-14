@@ -14,7 +14,6 @@ import matplotlib as mpl
 import matplotlib.axes
 from matplotlib.ticker import FormatStrFormatter, FixedLocator, FixedFormatter
 from matplotlib.dates import DateFormatter, AutoDateFormatter
-from matplotlib.backend_bases import MouseEvent
 import matplotlib.colors as mcol
 import numpy as np
 from psyplot.docstring import docstrings, dedent
@@ -3408,16 +3407,9 @@ class Plot2D(Formatoption):
                         pass
             del self._plot
 
-    def add2format_coord(self, x, y, xorig=None, yorig=None):
+    def add2format_coord(self, x, y):
         """Additional information for the :meth:`format_coord`"""
-        xt, yt = self.ax.transData.transform(
-            [x if xorig is None else xorig, y if yorig is None else yorig])
-        event = MouseEvent('motion_notify_event', self.ax.figure.canvas,
-                           xt, yt)
-        if not self.value is not None or (
-                not self.mappable.contains(event)[0] and
-                (not hasattr(self, '_wrapped_plot') or
-                 not self._wrapped_plot.contains(event)[0])):
+        if self.value is None:
             return ''
         data = self.data
         xcoord = self.xcoord
@@ -3428,6 +3420,8 @@ class Plot2D(Formatoption):
             x, y, z = self.get_xyz_1d(xcoord, x, ycoord, y, data)
         elif xcoord.ndim == 2:
             x, y, z = self.get_xyz_2d(xcoord, x, ycoord, y, data)
+        if z is None:
+            return ''
         xunit = xcoord.attrs.get('units', '')
         if xunit:
             xunit = ' ' + xunit
@@ -3449,10 +3443,20 @@ class Plot2D(Formatoption):
     def get_xyz_1d(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
         1d coords"""
-        xclose = xcoord.indexes[xcoord.name].get_loc(x, method='nearest')
-        yclose = ycoord.indexes[ycoord.name].get_loc(y, method='nearest')
-        val = data[yclose, xclose].values
-        return xcoord[xclose].values, ycoord[yclose].values, val
+        x_idx = xcoord.indexes[xcoord.name]
+        y_idx = ycoord.indexes[ycoord.name]
+        xclose = x_idx.get_loc(x, method='nearest')
+        yclose = y_idx.get_loc(y, method='nearest')
+        dx_max = np.diff(x_idx.sort_values()).max()
+        dy_max = np.diff(y_idx.sort_values()).max()
+
+        x_data = xcoord[xclose].values
+        y_data = ycoord[yclose].values
+        if abs(x_data - x) > dx_max or abs(y_data - y) > dy_max:
+            val = None
+        else:
+            val = data[yclose, xclose].values
+        return x_data, y_data, val
 
     def get_xyz_2d(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
@@ -3461,7 +3465,26 @@ class Plot2D(Formatoption):
         dist = np.abs(xy - (x + 1j * y))
         imin = np.nanargmin(dist)
         xy_min = xy[imin]
-        return xy_min.real, xy_min.imag, data.values.ravel()[imin]
+
+        xb = self.decoder.get_cell_node_coord(
+            data, {xcoord.name: xcoord, ycoord.name: ycoord},
+            axis='x')
+        yb = self.decoder.get_cell_node_coord(
+            data, {xcoord.name: xcoord, ycoord.name: ycoord},
+            axis='y')
+
+        dx_max = np.diff(xb).max()
+        dy_max = np.diff(yb).max()
+
+        x_data = xy_min.real
+        y_data = xy_min.imag
+
+        if abs(x_data - x) > dx_max or abs(y_data - y) > dy_max:
+            val = None
+        else:
+            val = data.values.ravel()[imin]
+
+        return x_data, y_data, val
 
 
 docstrings.delete_types('Bounds.possible_types', 'no_norm|None',
