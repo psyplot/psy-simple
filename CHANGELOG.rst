@@ -1,5 +1,7 @@
-v1.2.1
+v1.3.0
 ======
+New background and mask formatoptions and more options for colorbar bounds
+
 Added
 -----
 * a new ``background`` formatoption has been implemented that allows to set the
