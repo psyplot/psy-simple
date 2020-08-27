@@ -10,13 +10,13 @@ matrix:
         # linux environments
         - env:
             - PYTHON_VERSION=3.8
-            - MPL_VERSION=3.1
+            - MPL_VERSION=3.3
             - QT_VERSION=5
             - DEPLOY_CONDA=true
           os: linux
         - env:
             - PYTHON_VERSION=3.7
-            - MPL_VERSION=3.1
+            - MPL_VERSION=3.2
             - QT_VERSION=5
             - DEPLOY_CONDA=true
           os: linux
@@ -27,13 +27,13 @@ matrix:
           os: linux
         - env:
             - PYTHON_VERSION=3.7
-            - MPL_VERSION=3.0
+            - MPL_VERSION=3.1
             - QT_VERSION=5
           os: linux
         # osx environments
         - env:
             - PYTHON_VERSION=3.8
-            - MPL_VERSION=3.1
+            - MPL_VERSION=3.3
             - DEPLOY_CONDA=true
           os: osx
         - env:
@@ -43,7 +43,7 @@ matrix:
           os: osx
         - env:
             - PYTHON_VERSION=3.7
-            - MPL_VERSION=3.1
+            - MPL_VERSION=3.3
             - DEPLOY_CONDA=true
           os: osx
 
