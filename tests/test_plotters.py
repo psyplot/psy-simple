@@ -426,6 +426,25 @@ class LinePlotterTest(tb.BasePlotterTest):
                 -lon.max(), lon.max(),
                 10, endpoint=True).tolist())
 
+    # apparently matplotlib changed how they numerically represent the
+    # date ticks. Therefore we enable multiple options.
+    ref_dt_vals = {
+        "month": [{3361.25, 3331.75, 3422.25, 3391.75},
+                  {722494.75, 722524.25, 722554.75, 722585.25}],
+        "monthbegin": [
+            {722450.75, 722481.75, 722509.75, 722540.75, 722570.75, 722601.75},
+            {3438.75, 3407.75, 3377.75, 3346.75, 3318.75, 3287.75},
+        ],
+        "monthend": [
+            {722480.75, 722508.75, 722539.75, 722569.75, 722600.75},
+            {3437.75, 3406.75, 3376.75, 3345.75, 3317.75},
+        ],
+        "week": {722487.75, 722494.75, 722501.75, 722508.75, 722515.75,
+                 722522.75, 722529.75, 722536.75, 722543.75, 722550.75,
+                 722557.75, 722564.75, 722571.75, 722578.75, 722585.75,
+                 722592.75, 722599.75}
+    }
+
     def _test_DtTicksBase(self, *args):
         # testing of psy_simple.plotters.DtTicksBase
         args = iter(args)
@@ -436,16 +455,13 @@ class LinePlotterTest(tb.BasePlotterTest):
         ax = plotter.ax
         xticks = {'major': ax.get_xticks(), 'minor': ax.get_xticks(minor=True)}
         plotter.update(xticks='month')
-        self.assertEqual(list(plt.gca().get_xticks()),
-                         [722494.75, 722524.25, 722554.75, 722585.25])
+        self.assertIn(set(ax.get_xticks()), self.ref_dt_vals["month"])
         plotter.update(xticks='monthbegin')
-        self.assertEqual(
-            list(plt.gca().get_xticks()),
-            [722450.75, 722481.75, 722509.75, 722540.75, 722570.75, 722601.75])
+        self.assertIn(
+            set(ax.get_xticks()), self.ref_dt_vals["monthbegin"])
         plotter.update(xticks='monthend')
-        self.assertEqual(
-            list(plt.gca().get_xticks()),
-            [722480.75, 722508.75, 722539.75, 722569.75, 722600.75])
+        self.assertIn(
+            set(ax.get_xticks()), self.ref_dt_vals["monthend"])
         plotter.update(xticks='month', xticklabels='%m')
         # sometimes the labels are only set after drawing
         if ax.get_xticklabels()[0].get_text():
@@ -454,18 +470,15 @@ class LinePlotterTest(tb.BasePlotterTest):
                 list(range(2, 6)))
         plotter.update(xticks={'minor': 'week'}, xticklabels={'minor': '%d'},
                        xtickprops={'pad': 7.0})
-        ticks = np.asarray(plotter.ax.get_xticks(minor=True))
+        ticks = np.asarray(ax.get_xticks(minor=True))
         self.assertLessEqual(
             set(ticks[(ticks >= 722487.75) & (ticks <= 722599.75)].tolist()),
-            {722487.75, 722494.75, 722501.75, 722508.75, 722515.75,
-             722522.75, 722529.75, 722536.75, 722543.75, 722550.75,
-             722557.75, 722564.75, 722571.75, 722578.75, 722585.75,
-             722592.75, 722599.75})
+            self.ref_dt_vals["week"])
         self.compare_figures(next(args, self.get_ref_file('xticks')))
         plotter.update(xticks={'major': None, 'minor': None})
-        self.assertEqual(list(plotter.ax.get_xticks()),
+        self.assertEqual(list(ax.get_xticks()),
                          list(xticks['major']))
-        self.assertEqual(list(plotter.ax.get_xticks(minor=True)),
+        self.assertEqual(list(ax.get_xticks(minor=True)),
                          list(xticks['minor']))
 
     def test_tick_rotation(self):
