@@ -124,7 +124,7 @@ class LabelWidget(QWidget):
     of the corresponding fontsize, fontweight and fontproperties of this
     label"""
 
-    @docstrings.get_sectionsf('LabelWidget')
+    @docstrings.get_sections(base='LabelWidget')
     def __init__(self, parent, fmto, project, properties=True):
         """
         Parameters
@@ -169,7 +169,7 @@ docstrings.keep_params('LabelWidget.parameters', 'parent', 'fmto')
 class FontWeightWidget(QWidget):
     """A widget for modifying the fontweight of a label"""
 
-    @docstrings.get_sectionsf('FontWeightWidget')
+    @docstrings.get_sections(base='FontWeightWidget')
     @docstrings.with_indent(8)
     def __init__(self, parent, fmto, artist=None, base=None):
         """

@@ -222,7 +222,7 @@ def _get_cmaps(names):
     return names
 
 
-@docstrings.get_sectionsf('show_colormaps')
+@docstrings.get_sections(base='show_colormaps')
 @docstrings.dedent
 def show_colormaps(names=[], N=10, show=True, use_qt=None):
     """Function to show standard colormaps from pyplot

@@ -326,7 +326,7 @@ class TicksManagerBase(Formatoption):
         pass
 
 
-@docstrings.get_sectionsf('TicksManager')
+@docstrings.get_sections(base='TicksManager')
 class TicksManager(TicksManagerBase, DictFormatoption):
     """
     Abstract base class for ticks formatoptions controlling major and minor
@@ -352,7 +352,7 @@ class TicksManager(TicksManagerBase, DictFormatoption):
             self.update_axis(val)
 
 
-@docstrings.get_sectionsf('DataTicksCalculator')
+@docstrings.get_sections(base='DataTicksCalculator')
 class DataTicksCalculator(Formatoption):
     """
     Abstract base formatoption to calculate ticks and bounds from the data
@@ -667,7 +667,7 @@ class DataTicksCalculator(Formatoption):
             }
 
 
-@docstrings.get_sectionsf('TicksBase')
+@docstrings.get_sections(base='TicksBase')
 class TicksBase(TicksManagerBase, DataTicksCalculator):
     """
     Abstract base class for calculating ticks
@@ -746,7 +746,7 @@ class TicksBase(TicksManagerBase, DataTicksCalculator):
         self.set_locator(FixedLocator(loc()[::i]))
 
 
-@docstrings.get_sectionsf('DtTicksBase')
+@docstrings.get_sections(base='DtTicksBase')
 class DtTicksBase(TicksBase, TicksManager):
     """
     Abstract base class for x- and y-tick formatoptions
@@ -953,7 +953,7 @@ class YTicks(DtTicksBase):
             return df
 
 
-@docstrings.get_sectionsf('TickLabelsBase')
+@docstrings.get_sections(base='TickLabelsBase')
 class TickLabelsBase(TicksManagerBase):
     """
     Abstract base class for ticklabels
@@ -1282,7 +1282,7 @@ class TickWeight(TickWeightBase, TicksOptions, DictFormatoption):
     name = 'Font weight of the ticklabels'
 
 
-@docstrings.get_sectionsf('TickPropsBase')
+@docstrings.get_sections(base='TickPropsBase')
 class TickPropsBase(TicksManagerBase):
     """
     Abstract base class for tick parameters
@@ -1306,7 +1306,7 @@ class TickPropsBase(TicksManagerBase):
             self.axisname, which=self.which, reset=True, **value)
 
 
-@docstrings.get_sectionsf('XTickProps')
+@docstrings.get_sections(base='XTickProps')
 class XTickProps(TickPropsBase, TicksManager, DictFormatoption):
     """
     Specify the x-axis tick parameters
@@ -1356,7 +1356,7 @@ class YTickProps(XTickProps):
         return self.ax.xaxis
 
 
-@docstrings.get_sectionsf('Xlabel')
+@docstrings.get_sections(base='Xlabel')
 class Xlabel(TextBase, Formatoption):
     """
     Set the x-axis label
@@ -1426,7 +1426,7 @@ class BarXlabel(Xlabel):
     update_after_plot = True
 
 
-@docstrings.get_sectionsf('Ylabel')
+@docstrings.get_sections(base='Ylabel')
 class Ylabel(TextBase, Formatoption):
     """
     Set the y-axis label
@@ -1487,7 +1487,7 @@ class BarYlabel(Ylabel):
     update_after_plot = True
 
 
-@docstrings.get_sectionsf('LabelOptions')
+@docstrings.get_sections(base='LabelOptions')
 class LabelOptions(DictFormatoption):
     """
     Base formatoption class for label sizes
@@ -1717,7 +1717,7 @@ class Transpose(Formatoption):
             return arr.coords[yname]
 
 
-@docstrings.get_sectionsf('LineColors')
+@docstrings.get_sections(base='LineColors')
 class LineColors(Formatoption):
     """
     Set the color coding
@@ -2449,7 +2449,7 @@ class ViolinPlot(Formatoption):
                 if artist not in old_artists]
 
 
-@docstrings.get_sectionsf('LimitBase')
+@docstrings.get_sections(base='LimitBase')
 @dedent
 class LimitBase(DataTicksCalculator):
     """
@@ -3019,7 +3019,7 @@ class MissColor(Formatoption):
                 pass
 
 
-@docstrings.get_sectionsf('Bounds', sections=['Possible types', 'Examples',
+@docstrings.get_sections(base='Bounds', sections=['Possible types', 'Examples',
                                               'See Also'])
 class Bounds(DataTicksCalculator):
     """
@@ -3170,7 +3170,7 @@ class InterpolateBounds(Formatoption):
         pass
 
 
-@docstrings.get_sectionsf('Plot2D')
+@docstrings.get_sections(base='Plot2D')
 class Plot2D(Formatoption):
     """
     Choose how to visualize a 2-dimensional scalar data field
@@ -3802,7 +3802,7 @@ class CbarSpacing(Formatoption):
         self.cbar._kwargs['spacing'] = value
 
 
-@docstrings.get_sectionsf('Cbar')
+@docstrings.get_sections(base='Cbar')
 class Cbar(Formatoption):
     """
     Specify the position of the colorbars
@@ -4199,7 +4199,7 @@ class CbarOptions(Formatoption):
             self.update_axis(value)
 
 
-@docstrings.get_sectionsf('CTicks')
+@docstrings.get_sections(base='CTicks')
 class CTicks(CbarOptions, TicksBase):
     """
     Specify the tick locations of the colorbar
@@ -4504,7 +4504,7 @@ class ArrowStyle(Formatoption):
             self.plot._kwargs.pop('arrowstyle', None)
 
 
-@docstrings.get_sectionsf('WindCalculator')
+@docstrings.get_sections(base='WindCalculator')
 class VectorCalculator(Formatoption):
     """
     Abstract formatoption that provides calculation functions for speed, etc.
@@ -4658,7 +4658,7 @@ class VectorColor(VectorCalculator):
         self.plot._kwargs.pop('norm', None)
 
 
-@docstrings.get_sectionsf('Density')
+@docstrings.get_sections(base='Density')
 class Density(Formatoption):
     """
     Change the density of the arrows

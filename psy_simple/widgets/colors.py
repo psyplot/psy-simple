@@ -25,7 +25,7 @@ docstrings.delete_params('show_colormaps.parameters', 'show', 'use_qt')
 class ColormapModel(QtCore.QAbstractTableModel):
     """A model for displaying colormaps"""
 
-    @docstrings.get_sectionsf('ColormapModel')
+    @docstrings.get_sections(base='ColormapModel')
     @docstrings.with_indent(8)
     def __init__(self, names=[], N=10, *args, **kwargs):
         """

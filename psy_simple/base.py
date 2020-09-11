@@ -190,7 +190,7 @@ docstrings.params['fontweights'] = inspect.cleandoc("""
         'demi', 'bold', 'heavy', 'extra bold', 'black'.""")
 
 
-@docstrings.get_sectionsf('label_weight')
+@docstrings.get_sections(base='label_weight')
 @dedent
 def label_weight(base, label_name=None, children=[], parents=[],
                  dependencies=[]):
