@@ -51,7 +51,7 @@ setup(name='psy-simple',
       license="GPLv2",
       packages=find_packages(exclude=['docs', 'tests*', 'examples']),
       install_requires=[
-          'psyplot',
+          'psyplot>=1.3.0',
           'matplotlib>=2.0',
       ],
       package_data={'psy_simple': [
