@@ -113,9 +113,9 @@ not_document_data = ['psy_simple.plugin.defaultParams',
 ipython_savefig_dir = os.path.join(os.path.dirname(__file__), '_static')
 
 # General information about the project.
-project = u'psy-simple'
-copyright = u'2015, Philipp Sommer'
-author = u'Philipp Sommer'
+project = 'psy-simple'
+copyright = psy_simple.__copyright__
+author = psy_simple.__author__
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -177,7 +177,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'psy-simple.tex', u'psy-simple Documentation',
-   u'Philipp Sommer', 'manual'),
+   author, 'manual'),
 ]
 
 

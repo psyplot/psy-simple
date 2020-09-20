@@ -46,7 +46,7 @@ test:
 
 about:
   home: https://github.com/psyplot/psy-simple
-  license: GPL-2.0
+  license: GPL-2.0-only
   license_family: GPL
   license_file: LICENSE
   summary: Psyplot plugin for simple visualization tasks
