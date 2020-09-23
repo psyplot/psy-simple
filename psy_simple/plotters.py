@@ -1187,7 +1187,7 @@ class BarXTickLabels(XTickLabels):
             index = self.data.to_dataframe().index
             if index.is_all_dates:
                 if self.categorical.is_categorical:
-                    xticks = self.ax.get_xticks(self.which == 'minor')
+                    xticks = self.ax.get_xticks(minor=self.which == 'minor')
                     arr = list(map(lambda t: t.toordinal(),
                                    to_datetime(index[xticks.astype(int)])))
                     self.ax.set_xticklabels(list(map(DateFormatter(s), arr)))
@@ -3778,7 +3778,8 @@ class Extend(Formatoption):
         if self.plot.value == 'contourf' and value != 'neither':
             warn('[%s] - Extend keyword is not implemented for contour '
                  'plots' % self.logger.name)
-        pass
+        else:
+            self.plot.mappable.set_extend(value)
 
 
 class CbarSpacing(Formatoption):
@@ -4053,7 +4054,6 @@ class Cbar(Formatoption):
                 kwargs['cax'] = fig.add_axes(
                     [0.125, 0.825, 0.775, 0.05],
                     label=self.raw_data.psy.arr_name + '_ft')
-        kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
         self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)

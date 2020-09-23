@@ -1260,7 +1260,7 @@ class Simple2DPlotterTestArtificial(unittest.TestCase):
         ds = xr.Dataset()
         ds['test'] = (('y', 'x'), np.ones((4, 5)))
         sp = ds.psy.plot.plot2d(cmap='Reds', bounds=['rounded', 3])
-        self.assertEquals(list(sp.plotters[0].bounds.bounds), [1., 1., 1.])
+        self.assertEqual(list(sp.plotters[0].bounds.bounds), [1., 1., 1.])
 
 
 class IconTestMixin(object):
