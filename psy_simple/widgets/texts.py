@@ -237,7 +237,7 @@ class FontSizeWidget(QWidget):
         hbox.addWidget(QLabel('Font sizes:'))
 
         self.spin_box = spin_box = QSpinBox(self)
-        spin_box.setRange(1, 1e9)
+        spin_box.setRange(1, int(1e9))
         if artist is not None:
             spin_box.setValue(int(artist.get_size()))
 
@@ -293,7 +293,7 @@ class FontPropertiesWidget(QWidget):
 
         # font size spin box
         self.spin_box = spin_box = QSpinBox(self)
-        spin_box.setRange(1, 1e9)
+        spin_box.setRange(1, int(1e9))
         if artist is not None:
             spin_box.setValue(int(artist.get_size()))
         spin_box.valueChanged.connect(self.modify_size)

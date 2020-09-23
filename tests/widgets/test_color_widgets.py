@@ -129,7 +129,7 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
 
     def test_symlognorm(self):
         """Test a :class:`matplotlib.colors.SymLogNorm`"""
-        self.project.update(bounds=mcol.SymLogNorm(1.0))
+        self.project.update(bounds=mcol.SymLogNorm(1.0, base=10))
         fmt_w = self.fmt_widget
         fmt_w.reset_fmt_widget()
         w = fmt_w.fmt_widget.current_widget

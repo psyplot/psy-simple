@@ -827,10 +827,12 @@ class NormalizationWidget(QtWidgets.QWidget):
 
     def set_obj(self):
         cls = self.norm.__class__
+        kws = {}
         if issubclass(cls, mcol.PowerNorm):
             args = [float(self.txt_gamma.text().strip() or 1.0)]
         elif issubclass(cls, mcol.SymLogNorm):
             args = [float(self.txt_linthresh.text().strip() or 1e-3)]
+            kws = {"base": 10}
         else:
             args = []
         vmin = vmax = None
@@ -839,7 +841,7 @@ class NormalizationWidget(QtWidgets.QWidget):
         if self.txt_max.text().strip():
             vmax = float(self.txt_max.text().strip())
         try:
-            norm = cls(*args, vmin=vmin, vmax=vmax)
+            norm = cls(*args, vmin=vmin, vmax=vmax, **kws)
         except Exception:
             pass
         else:

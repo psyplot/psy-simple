@@ -14,9 +14,9 @@ from psyplot.config.rcsetup import (
     RcParams, safe_list, SubDict, validate_dict, validate_stringlist,
     validate_stringset)
 from matplotlib.rcsetup import (
-    validate_bool, validate_color, validate_bool_maybe_none, validate_fontsize,
+    validate_bool, validate_color, validate_fontsize,
     ValidateInStrings, validate_int, validate_legend_loc,
-    validate_nseq_float, validate_colorlist)
+    validate_colorlist)
 from psy_simple import __version__ as plugin_version
 import xarray as xr
 
@@ -252,6 +252,9 @@ def validate_none(b):
         return None
     else:
         raise ValueError('Could not convert "%s" to None' % b)
+
+
+validate_bool_maybe_none = try_and_error(validate_none, validate_bool)
 
 
 def validate_axiscolor(value):
@@ -882,7 +885,7 @@ rcParams = RcParams(defaultParams={
         None, try_and_error(validate_none, validate_float),
         'fmt key to mask values greater than or equal to a certain threshold'],
     'plotter.baseplotter.maskbetween': [
-        None, try_and_error(validate_none, validate_nseq_float(2)),
+        None, try_and_error(validate_none, ValidateList(float, 2)),
         'fmt key to mask values between a certain range'],
 
     # density plotter
@@ -1092,7 +1095,7 @@ rcParams = RcParams(defaultParams={
                      'labels that shall be replaced in TextBase formatoptions',
                      ' (e.g. the title formatoption) when inserted within '
                      'curly braces ({}))'],
-    'texts.default_position': [(1., 1.), validate_nseq_float(2),
+    'texts.default_position': [(1., 1.), ValidateList(float, 2),
                                'default position for the text fmt key'],
     'texts.delimiter': [', ', validate_str,
                         'default delimiter to separate netCDF meta attributes '
