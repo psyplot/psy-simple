@@ -873,6 +873,10 @@ class BoundsFmtWidget(QtWidgets.QWidget):
         'power-law': [1.0]  # gamma
         }
 
+    default_kws = {
+        "symlog": {"base": 10}
+    }
+
     methods = ['Discrete', 'Continuous']
 
     def __init__(self, parent, fmto, project, properties=True):
@@ -965,7 +969,8 @@ class BoundsFmtWidget(QtWidgets.QWidget):
             self.current_widget.setVisible(False)
         if self.type_combo.currentText() == 'Continuous':
             s = self.method_combo.currentText()
-            norm = self.norm_map[s](*self.default_args.get(s, []))
+            norm = self.norm_map[s](*self.default_args.get(s, []),
+                                    **self.default_kws.get(s, {}))
             self.current_widget = self.get_norm_widget(norm)
         else:
             if self.method_combo.currentText() != 'Custom':
