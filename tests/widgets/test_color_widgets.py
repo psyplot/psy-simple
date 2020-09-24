@@ -10,6 +10,10 @@ from psyplot_gui.compat.qtcompat import QTest, Qt, QtGui
 import _widgets_base_testing as bt
 import unittest
 
+import matplotlib as mpl
+
+mpl_version = tuple(map(int, mpl.__version__.split('.')[:2]))
+
 
 class CMapWidgetTest(bt.PsyPlotGuiTestCase):
     """Test case for the :class:`psy_simple.widgets.colors.CMapFmtWidget`"""
@@ -129,7 +133,11 @@ class BoundsWidgetTest(bt.PsyPlotGuiTestCase):
 
     def test_symlognorm(self):
         """Test a :class:`matplotlib.colors.SymLogNorm`"""
-        self.project.update(bounds=mcol.SymLogNorm(1.0, base=10))
+        if mpl_version <= (3, 1):
+            kws = {}
+        else:
+            kws = {'base': 10}
+        self.project.update(bounds=mcol.SymLogNorm(1.0, **kws))
         fmt_w = self.fmt_widget
         fmt_w.reset_fmt_widget()
         w = fmt_w.fmt_widget.current_widget

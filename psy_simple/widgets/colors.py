@@ -14,9 +14,13 @@ from psy_simple.plugin import BoundsType, CTicksType
 from psyplot.docstring import docstrings
 import numpy as np
 import xarray as xr
+import matplotlib as mpl
 import matplotlib.colors as mcol
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
+
+
+mpl_version = tuple(map(int, mpl.__version__.split('.')[:2]))
 
 
 docstrings.delete_params('show_colormaps.parameters', 'show', 'use_qt')
@@ -832,7 +836,8 @@ class NormalizationWidget(QtWidgets.QWidget):
             args = [float(self.txt_gamma.text().strip() or 1.0)]
         elif issubclass(cls, mcol.SymLogNorm):
             args = [float(self.txt_linthresh.text().strip() or 1e-3)]
-            kws = {"base": 10}
+            if mpl_version >= (3, 2):
+                kws["base"] = 10
         else:
             args = []
         vmin = vmax = None
@@ -874,7 +879,7 @@ class BoundsFmtWidget(QtWidgets.QWidget):
         }
 
     default_kws = {
-        "symlog": {"base": 10}
+        "symlog": {"base": 10} if mpl_version >= (3, 2) else {}
     }
 
     methods = ['Discrete', 'Continuous']
