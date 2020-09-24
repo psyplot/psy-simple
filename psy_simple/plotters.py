@@ -4054,6 +4054,8 @@ class Cbar(Formatoption):
                 kwargs['cax'] = fig.add_axes(
                     [0.125, 0.825, 0.775, 0.05],
                     label=self.raw_data.psy.arr_name + '_ft')
+        if float('.'.join(mpl.__version__.split('.')[:2])) <= 3.2:
+            kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
         self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)
