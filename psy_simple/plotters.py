@@ -3779,7 +3779,7 @@ class Extend(Formatoption):
             warn('[%s] - Extend keyword is not implemented for contour '
                  'plots' % self.logger.name)
         else:
-            self.plot.mappable.set_extend(value)
+            self.plot.mappable.norm.extend = value
 
 
 class CbarSpacing(Formatoption):
