@@ -14,11 +14,11 @@ build:
   script: python -m pip install . --no-deps --ignore-installed -vvv
 
 requirements:
-  build:
-    - python >=3.7
+  host:
+    - python
     - pip
   run:
-    - python >=3.7
+    - python
     - psyplot >=1.3.0
     - matplotlib >=2.0
 
