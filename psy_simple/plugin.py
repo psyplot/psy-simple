@@ -228,7 +228,7 @@ def validate_limits(value):
         return (value, value)
     if not len(value) == 2:
         raise ValueError("Limits must have length 2!")
-    return list(value)
+    return tuple(value)
 
 
 def validate_none(b):
