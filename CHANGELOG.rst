@@ -1,3 +1,11 @@
+v1.3.1
+======
+
+Fixed
+-----
+* A bug was fixed with the ``extend`` formatoption if ``plot=None``, see
+  `#20 <https://github.com/psyplot/psy-simple/pull/20>`__
+
 v1.3.0
 ======
 New background and mask formatoptions and more options for colorbar bounds
