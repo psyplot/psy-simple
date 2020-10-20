@@ -2,3 +2,5 @@ include README.rst
 include LICENSE
 include psy_simple/widgets/icons/*.png
 include psy_simple/widgets/icons/cmaps/*.png
+include versioneer.py
+include psy_simple/_version.py
