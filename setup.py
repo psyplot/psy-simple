@@ -35,6 +35,7 @@ class PyTest(TestCommand):
         errno = pytest.main(shlex.split(self.pytest_args))
         sys.exit(errno)
 
+cmdclass = versioneer.get_cmdclass({'test': PyTest})
 
 setup(name='psy-simple',
       version=versioneer.get_version(),
@@ -76,7 +77,7 @@ setup(name='psy-simple',
       python_requires=">=3.7",
       include_package_data=True,
       tests_require=['pytest'],
-      cmdclass={'test': PyTest},
+      cmdclass=cmdclass,
       entry_points={'psyplot': ['plugin=psy_simple.plugin',
                                 'patches=psy_simple.plugin:patches']},
       zip_safe=False)
