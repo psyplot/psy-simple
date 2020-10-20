@@ -3,8 +3,6 @@
 This package contains the basic plotters for simple interactive visualization
 tasks with the psyplot visualization framework.
 """
-from psy_simple.version import __version__
-
 
 __author__ = "Philipp S. Sommer"
 __copyright__ = "Copyright 2015 - 2020, Philipp S. Sommer"
