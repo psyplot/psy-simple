@@ -1,6 +1,13 @@
 v1.3.1
 ======
 
+Changed
+-------
+- the values ``'tri'``, ``'tricontour'`` and ``'tricontourf'`` for the ``plot``
+  formatoptions have been depreceated and should be replaced by ``'poly'``,
+  ``'contour'`` and ``'contourf'`` respectively, see
+  `#23 <https://github.com/psyplot/psy-simple/pull/23>`__
+
 Fixed
 -----
 * A bug was fixed with the ``extend`` formatoption if ``plot=None``, see
