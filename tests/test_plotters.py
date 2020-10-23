@@ -2384,6 +2384,17 @@ def test_plot_deprecation(old, new):
     assert plotter.plot.value == new
 
 
+def test_poly_plot_3D_bounds():
+    """Test plotting the polygons with 3D bounds."""
+    fname = os.path.join(bt.test_dir, "rotated-pole-test.nc")
+    with psy.plot.plot2d(fname, plot='poly') as sp:
+        assert sp[0].ndim == 2
+        plotter = sp.plotters[0]
+        xmin, xmax = plotter.ax.get_xlim()
+        ymin, ymax = plotter.ax.get_ylim()
+        assert xmax - xmin > 100
+        assert ymax - ymin > 50
+
 
 if __name__ == '__main__':
     unittest.main()
