@@ -28,8 +28,7 @@ from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
 from psyplot.compat.pycompat import map, zip, range
 from psy_simple.plugin import (
-    validate_color, validate_float, safe_list as slist,
-    plot2d_plot_depreceation_map)
+    validate_color, validate_float, safe_list as slist)
 from psyplot.utils import is_iterable
 
 

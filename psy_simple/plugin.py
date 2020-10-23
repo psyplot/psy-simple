@@ -687,15 +687,19 @@ class LineWidthValidator(ValidateInStrings):
 
 
 def validate_plot(val):
-    val = ValidateInStrings('2d plot', ['mesh', 'contourf', 'contour', 'poly',
-                            'tri', 'tricontourf', 'tricontour'], True)
+    validator = ValidateInStrings(
+        '2d plot', ['mesh', 'contourf', 'contour', 'poly',
+                    'tri', 'tricontourf', 'tricontour'], True)
+
+    val = validator(val)
     depr_map = {
         "tri": "poly", "tricontourf": "contourf", "tricontour": "contour"
     }
     if val in depr_map:
         warn("plot=%r is depreceated for the plot formatoption and will be "
              "removed in psy-simple 1.4.0. Please use plot=%r instead." % (
-                 val, depr_map[val]))
+                 val, depr_map[val]),
+             DeprecationWarning)
         return depr_map[val]
     return val
 
@@ -1150,6 +1154,3 @@ del _key, _subd
 
 
 rcParams.update_from_defaultParams()
-
-
-rcParams.dep
