@@ -2379,7 +2379,7 @@ def test_plot_deprecation(old, new):
     """Test if tri is deprecated correctly"""
     with psy.open_dataset(os.path.join(bt.test_dir, "icon_test.nc")) as ds:
         with pytest.warns(DeprecationWarning, match="plot=[\"']%s[\"']" % old):
-            sp = ds.psy.plot.mapplot(name="t2m", plot=old)
+            sp = ds.psy.plot.plot2d(name="t2m", plot=old)
     plotter = sp.plotters[0]
     assert plotter.plot.value == new
 
