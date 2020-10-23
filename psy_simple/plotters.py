@@ -2772,8 +2772,7 @@ class Xlim2D(Xlim):
         xcoord = self.transpose.get_x(self.data)
         func = 'get_x' if not self.transpose.value else 'get_y'
         data = next(self.iter_data)
-        if (self.decoder.is_unstructured(data) and
-                xcoord.name == getattr(self.decoder, func)(data).name):
+        if xcoord.name == getattr(self.decoder, func)(data).name:
             bounds = self.decoder.get_cell_node_coord(
                 data, axis='x', coords=data.coords)
             if bounds is None:
@@ -2792,8 +2791,7 @@ class Ylim2D(Ylim):
         ycoord = self.transpose.get_y(self.data)
         func = 'get_x' if self.transpose.value else 'get_y'
         data = next(self.iter_data)
-        if (self.decoder.is_unstructured(data) and
-                ycoord.name == getattr(self.decoder, func)(data).name):
+        if ycoord.name == getattr(self.decoder, func)(data).name:
             bounds = self.decoder.get_cell_node_coord(
                 data, axis='y', coords=data.coords)
             if bounds is None:
@@ -3386,6 +3384,9 @@ class Plot2D(Formatoption):
             self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
         else:
             self.logger.debug('Making plot with %i cells', arr.size)
+            if xbounds.ndim > 2:
+                xbounds = xbounds.reshape((-1, xbounds.shape[-1]))
+                ybounds = ybounds.reshape((-1, ybounds.shape[-1]))
             self._plot = PolyCollection(
                 np.dstack([xbounds, ybounds]), array=arr.ravel(),
                 norm=self.bounds.norm, rasterized=True, cmap=cmap,
