@@ -686,6 +686,20 @@ class LineWidthValidator(ValidateInStrings):
             return np.asarray(val, float)
 
 
+def validate_plot(val):
+    val = ValidateInStrings('2d plot', ['mesh', 'contourf', 'contour', 'poly',
+                            'tri', 'tricontourf', 'tricontour'], True)
+    depr_map = {
+        "tri": "poly", "tricontourf": "contourf", "tricontour": "contour"
+    }
+    if val in depr_map:
+        warn("plot=%r is depreceated for the plot formatoption and will be "
+             "removed in psy-simple 1.4.0. Please use plot=%r instead." % (
+                 val, depr_map[val]))
+        return depr_map[val]
+    return val
+
+
 # -----------------------------------------------------------------------------
 # ------------------------------ rcParams -------------------------------------
 # -----------------------------------------------------------------------------
@@ -1019,9 +1033,7 @@ rcParams = RcParams(defaultParams={
         None, validate_bool_maybe_none,
         'Switch to interpolate the bounds for 2D plots'],
     'plotter.plot2d.plot': [
-        'mesh', try_and_error(validate_none, ValidateInStrings(
-            '2d plot', ['mesh', 'contourf', 'contour', 'poly',
-                        'tri', 'tricontourf', 'tricontour'], True)),
+        'mesh', try_and_error(validate_none, validate_plot),
         'fmt key to specify the plot type of 2D scalar plots'],
     'plotter.plot2d.plot.min_circle_ratio': [
         0.05, validate_float,
@@ -1138,3 +1150,6 @@ del _key, _subd
 
 
 rcParams.update_from_defaultParams()
+
+
+rcParams.dep

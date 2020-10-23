@@ -28,7 +28,8 @@ from psyplot.data import (
     InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
 from psyplot.compat.pycompat import map, zip, range
 from psy_simple.plugin import (
-    validate_color, validate_float, safe_list as slist)
+    validate_color, validate_float, safe_list as slist,
+    plot2d_plot_depreceation_map)
 from psyplot.utils import is_iterable
 
 
@@ -3182,17 +3183,18 @@ class Plot2D(Formatoption):
     'mesh'
         Use the :func:`matplotlib.pyplot.pcolormesh` function to make the plot
         or the :func:`matplotlib.pyplot.tripcolor` for an unstructered grid
-    'tri'
-        Use the :func:`matplotlib.pyplot.tripcolor` function to plot data on a
-        unstructured grid
+    'poly'
+        Draw each polygon indivually. This method is used by default for
+        unstructured grids. If there are no grid cell boundaries in the
+        dataset, we will interpolate them
     'contourf'
         Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`
         function or the :func:`matplotlib.pyplot.tricontourf` for unstructured
         data. The levels for the contour plot are controlled by the
         :attr:`levels` formatoption
-    'tricontourf'
-        Make a filled contour plot using the
-        :func:`matplotlib.pyplot.tricontourf` function
+    'contour'
+        Same a ``'contourf'``, but does not make a filled contour plot, only
+        lines.
     """
 
     plot_fmt = True
@@ -3258,11 +3260,9 @@ class Plot2D(Formatoption):
         self._plot_funcs = {
             'mesh': self._pcolormesh,
             'contourf': self._contourf,
-            'tricontourf': self._contourf,
             'contour': self._contourf,
-            'tricontour': self._contourf,
-            'tri': self._polycolor,
-            'poly': self._polycolor}
+            'poly': self._polycolor,
+        }
         self._orig_format_coord = None
         self._kwargs = {}
 
