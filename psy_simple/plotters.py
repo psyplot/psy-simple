@@ -3631,6 +3631,9 @@ class DataGrid(Formatoption):
         if value is not None:
             xb = self.cell_nodes_x
             yb = self.cell_nodes_y
+            if xb.ndim > 2:
+                xb = xb.reshape((-1, xb.shape[-1]))
+                yb = yb.reshape((-1, yb.shape[-1]))
             n = len(xb)
             xb = np.c_[xb, xb[:, :1], [[np.nan]] * n].ravel()
             yb = np.c_[yb, yb[:, :1], [[np.nan]] * n].ravel()
