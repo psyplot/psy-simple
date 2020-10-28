@@ -1,5 +1,6 @@
 v1.3.1
 ======
+Patch for plotting the polygons with 3D bounds
 
 Changed
 -------
