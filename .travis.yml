@@ -1,4 +1,9 @@
 language: generic
+
+branches:
+  except:
+    - circle
+
 env:
   global:
     - COMMIT_AUTHOR_EMAIL="philipp.sommer@hzg.de"
