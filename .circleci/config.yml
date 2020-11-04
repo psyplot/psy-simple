@@ -3,8 +3,29 @@ version: 2.1
 orbs:
   psyplot: psyplot/psyplot-ci-orb@1.3.2
 
+jobs:
+  run_tests:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: "~"
+      - run:
+          name: Setup test env
+          command:
+            which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
+
+            conda create -n test -c conda-forge -c local --override-channels pytest-cov dask psyplot-gui psy-simple statsmodels netcdf4
+      - run:
+          name: Run tests
+          command:
+            which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
+
+            pytest -sv --cov=psy_simple --ref
+            py.test -sv --cov-append --cov=psy_simple
+
 workflows:
   build-and-test:
     jobs:
       - psyplot/install-and-build:
           build_args: "--build-only"
+
