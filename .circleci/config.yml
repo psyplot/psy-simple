@@ -4,6 +4,9 @@ orbs:
   psyplot: psyplot/psyplot-ci-orb@1.0.4
 
 workflows:
-  main:
+  build-and-test:
     jobs:
       - psyplot/install-and-build
+      - psyplot/build-docs:
+          requires:
+            - psyplot/install-and-build
