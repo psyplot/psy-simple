@@ -1,12 +1,10 @@
 version: 2.1
 
 orbs:
-  psyplot: psyplot/psyplot-ci-orb@1.0.4
+  psyplot: psyplot/psyplot-ci-orb@1.3.2
 
 workflows:
   build-and-test:
     jobs:
-      - psyplot/install-and-build
-      - psyplot/build-docs:
-          requires:
-            - psyplot/install-and-build
+      - psyplot/install-and-build:
+          build_args: "--build-only"
