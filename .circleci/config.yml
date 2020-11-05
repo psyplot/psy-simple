@@ -30,6 +30,7 @@ jobs:
             TESTS="$(circleci tests glob "tests/test_*.py" "tests/*/test_*.py" | circleci tests split --split-by=timings)"
             echo "Test files:"
             echo "${TESTS}"
+            mkdir -p test-results
             pytest -xv --cov=psy_simple --ref --junitxml=test-results/junit_ref.xml ${TESTS}
             py.test -xv --cov-append --cov=psy_simple --junitxml=test-results/junit.xml ${TESTS}
       - store_test_results:
