@@ -1,6 +1,6 @@
 branches:
   except:
-    - circle
+    - circleci-project-setup
 
 environment:
 

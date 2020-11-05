@@ -2,7 +2,7 @@ language: generic
 
 branches:
   except:
-    - circle
+    - circleci-project-setup
 
 env:
   global:
