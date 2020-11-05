@@ -11,13 +11,13 @@ jobs:
           at: "~"
       - run:
           name: Setup test env
-          command:
+          command: |
             which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
 
             conda create -n test -c conda-forge -c local --override-channels pytest-cov dask psyplot-gui psy-simple statsmodels netcdf4
       - run:
           name: Run tests
-          command:
+          command: |
             which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
 
             conda activate test
