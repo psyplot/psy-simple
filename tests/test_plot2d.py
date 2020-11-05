@@ -416,3 +416,24 @@ def test_datagrid_3D_bounds():
         assert xmax - xmin > 100
         assert ymax - ymin > 50
 
+
+class Simple2DPlotterTest2D(tb.TestBase2D, Simple2DPlotterTest):
+    """Test :class:`psy_simple.plotters.Simple2DPlotter` class without
+    time and vertical dimension"""
+
+    var = "t2m_2d"
+
+
+# skip the reference creation functions of the 2D Plotter tests
+skip_msg = (
+    "Reference figures for this class are created by the "
+    "Simple2DPlotterTest"
+)
+for funcname in filter(
+    lambda s: s.startswith("ref"), dir(Simple2DPlotterTest2D)
+):
+    setattr(
+        Simple2DPlotterTest2D,
+        funcname,
+        unittest.skip(skip_msg)(lambda self: None),
+    )
