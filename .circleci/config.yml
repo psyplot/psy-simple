@@ -28,7 +28,7 @@ workflows:
     jobs:
       - psyplot/install-and-build:
           build_args: "--build-only"
-      - run_tests
+      - run_tests:
           requires:
             - psyplot/install-and-build
 
