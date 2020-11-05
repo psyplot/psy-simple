@@ -4,7 +4,7 @@ orbs:
   psyplot: psyplot/psyplot-ci-orb@1.3.2
 
 jobs:
-  run_tests:
+  setup_tests:
     machine: true
     steps:
       - attach_workspace:
@@ -15,22 +15,36 @@ jobs:
             which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
 
             conda create -n test -c conda-forge -c local --override-channels pytest-cov dask psyplot-gui psy-simple statsmodels netcdf4 seaborn
+  run_tests:
+    machine: true
+    parallelism: 4
+    steps:
+      - attach_workspace:
+          at: "~"
       - run:
           name: Run tests
           command: |
             which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
 
             conda activate test
-            pytest -sv --cov=psy_simple --ref
-            py.test -sv --cov-append --cov=psy_simple
+            TESTS="$(circleci tests glob "tests/test_*.py" "tests/*/test_*.py" | circleci tests split --split-by=timings)"
+            echo "Test files:"
+            echo "${TESTS}"
+            pytest -xv --cov=psy_simple --ref --junitxml=test-results/junit_ref.xml ${TESTS}
+            py.test -xv --cov-append --cov=psy_simple --junitxml=test-results/junit.xml ${TESTS}
+      - store_test_results:
+          path: test-results
 
 workflows:
   build-and-test:
     jobs:
       - psyplot/install-and-build:
           build_args: "--build-only"
-      - run_tests:
+      - setup_tests:
           requires:
             - psyplot/install-and-build
+      - run_tests:
+          requires:
+            - setup_tests
 
 
