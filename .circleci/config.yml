@@ -20,6 +20,7 @@ jobs:
           command:
             which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
 
+            conda activate test
             pytest -sv --cov=psy_simple --ref
             py.test -sv --cov-append --cov=psy_simple
 
