@@ -66,6 +66,7 @@ docs/<string>
 *psyplot_testresults
 tests/envs/cov_psyplot_py*
 tests/envs/psyplot_py*.html
+tests/reference_figures
 
 # PyBuilder
 target/
