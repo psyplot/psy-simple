@@ -5,12 +5,11 @@ import shutil
 import subprocess as spr
 import tempfile
 from unittest import TestCase
-from get_ref_dir import get_ref_dir
 import numpy as np
 
-ref_dir = get_ref_dir()
-
 test_dir = os.path.dirname(__file__)
+
+ref_dir = os.path.join(test_dir, "reference_figures")
 
 remove_temp_files = True
 

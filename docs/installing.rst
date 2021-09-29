@@ -27,24 +27,15 @@ use the python package manager ``pip`` and install via::
 
 Running the tests
 -----------------
-First, clone out the github_ repository. First you have to
+First, clone the github_ repository, and install psy-simple and pytest_. Then
 
-- either checkout the reference figures via::
+- create the reference figures via::
 
-    $ git submodule update --init `python tests/get_ref_dir.py`
+    $ pytest --ref
 
-- or create the reference figures via::
+- run the unittests via::
 
-    $ python setup.py test -a "--ref"
-
-After that, you can run::
-
-    $ python setup.py test
-
-or after having install pytest_::
-
-    $ py.test
-
+    $ pytest
 
 .. _pytest: https://pytest.org/latest/contents.html
 .. _github: https://github.com/psyplot/psy-simple
