@@ -9,13 +9,13 @@ psy-simple: The psyplot plugin for simple visualizations
     :widths: 10 90
 
     * - docs
-        - |docs|
+      - |docs|
     * - tests
-        - |circleci| |appveyor| |requires| |codecov|
+      - |circleci| |appveyor| |requires| |codecov|
     * - package
-        - |version| |conda| |github| |zenodo|
+      - |version| |conda| |github| |zenodo|
     * - implementations
-        - |supported-versions| |supported-implementations|
+      - |supported-versions| |supported-implementations|
 
 .. |docs| image:: http://readthedocs.org/projects/psy-simple/badge/?version=latest
     :alt: Documentation Status
