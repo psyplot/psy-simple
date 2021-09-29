@@ -1,54 +1,104 @@
 version: 2.1
 
 orbs:
-  psyplot: psyplot/psyplot-ci-orb@1.3.2
+  psyplot: psyplot/psyplot-ci-orb@1.5.16
+  mattermost-plugin-notify: nathanaelhoun/mattermost-plugin-notify@1.2.0
 
-jobs:
-  setup_tests:
-    machine: true
-    steps:
-      - attach_workspace:
-          at: "~"
-      - run:
-          name: Setup test env
-          command: |
-            which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
+executors:
+  default: psyplot/default
+  macos: psyplot/macos
 
-            conda create -n test -c conda-forge -c local --override-channels pytest-cov dask psyplot-gui psy-simple statsmodels netcdf4 seaborn
-      - persist_to_workspace:
-          root: "~"
-          paths: "./*"
-  run_tests:
-    machine: true
-    parallelism: 4
-    steps:
-      - attach_workspace:
-          at: "~"
-      - run:
-          name: Run tests
-          command: |
-            which conda || eval "$("${HOME}"/miniconda3/bin/conda shell.bash hook)"
-
-            conda activate test
-            TESTS="$(circleci tests glob "tests/test_*.py" "tests/*/test_*.py" | circleci tests split --split-by=timings)"
-            echo "Test files:"
-            echo "${TESTS}"
-            mkdir -p test-results
-            pytest -xv --cov=psy_simple --ref --junitxml=test-results/junit_ref.xml ${TESTS}
-            py.test -xv --cov-append --cov=psy_simple --junitxml=test-results/junit.xml ${TESTS}
-      - store_test_results:
-          path: test-results
+parameters:
+  unit-test-executor:
+    description: Executor for the unit tests. Can be default or macos
+    type: string
+    default: default
+  deploy-release:
+    description: Deploy the comment as a new release to github and pypi
+    type: boolean
+    default: false
 
 workflows:
   build-and-test:
+    unless: << pipeline.parameters.deploy-release >>
     jobs:
       - psyplot/install-and-build:
-          build_args: "--build-only"
-      - setup_tests:
+          name: install
+          exec_environment: << pipeline.parameters.unit-test-executor >>
+          setup_env: true
+          build_args: "--no-test"
+          env_packages: pytest-cov dask psyplot-gui statsmodels netcdf4 seaborn
+      - psyplot/test-parallel:
+          name: test-matplotlib-latest
+          parallelism: 2
+          build_refs: true
           requires:
-            - psyplot/install-and-build
-      - run_tests:
+            - install
+      - psyplot/test-parallel:
+          name: test-matplotlib-3.3
+          parallelism: 2
+          build_refs: true
+          packages: matplotlib=3.3
           requires:
-            - setup_tests
-
-
+            - install
+      - mattermost-plugin-notify/approval-notification:
+          name: notify-deploy
+          context: mattermost
+          message: >-
+            Hello @all! A workflow on https://app.circleci.com/pipelines/github/psyplot/psy-simple is awaiting your approval.
+            Please check the uploaded docs and builds prior to approval.
+          requires:
+            - test-matplotlib-latest
+            - test-matplotlib-3.2
+      - hold-for-deploy:
+          type: approval
+          requires:
+            - notify-deploy
+      - psyplot/deploy-pkg:
+          exec_environment: << pipeline.parameters.unit-test-executor >>
+          context: anaconda
+          requires:
+            - hold-for-deploy
+      - psyplot/deploy-docs:
+          fingerprint: "b8:d6:d7:30:0a:74:2c:39:7b:45:0b:cd:bc:46:69:94"
+          requires:
+            - hold-for-deploy
+          # filters:
+          #   branches:
+          #     only: main
+      - psyplot/trigger-release-workflow:
+          context: trigger-release
+          filters:
+            branches:
+              only: main
+          requires:
+            - psyplot/deploy-pkg
+            - psyplot/deploy-docs
+  publish-release:
+    when: << pipeline.parameters.deploy-release >>
+    jobs:
+      - psyplot/create-tag:
+          ssh-fingerprints: "b8:d6:d7:30:0a:74:2c:39:7b:45:0b:cd:bc:46:69:94"
+          context: psyplot-admin
+          user-name: psyplot-admin
+          publish-release: true
+          publish-version-tag: true
+      - mattermost-plugin-notify/approval-notification:
+          name: notify-release
+          context: mattermost
+          message: >-
+            Hello @all! A new release has been created at https://github.com/psyplot/psy-simple/releases.
+            Please review it carefully, publish it and approve the upload to pypi.
+          requires:
+            - psyplot/create-tag
+      - hold-for-pypi:
+          type: approval
+          requires:
+            - notify-release
+      - psyplot/deploy-pypi:
+          context: pypi
+          requires:
+            - hold-for-pypi
+          filters:
+            branches:
+              only: main
