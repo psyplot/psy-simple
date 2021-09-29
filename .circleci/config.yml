@@ -49,7 +49,7 @@ workflows:
             Please check the uploaded docs and builds prior to approval.
           requires:
             - test-matplotlib-latest
-            - test-matplotlib-3.2
+            - test-matplotlib-3.3
       - hold-for-deploy:
           type: approval
           requires:
