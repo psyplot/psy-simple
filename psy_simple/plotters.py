@@ -4831,6 +4831,11 @@ class VectorPlot(Formatoption):
         if not np.allclose(np.diff(y), dy):
             warn("Rescaling y to be equally spaced!", PsyPlotRuntimeWarning)
             y = y[0] + np.zeros_like(y) + (np.arange(len(y)) * dy)
+        if not (np.diff(y) > 0).all():
+            assert u.shape == v.shape == (y.size, x.size)
+            y = y[::-1]
+            u = u[::-1]
+            v = v[::-1]
         self._plot = self.ax.streamplot(x, y, u, v, **self._kwargs)
 
     def _get_data(self):
