@@ -4836,6 +4836,11 @@ class VectorPlot(Formatoption):
             y = y[::-1]
             u = u[::-1]
             v = v[::-1]
+        if not (np.diff(x) > 0).all():
+            assert u.shape == v.shape == (y.size, x.size)
+            x = x[::-1]
+            u = u[..., ::-1]
+            v = v[..., ::-1]
         self._plot = self.ax.streamplot(x, y, u, v, **self._kwargs)
 
     def _get_data(self):
