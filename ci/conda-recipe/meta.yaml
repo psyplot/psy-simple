@@ -47,13 +47,15 @@ test:
 
 about:
   home: https://github.com/psyplot/psy-simple
-  license: GPL-2.0-only
+  license: LGPL-3.0-only
   license_family: GPL
-  license_file: LICENSE
+  license_file:
+    - COPYING
+    - COPYING.LESSER
   summary: Psyplot plugin for simple visualization tasks
 
   description: |
     This psyplot plugin provides plot methods for simple visualization tasks
     like 2D plots, line plots, bar plots, etc.
-  doc_url: http://psyplot.readthedocs.io/projects/psy-simple
+  doc_url: http://psyplot.github.io/psy-simple
   dev_url: https://github.com/psyplot/psy-simple
