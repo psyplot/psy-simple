@@ -38,7 +38,7 @@ warnings.filterwarnings('ignore', message="axes.color_cycle is deprecated")
 warnings.filterwarnings(
     'ignore', message=("This has been deprecated in mpl 1.5,"))
 warnings.filterwarnings('ignore', message="invalid value encountered in ")
-warnings.filterwarnings('ignore', message="\s*examples.directory")
+warnings.filterwarnings('ignore', message=r"\s*examples.directory")
 warnings.filterwarnings('ignore', message='numpy.dtype size changed')
 
 # -- General configuration ------------------------------------------------
@@ -114,7 +114,9 @@ ipython_savefig_dir = os.path.join(os.path.dirname(__file__), '_static')
 
 # General information about the project.
 project = 'psy-simple'
-copyright = psy_simple.__copyright__
+copyright = ", ".join(
+    psy_simple.__copyright__.strip().replace("Copyright (C) ", "").splitlines()
+)
 author = psy_simple.__author__
 
 # The version info for the project you're documenting, acts as replacement for
@@ -122,7 +124,7 @@ author = psy_simple.__author__
 # built documents.
 #
 # The short X.Y version.
-version = re.match('\d+\.\d+\.\d+', psy_simple.__version__).group()
+version = re.match(r'\d+\.\d+\.\d+', psy_simple.__version__).group()
 # The full version, including alpha/beta/rc tags.
 release = psy_simple.__version__
 
@@ -169,7 +171,7 @@ htmlhelp_basename = 'psy-simpledoc'
 
 latex_elements = {
     # Additional stuff for the LaTeX preamble.
-    'preamble': '\setcounter{tocdepth}{10}'
+    'preamble': r'\setcounter{tocdepth}{10}'
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
