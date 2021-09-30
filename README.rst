@@ -11,17 +11,19 @@ psy-simple: The psyplot plugin for simple visualizations
     * - docs
       - |docs|
     * - tests
-      - |travis| |appveyor| |requires| |codecov|
+      - |circleci| |appveyor| |requires| |codecov|
     * - package
-      - |version| |conda| |supported-versions| |supported-implementations| |zenodo|
+      - |version| |conda| |github| |zenodo|
+    * - implementations
+      - |supported-versions| |supported-implementations|
 
 .. |docs| image:: http://readthedocs.org/projects/psy-simple/badge/?version=latest
     :alt: Documentation Status
     :target: http://psy-simple.readthedocs.io/en/latest/?badge=latest
 
-.. |travis| image:: https://travis-ci.org/psyplot/psy-simple.svg?branch=master
-    :alt: Travis
-    :target: https://travis-ci.org/psyplot/psy-simple
+.. |circleci| image:: https://circleci.com/gh/psyplot/psy-simple/tree/master.svg?style=svg
+    :alt: CircleCI
+    :target: https://circleci.com/gh/psyplot/psy-simple/tree/master
 
 .. |appveyor| image:: https://ci.appveyor.com/api/projects/status/49u41l2f9k0r4xc0/branch/master?svg=true
     :alt: AppVeyor
@@ -54,6 +56,10 @@ psy-simple: The psyplot plugin for simple visualizations
 .. |zenodo| image:: https://zenodo.org/badge/81938204.svg
     :alt: Zenodo
     :target: https://zenodo.org/badge/latestdoi/81938204
+
+.. |github| image:: https://img.shields.io/github/release/psyplot/psy-simple.svg
+    :target: https://github.com/psyplot/psy-simple/releases/latest
+    :alt: Latest github release
 
 
 .. end-badges

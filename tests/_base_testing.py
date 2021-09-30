@@ -5,14 +5,16 @@ import shutil
 import subprocess as spr
 import tempfile
 from unittest import TestCase
-from get_ref_dir import get_ref_dir
 import numpy as np
-
-ref_dir = get_ref_dir()
 
 test_dir = os.path.dirname(__file__)
 
-remove_temp_files = True
+ref_dir = os.getenv(
+    "PSYPLOT_REFERENCES", os.path.join(test_dir, "reference_figures")
+)
+output_dir = os.getenv(
+    "PSYPLOT_TESTFIGURES", os.path.join(test_dir, "test_figures")
+)
 
 # check if the seaborn version is smaller than 0.8 (without actually importing
 # it), due to https://github.com/mwaskom/seaborn/issues/966
@@ -44,14 +46,14 @@ class PsyPlotTestCase(TestCase):
         from psyplot.config.rcsetup import defaultParams
         psyplot.rcParams.update(
             **{key: val[0] for key, val in defaultParams.items()})
-        if remove_temp_files and hasattr(cls, 'odir'):
-            shutil.rmtree(cls.odir)
 
     @classmethod
     def create_dirs(cls):
         if not os.path.exists(ref_dir):
             os.makedirs(ref_dir)
-        cls.odir = tempfile.mkdtemp()
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        cls.odir = output_dir
 
     def get_ref_file(self, identifier):
         """
