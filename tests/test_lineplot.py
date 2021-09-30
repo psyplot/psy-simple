@@ -1,5 +1,6 @@
 """Test module of the :mod:`psy_simple.plotters` module"""
 import os
+import sys
 import unittest
 import tempfile
 from itertools import chain
@@ -202,6 +203,7 @@ class LinePlotterTest(tb.BasePlotterTest):
             np.all(get_data(self.plotter.plot_data).isnull()[..., 3])
         )
 
+    @unittest.skipIf(sys.platform == "win32", "Skipped due to tempfile issue.")
     def test_mask_03_fname(self):
         def get_data(data):
             if isinstance(data, InteractiveList):
