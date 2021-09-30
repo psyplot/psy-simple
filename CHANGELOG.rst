@@ -1,3 +1,22 @@
+v1.4.0
+======
+Compatibility fixes and LGPL license
+
+As with psyplot 1.4.0, psy-simple is now continuously tested and deployed with
+CircleCI.
+
+Fixed
+-----
+- Compatibility fixes for matplotlib>=3.3
+
+Changed
+-------
+- psy-simple is now officially licensed under LGPL-3.0-only,
+  see `#28 <https://github.com/psyplot/psy-simple/pull/28>`__
+- We use CicleCI now for a standardized CI/CD pipeline to build and test
+  the code and docs all at one place, see `#27 <https://github.com/psyplot/psy-simple/pull/27>`__
+
+
 v1.3.1
 ======
 Patch for plotting the polygons with 3D bounds
