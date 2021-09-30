@@ -40,6 +40,9 @@ def _get_index_vals(index):
         return index.values
 
 
+mpl_version = float('.'.join(mpl.__version__.split('.')[:2]))
+
+
 def round_to_05(n, exp=None, mode='s'):
     """
     Round to the next 0.5-value.
@@ -267,6 +270,8 @@ class Grid(Formatoption):
     name = 'Grid lines'
 
     def update(self, value):
+        if self.plotter._initialized and mpl_version == 3.3:
+            warn("Updating grids is known to malfunction for matplotlib 3.3!")
         try:
             value = validate_color(value)
             self.ax.grid(color=value)

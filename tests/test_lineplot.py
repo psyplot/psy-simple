@@ -10,7 +10,7 @@ import matplotlib.colors as mcol
 import matplotlib.pyplot as plt
 
 from psyplot import open_dataset, InteractiveList
-from psy_simple.plotters import LinePlotter
+from psy_simple.plotters import LinePlotter, mpl_version
 import psyplot.project as psy
 
 import test_base as tb
@@ -40,6 +40,10 @@ class LinePlotterTest(tb.BasePlotterTest):
             self.ncfile, name=name, t=0, z=0, y=[0, 1], **kwargs
         )
 
+    @unittest.skipIf(
+        mpl_version == 3.3,
+        "Updating grids is known to malfunction for matplotlib 3.3!",
+    )
     def ref_grid(self, close=True):
         """Create reference file for grid formatoption
 
@@ -279,6 +283,10 @@ class LinePlotterTest(tb.BasePlotterTest):
             msg="Did not update to the right coordinate!",
         )
 
+    @unittest.skipIf(
+        mpl_version == 3.3,
+        "Updating grids is known to malfunction for matplotlib 3.3!",
+    )
     def test_grid(self, *args):
         """Test grid formatoption"""
         args = iter(args)
