@@ -9,8 +9,12 @@ import numpy as np
 
 test_dir = os.path.dirname(__file__)
 
-ref_dir = os.path.join(test_dir, "reference_figures")
-output_dir = os.path.join(test_dir, "test_figures")
+ref_dir = os.getenv(
+    "PSYPLOT_REFERENCES", os.path.join(test_dir, "reference_figures")
+)
+output_dir = os.getenv(
+    "PSYPLOT_TESTFIGURES", os.path.join(test_dir, "test_figures")
+)
 
 # check if the seaborn version is smaller than 0.8 (without actually importing
 # it), due to https://github.com/mwaskom/seaborn/issues/966

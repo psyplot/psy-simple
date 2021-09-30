@@ -25,6 +25,8 @@ install:
     - cmd: 'SET PYTHONWARNINGS=ignore:mode:DeprecationWarning:docutils.io:245'
     - cmd: "IF NOT DEFINED APPVEYOR_REPO_TAG_NAME (SET GIT_BRANCH=%APPVEYOR_REPO_BRANCH%)"
     - cmd: "IF NOT DEFINED APPVEYOR_REPO_TAG_NAME (conda config --add channels psyplot/label/%APPVEYOR_REPO_BRANCH:/=-%)"
+    - cmd: "set PSYPLOT_REFERENCES=%APPVEYOR_BUILD_FOLDER%/tests/reference_figures"
+    - cmd: "set PSYPLOT_TESTFIGURES=%APPVEYOR_BUILD_FOLDER%/tests/test_figures"
 
 build: off
 
@@ -36,6 +38,7 @@ test_script:
 
 after_test:
     - cmd: 7z a reference_figures.zip %APPVEYOR_BUILD_FOLDER%\tests\reference_figures\*.png
+    - cmd: 7z a test_figures.zip %APPVEYOR_BUILD_FOLDER%\tests\test_figures\*.png
 
 deploy_script:
     - cmd: "
@@ -48,3 +51,5 @@ deploy_script:
 artifacts:
   - path: reference_figures.zip
     name: Reference figures
+  - path: test_figures.zip
+    name: Test figures
