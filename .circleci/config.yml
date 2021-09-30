@@ -17,7 +17,7 @@ parameters:
     description: Deploy the comment as a new release to github and pypi
     type: boolean
     default: false
-  test-matplotlib-3.3:
+  test-matplotlib-3_3:
     description: Run the test suite for matplotlib 3.3
     type: boolean
     default: true
@@ -56,7 +56,7 @@ workflows:
       - psyplot/test-parallel:
           name: test-matplotlib-3.3
           parallelism: << pipeline.parameters.parallelism >>
-          run-job: << pipeline.parameters.test-matplotlib-3.3 >>
+          run-job: << pipeline.parameters.test-matplotlib-3_3 >>
           build_refs: true
           packages: matplotlib=3.3
           requires:
