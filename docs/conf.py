@@ -231,23 +231,20 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'matplotlib': ('http://matplotlib.org/', None),
-    'sphinx': ('http://www.sphinx-doc.org/en/stable/', None),
-    'xarray': ('http://xarray.pydata.org/en/stable/', None),
-    'cartopy': ('http://scitools.org.uk/cartopy/docs/latest/', None),
-    'mpl_toolkits': ('http://matplotlib.org/basemap/', None),
-    'psyplot': ('https://psyplot.readthedocs.io/en/dev', None),
+    'matplotlib': ('http://matplotlib.org/stable/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/stable/', None),
+    'xarray': ('https://xarray.pydata.org/en/stable/', None),
+    'cartopy': ('https://scitools.org.uk/cartopy/docs/latest/', None),
+    'mpl_toolkits': ('https://matplotlib.org/basemap/', None),
+    'psyplot': ('https://psyplot.github.io/psyplot/', None),
     'psy_maps': (
         'https://psyplot.readthedocs.io/projects/psy-maps/en/latest/', None),
     'psy_reg': ('https://psyplot.readthedocs.io/projects/psy-reg/en/latest/',
                 None),
+    'python': ('https://docs.python.org/3/', None),
 }
-if six.PY3:
-    intersphinx_mapping['python'] = ('https://docs.python.org/3.7/', None)
-else:
-    intersphinx_mapping['python'] = ('https://docs.python.org/2.7/', None)
 
 
 def group_formatoptions(app, what, name, obj, section, parent):
