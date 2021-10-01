@@ -1,0 +1,7 @@
+psy\_simple.plugin module
+=========================
+
+.. automodule:: psy_simple.plugin
+   :members:
+   :undoc-members:
+   :show-inheritance:

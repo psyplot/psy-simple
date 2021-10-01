@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>psyplot.project.plot.barplot &mdash; psy-simple 1.3.1+2.gb164fb4 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/example_gallery_styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="psyplot.project.plot.fldmean" href="psyplot.project.plot.fldmean.html" />
+    <link rel="prev" title="psyplot.project.plot.density" href="psyplot.project.plot.density.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> psy-simple
+          </a>
+              <div class="version">
+                1.3.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installing.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../plot_methods.html">psyplot plot methods</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.lineplot.html">psyplot.project.plot.lineplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.vector.html">psyplot.project.plot.vector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.violinplot.html">psyplot.project.plot.violinplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.plot2d.html">psyplot.project.plot.plot2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.combined.html">psyplot.project.plot.combined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.density.html">psyplot.project.plot.density</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">psyplot.project.plot.barplot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="psyplot.project.plot.fldmean.html">psyplot.project.plot.fldmean</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contribute.html">Contributing to psy-simple</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/psy_simple.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">psy-simple</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../plot_methods.html">psyplot plot methods</a> &raquo;</li>
+      <li>psyplot.project.plot.barplot</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/psyplot.project.plot.barplot.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="psyplot-project-plot-barplot">
+<h1>psyplot.project.plot.barplot<a class="headerlink" href="#psyplot-project-plot-barplot" title="Permalink to this headline">¶</a></h1>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="psyplot.project.plot.barplot">
+<span class="sig-prename descclassname"><span class="pre">plot.</span></span><span class="sig-name descname"><span class="pre">barplot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#psyplot.project.plot.barplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a bar plot of one-dimensional data</p>
+<blockquote>
+<div><blockquote>
+<div><p>This plotting method adds data arrays and plots them via
+<a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter" title="psy_simple.plotters.BarPlotter"><code class="xref py py-class docutils literal notranslate"><span class="pre">psy_simple.plotters.BarPlotter</span></code></a> plotters</p>
+<p>To plot data from a netCDF file type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">psy</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;my_variable&#39;</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Possible formatoptions are</p>
+</div></blockquote>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.alpha" title="psy_simple.plotters.BarPlotter.alpha"><code class="xref py py-attr docutils literal notranslate"><span class="pre">alpha</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.axiscolor" title="psy_simple.plotters.BarPlotter.axiscolor"><code class="xref py py-attr docutils literal notranslate"><span class="pre">axiscolor</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.background" title="psy_simple.plotters.BarPlotter.background"><code class="xref py py-attr docutils literal notranslate"><span class="pre">background</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.categorical" title="psy_simple.plotters.BarPlotter.categorical"><code class="xref py py-attr docutils literal notranslate"><span class="pre">categorical</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.color" title="psy_simple.plotters.BarPlotter.color"><code class="xref py py-attr docutils literal notranslate"><span class="pre">color</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.coord" title="psy_simple.plotters.BarPlotter.coord"><code class="xref py py-attr docutils literal notranslate"><span class="pre">coord</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.figtitle" title="psy_simple.plotters.BarPlotter.figtitle"><code class="xref py py-attr docutils literal notranslate"><span class="pre">figtitle</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.figtitleprops" title="psy_simple.plotters.BarPlotter.figtitleprops"><code class="xref py py-attr docutils literal notranslate"><span class="pre">figtitleprops</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.figtitlesize" title="psy_simple.plotters.BarPlotter.figtitlesize"><code class="xref py py-attr docutils literal notranslate"><span class="pre">figtitlesize</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.figtitleweight" title="psy_simple.plotters.BarPlotter.figtitleweight"><code class="xref py py-attr docutils literal notranslate"><span class="pre">figtitleweight</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.grid" title="psy_simple.plotters.BarPlotter.grid"><code class="xref py py-attr docutils literal notranslate"><span class="pre">grid</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.labelprops" title="psy_simple.plotters.BarPlotter.labelprops"><code class="xref py py-attr docutils literal notranslate"><span class="pre">labelprops</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.labelsize" title="psy_simple.plotters.BarPlotter.labelsize"><code class="xref py py-attr docutils literal notranslate"><span class="pre">labelsize</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.labelweight" title="psy_simple.plotters.BarPlotter.labelweight"><code class="xref py py-attr docutils literal notranslate"><span class="pre">labelweight</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.legend" title="psy_simple.plotters.BarPlotter.legend"><code class="xref py py-attr docutils literal notranslate"><span class="pre">legend</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.legendlabels" title="psy_simple.plotters.BarPlotter.legendlabels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">legendlabels</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.mask" title="psy_simple.plotters.BarPlotter.mask"><code class="xref py py-attr docutils literal notranslate"><span class="pre">mask</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.maskbetween" title="psy_simple.plotters.BarPlotter.maskbetween"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maskbetween</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.maskgeq" title="psy_simple.plotters.BarPlotter.maskgeq"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maskgeq</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.maskgreater" title="psy_simple.plotters.BarPlotter.maskgreater"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maskgreater</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.maskleq" title="psy_simple.plotters.BarPlotter.maskleq"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maskleq</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.maskless" title="psy_simple.plotters.BarPlotter.maskless"><code class="xref py py-attr docutils literal notranslate"><span class="pre">maskless</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.plot" title="psy_simple.plotters.BarPlotter.plot"><code class="xref py py-attr docutils literal notranslate"><span class="pre">plot</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.post" title="psy_simple.plotters.BarPlotter.post"><code class="xref py py-attr docutils literal notranslate"><span class="pre">post</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.post_timing" title="psy_simple.plotters.BarPlotter.post_timing"><code class="xref py py-attr docutils literal notranslate"><span class="pre">post_timing</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.sym_lims" title="psy_simple.plotters.BarPlotter.sym_lims"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sym_lims</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.text" title="psy_simple.plotters.BarPlotter.text"><code class="xref py py-attr docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.ticksize" title="psy_simple.plotters.BarPlotter.ticksize"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ticksize</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.tickweight" title="psy_simple.plotters.BarPlotter.tickweight"><code class="xref py py-attr docutils literal notranslate"><span class="pre">tickweight</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.tight" title="psy_simple.plotters.BarPlotter.tight"><code class="xref py py-attr docutils literal notranslate"><span class="pre">tight</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.title" title="psy_simple.plotters.BarPlotter.title"><code class="xref py py-attr docutils literal notranslate"><span class="pre">title</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.titleprops" title="psy_simple.plotters.BarPlotter.titleprops"><code class="xref py py-attr docutils literal notranslate"><span class="pre">titleprops</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.titlesize" title="psy_simple.plotters.BarPlotter.titlesize"><code class="xref py py-attr docutils literal notranslate"><span class="pre">titlesize</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.titleweight" title="psy_simple.plotters.BarPlotter.titleweight"><code class="xref py py-attr docutils literal notranslate"><span class="pre">titleweight</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.transpose" title="psy_simple.plotters.BarPlotter.transpose"><code class="xref py py-attr docutils literal notranslate"><span class="pre">transpose</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.widths" title="psy_simple.plotters.BarPlotter.widths"><code class="xref py py-attr docutils literal notranslate"><span class="pre">widths</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xlabel" title="psy_simple.plotters.BarPlotter.xlabel"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xlabel</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xlim" title="psy_simple.plotters.BarPlotter.xlim"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xlim</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xrotation" title="psy_simple.plotters.BarPlotter.xrotation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xrotation</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xticklabels" title="psy_simple.plotters.BarPlotter.xticklabels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xticklabels</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xtickprops" title="psy_simple.plotters.BarPlotter.xtickprops"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xtickprops</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.xticks" title="psy_simple.plotters.BarPlotter.xticks"><code class="xref py py-attr docutils literal notranslate"><span class="pre">xticks</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.ylabel" title="psy_simple.plotters.BarPlotter.ylabel"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ylabel</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.ylim" title="psy_simple.plotters.BarPlotter.ylim"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ylim</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.yrotation" title="psy_simple.plotters.BarPlotter.yrotation"><code class="xref py py-attr docutils literal notranslate"><span class="pre">yrotation</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.yticklabels" title="psy_simple.plotters.BarPlotter.yticklabels"><code class="xref py py-attr docutils literal notranslate"><span class="pre">yticklabels</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.ytickprops" title="psy_simple.plotters.BarPlotter.ytickprops"><code class="xref py py-attr docutils literal notranslate"><span class="pre">ytickprops</span></code></a></p></td>
+<td><p><a class="reference internal" href="../api/psy_simple.plotters.html#psy_simple.plotters.BarPlotter.yticks" title="psy_simple.plotters.BarPlotter.yticks"><code class="xref py py-attr docutils literal notranslate"><span class="pre">yticks</span></code></a></p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition-examples admonition">
+<p class="admonition-title">Examples</p>
+<p>To explore the formatoptions and their documentations, use the
+<code class="docutils literal notranslate"><span class="pre">keys</span></code>, <code class="docutils literal notranslate"><span class="pre">summaries</span></code> and <code class="docutils literal notranslate"><span class="pre">docs</span></code> methods. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">psyplot.project</span> <span class="k">as</span> <span class="nn">psy</span>
+
+<span class="go"># show the keys corresponding to a group or multiple</span>
+<span class="go"># formatopions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psy</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot</span><span class="o">.</span><span class="n">keys</span><span class="p">(</span><span class="s1">&#39;labels&#39;</span><span class="p">)</span>
+
+<span class="go"># show the summaries of a group of formatoptions or of a</span>
+<span class="go"># formatoption</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psy</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot</span><span class="o">.</span><span class="n">summaries</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span>
+
+<span class="go"># show the full documentation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psy</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot</span><span class="o">.</span><span class="n">docs</span><span class="p">(</span><span class="s1">&#39;plot&#39;</span><span class="p">)</span>
+
+<span class="go"># or access the documentation via the attribute</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psy</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barplot</span><span class="o">.</span><span class="n">plot</span>
+</pre></div>
+</div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="psyplot.project.plot.density.html" class="btn btn-neutral float-left" title="psyplot.project.plot.density" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="psyplot.project.plot.fldmean.html" class="btn btn-neutral float-right" title="psyplot.project.plot.fldmean" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum Geesthacht, 2016-2021 University of Lausanne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

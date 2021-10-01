@@ -1,0 +1,6 @@
+psyplot.project.plot.vector
+===========================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.vector

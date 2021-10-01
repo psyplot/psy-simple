@@ -1,0 +1,6 @@
+psyplot.project.plot.plot2d
+===========================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.plot2d

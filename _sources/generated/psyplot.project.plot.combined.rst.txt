@@ -1,0 +1,6 @@
+psyplot.project.plot.combined
+=============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.combined

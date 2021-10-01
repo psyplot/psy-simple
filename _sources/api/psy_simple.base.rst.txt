@@ -1,0 +1,7 @@
+psy\_simple.base module
+=======================
+
+.. automodule:: psy_simple.base
+   :members:
+   :undoc-members:
+   :show-inheritance:

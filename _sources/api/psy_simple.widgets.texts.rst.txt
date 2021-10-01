@@ -1,0 +1,7 @@
+psy\_simple.widgets.texts module
+================================
+
+.. automodule:: psy_simple.widgets.texts
+   :members:
+   :undoc-members:
+   :show-inheritance:

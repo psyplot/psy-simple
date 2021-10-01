@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>psy_simple.base &mdash; psy-simple 1.3.1+2.gb164fb4 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/example_gallery_styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> psy-simple
+          </a>
+              <div class="version">
+                1.3.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_methods.html">psyplot plot methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contribute.html">Contributing to psy-simple</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/psy_simple.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">psy-simple</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>psy_simple.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for psy_simple.base</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Base formatoptions for psy-simple.</span>
+
+<span class="sd">This module defines several formatoptions that are the basis for many</span>
+<span class="sd">matplotlib figures, such as axes title, figure title, etc.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Disclaimer</span>
+<span class="c1"># ----------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2021 Helmholtz-Zentrum Hereon</span>
+<span class="c1"># Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht</span>
+<span class="c1"># Copyright (C) 2016-2021 University of Lausanne</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of psy-simple and is released under the GNU LGPL-3.O license.</span>
+<span class="c1"># See COPYING and COPYING.LESSER in the root of the repository for full</span>
+<span class="c1"># licensing details.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU Lesser General Public License version 3.0 as</span>
+<span class="c1"># published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU LGPL-3.0 license for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU LGPL-3.0 license</span>
+<span class="c1"># along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">psyplot.docstring</span> <span class="kn">import</span> <span class="n">docstrings</span><span class="p">,</span> <span class="n">safe_modulo</span><span class="p">,</span> <span class="n">dedent</span>
+<span class="kn">from</span> <span class="nn">psyplot.data</span> <span class="kn">import</span> <span class="n">InteractiveList</span><span class="p">,</span> <span class="n">open_dataset</span>
+<span class="kn">from</span> <span class="nn">psyplot.compat.pycompat</span> <span class="kn">import</span> <span class="nb">filter</span>
+<span class="kn">from</span> <span class="nn">psyplot.plotter</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Plotter</span><span class="p">,</span> <span class="n">Formatoption</span><span class="p">,</span> <span class="n">rcParams</span><span class="p">,</span> <span class="n">START</span><span class="p">)</span>
+
+<span class="n">docstrings</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;replace_note&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">cleandoc</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    You can insert any meta key from the :attr:`xarray.DataArray.attrs` via a</span>
+<span class="s2">    string like ``&#39;</span><span class="si">%%</span><span class="s2">(key)s&#39;``. Furthermore there are some special cases:</span>
+
+<span class="s2">    - Strings like ``&#39;</span><span class="si">%%</span><span class="s2">Y&#39;``, ``&#39;</span><span class="si">%%</span><span class="s2">b&#39;``, etc. will be replaced using the</span>
+<span class="s2">      :meth:`datetime.datetime.strftime` method as long as the data has a time</span>
+<span class="s2">      coordinate and this can be converted to a :class:`~datetime.datetime`</span>
+<span class="s2">      object.</span>
+<span class="s2">    - ``&#39;</span><span class="si">%%</span><span class="s2">(x)s&#39;``, ``&#39;</span><span class="si">%%</span><span class="s2">(y)s&#39;``, ``&#39;</span><span class="si">%%</span><span class="s2">(z)s&#39;``, ``&#39;</span><span class="si">%%</span><span class="s2">(t)s&#39;`` will be replaced</span>
+<span class="s2">      by the value of the x-, y-, z- or time coordinate (as long as this</span>
+<span class="s2">      coordinate is one-dimensional in the data)</span>
+<span class="s2">    - any attribute of one of the above coordinates is inserted via</span>
+<span class="s2">      ``axis + key`` (e.g. the name of the x-coordinate can be inserted via</span>
+<span class="s2">      ``&#39;</span><span class="si">%%</span><span class="s2">(xname)s&#39;``).</span>
+<span class="s2">    - Labels defined in the :class:`psyplot.rcParams` ``&#39;texts.labels&#39;`` key</span>
+<span class="s2">      are also replaced when enclosed by &#39;</span><span class="si">{}</span><span class="s2">&#39;. The standard labels are</span>
+
+<span class="s2">      - </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">      - &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: ``</span><span class="si">%s</span><span class="s1">``&#39;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span>
+        <span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;texts.labels&#39;</span><span class="p">])))</span>
+
+<span class="n">docstrings</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;colors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">cleandoc</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    The following color abbreviations are supported:</span>
+
+<span class="s2">    ==========  ========</span>
+<span class="s2">    character   color</span>
+<span class="s2">    ==========  ========</span>
+<span class="s2">    &#39;b&#39;         blue</span>
+<span class="s2">    &#39;g&#39;         green</span>
+<span class="s2">    &#39;r&#39;         red</span>
+<span class="s2">    &#39;c&#39;         cyan</span>
+<span class="s2">    &#39;m&#39;         magenta</span>
+<span class="s2">    &#39;y&#39;         yellow</span>
+<span class="s2">    &#39;k&#39;         black</span>
+<span class="s2">    &#39;w&#39;         white</span>
+<span class="s2">    ==========  ========</span>
+
+<span class="s2">    In addition, you can specify colors in many weird and wonderful ways,</span>
+<span class="s2">    including full names (``&#39;green&#39;``), hex strings (``&#39;#008000&#39;``), RGB or</span>
+<span class="s2">    RGBA tuples (``(0,1,0,1)``) or grayscale intensities as a string</span>
+<span class="s2">    (``&#39;0.8&#39;``).&quot;&quot;&quot;</span><span class="p">)</span>
+
+<span class="n">docstrings</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;fontsizes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">cleandoc</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    float</span>
+<span class="s2">        The absolute font size in points (e.g., 12)</span>
+<span class="s2">    string</span>
+<span class="s2">        Strings might be &#39;xx-small&#39;, &#39;x-small&#39;, &#39;small&#39;, &#39;medium&#39;, &#39;large&#39;,</span>
+<span class="s2">        &#39;x-large&#39;, &#39;xx-large&#39;.&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TextBase"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TextBase">[docs]</a><span class="k">class</span> <span class="nc">TextBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract base class for formatoptions that provides a replace method&quot;&quot;&quot;</span>
+
+    <span class="n">delimiter</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;labels&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">enhanced_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The enhanced attributes of the array&quot;&quot;&quot;</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_enhanced_attrs</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">rc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;:class:`~psyplot.config.rcsetup.SubDict` of rcParams &#39;texts&#39; key&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rc</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rcParams</span><span class="o">.</span><span class="n">find_and_replace</span><span class="p">(</span><span class="n">base_str</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;texts.&#39;</span><span class="p">])</span>
+
+    <span class="n">data_dependent</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="TextBase.replace"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TextBase.replace">[docs]</a>    <span class="nd">@docstrings</span><span class="o">.</span><span class="n">dedent</span>
+    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace the attributes of the plotter data in a string</span>
+
+<span class="sd">        %(replace_note)s</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        s: str</span>
+<span class="sd">            String where the replacements shall be made</span>
+<span class="sd">        data: InteractiveBase</span>
+<span class="sd">            Data object from which to use the coordinates and insert the</span>
+<span class="sd">            coordinate and attribute informations</span>
+<span class="sd">        attrs: dict</span>
+<span class="sd">            Meta attributes that shall be used for replacements. If None, it</span>
+<span class="sd">            will be gained from `data.attrs`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            `s` with inserted informations&quot;&quot;&quot;</span>
+        <span class="c1"># insert labels</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s1">&#39;labels&#39;</span><span class="p">])</span>
+        <span class="c1"># replace attributes</span>
+        <span class="n">attrs</span> <span class="o">=</span> <span class="n">attrs</span> <span class="ow">or</span> <span class="n">data</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&#39;psy&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;arr_name&#39;</span><span class="p">):</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;arr_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">arr_name</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">safe_modulo</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+        <span class="c1"># replace datetime.datetime like time informations</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">InteractiveList</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">tname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">any_decoder</span><span class="o">.</span><span class="n">get_tname</span><span class="p">(</span>
+            <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">iter_base_variables</span><span class="p">),</span> <span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">tname</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
+            <span class="n">time</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">tname</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">time</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>  <span class="c1"># assume a valid datetime.datetime instance</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">values</span><span class="p">[()]))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span></div>
+
+<div class="viewcode-block" id="TextBase.get_fig_data_attrs"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TextBase.get_fig_data_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_fig_data_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Join the data attributes with other plotters in the project</span>
+
+<span class="sd">        This method joins the attributes of the</span>
+<span class="sd">        :class:`~psyplot.InteractiveBase` instances in the project that</span>
+<span class="sd">        draw on the same figure as this instance does.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        delimiter: str</span>
+<span class="sd">            Specifies the delimiter with what the attributes are joined. If</span>
+<span class="sd">            None, the :attr:`delimiter` attribute of this instance or (if the</span>
+<span class="sd">            latter is also None), the rcParams[&#39;texts.delimiter&#39;] item is used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary with all the meta attributes joined by the specified</span>
+<span class="sd">            `delimiter`&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delimiter</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span>
+                <span class="n">delimiter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rc</span><span class="p">[</span><span class="s1">&#39;delimiter&#39;</span><span class="p">]]))</span>
+            <span class="n">figs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">figs</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">_initialized</span> <span class="ow">and</span> <span class="n">fig</span> <span class="ow">in</span> <span class="n">figs</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">figs</span><span class="p">[</span><span class="n">fig</span><span class="p">]</span><span class="o">.</span><span class="n">joined_attrs</span><span class="p">(</span><span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
+                                             <span class="n">plot_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_enhanced_attrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Can not get the figure attributes because plot has not &#39;</span>
+                    <span class="s1">&#39;yet been initialized!&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ret</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_enhanced_attrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">plot_data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TextBase.get_enhanced_attrs"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TextBase.get_enhanced_attrs">[docs]</a>    <span class="k">def</span> <span class="nf">get_enhanced_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">replot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;replot&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_enhanced_attrs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">replot</span> <span class="ow">or</span> <span class="n">replot</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enhanced_attrs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_enhanced_attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">get_enhanced_attrs</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_enhanced_attrs</span></div>
+
+<div class="viewcode-block" id="TextBase.get_fmt_widget"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TextBase.get_fmt_widget">[docs]</a>    <span class="k">def</span> <span class="nf">get_fmt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a combobox with the attributes&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">psy_simple.widgets.texts</span> <span class="kn">import</span> <span class="n">LabelWidget</span>
+        <span class="k">return</span> <span class="n">LabelWidget</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span></div></div>
+
+
+<span class="n">docstrings</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;fontweights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">cleandoc</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    float</span>
+<span class="s2">        a float between 0 and 1000</span>
+<span class="s2">    string</span>
+<span class="s2">        Possible strings are one of &#39;ultralight&#39;, &#39;light&#39;, &#39;normal&#39;,</span>
+<span class="s2">        &#39;regular&#39;, &#39;book&#39;, &#39;medium&#39;, &#39;roman&#39;, &#39;semibold&#39;, &#39;demibold&#39;,</span>
+<span class="s2">        &#39;demi&#39;, &#39;bold&#39;, &#39;heavy&#39;, &#39;extra bold&#39;, &#39;black&#39;.&quot;&quot;&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="label_weight"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.label_weight">[docs]</a><span class="nd">@docstrings</span><span class="o">.</span><span class="n">get_sections</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="s1">&#39;label_weight&#39;</span><span class="p">)</span>
+<span class="nd">@dedent</span>
+<span class="k">def</span> <span class="nf">label_weight</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">label_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">dependencies</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that returns a Formatoption class for modifying the fontweight</span>
+
+<span class="sd">    This function returns a :class:`~psyplot.plotter.Formatoption` instance</span>
+<span class="sd">    that modifies the weight of the given `base` formatoption</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    base: Formatoption</span>
+<span class="sd">        The base formatoption instance that is used in the</span>
+<span class="sd">        :class:`psyplot.Plotter` subclass to create the label. The instance</span>
+<span class="sd">        must have a ``texts`` attribute which stores all the</span>
+<span class="sd">        :class:`matplotlib.text.Text` instances.</span>
+<span class="sd">    label_name: str</span>
+<span class="sd">        The name of the label to use in the documentation. If None,</span>
+<span class="sd">        it will be ``key``, where ``key`` is the</span>
+<span class="sd">        :attr:`psyplot.plotter.Formatoption.key`` attribute of `base`</span>
+<span class="sd">    children: list of str</span>
+<span class="sd">        The childrens of the resulting formatoption class (besides the `base`</span>
+<span class="sd">        formatoption which is included anyway)</span>
+<span class="sd">    parents: list of str</span>
+<span class="sd">        The parents of the resulting formatoption class (besides the `base`</span>
+<span class="sd">        the properties formatoption from `base` (see :func:`label_props`))</span>
+<span class="sd">    dependencies: list of str</span>
+<span class="sd">        The dependencies of the formatoption</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Formatoption</span>
+<span class="sd">        The formatoption instance that modifies the fontweight of `base`</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    label_size, label_props, Figtitle, Title&quot;&quot;&quot;</span>
+    <span class="n">label_name</span> <span class="o">=</span> <span class="n">label_name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span>
+    <span class="n">cl_children</span> <span class="o">=</span> <span class="n">children</span>
+    <span class="n">cl_parents</span> <span class="o">=</span> <span class="n">parents</span>
+    <span class="n">cl_dependencies</span> <span class="o">=</span> <span class="n">dependencies</span>
+
+    <span class="k">class</span> <span class="nc">LabelWeight</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+        <span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Set the fontweight of the </span><span class="si">%s</span><span class="s2"></span>
+
+<span class="s2">        Possible types</span>
+<span class="s2">        --------------</span>
+<span class="s2">        </span><span class="si">%%</span><span class="s2">(fontweights)s</span>
+
+<span class="s2">        See Also</span>
+<span class="s2">        --------</span>
+<span class="s2">        </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label_name</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span>
+                         <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;props&#39;</span><span class="p">)</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="n">cl_children</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;props&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cl_parents</span>
+        <span class="n">dependencies</span> <span class="o">=</span> <span class="n">cl_dependencies</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;labels&#39;</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Font weight of &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">set_weight</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_fmt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Get a widget with the different font weights&quot;&quot;&quot;</span>
+            <span class="kn">from</span> <span class="nn">psy_simple.widgets.texts</span> <span class="kn">import</span> <span class="n">FontWeightWidget</span>
+            <span class="k">return</span> <span class="n">FontWeightWidget</span><span class="p">(</span>
+                <span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">),</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">base</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LabelWeight</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="label_size"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.label_size">[docs]</a><span class="nd">@docstrings</span><span class="o">.</span><span class="n">dedent</span>
+<span class="k">def</span> <span class="nf">label_size</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">label_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span>
+               <span class="n">dependencies</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that returns a Formatoption class for modifying the fontsite</span>
+
+<span class="sd">    This function returns a :class:`~psyplot.plotter.Formatoption` instance</span>
+<span class="sd">    that modifies the size of the given `base` formatoption</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(label_weight.parameters)s</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Formatoption</span>
+<span class="sd">        The formatoption instance that modifies the fontsize of `base`</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    label_weight, label_props, Figtitle, Title&quot;&quot;&quot;</span>
+    <span class="n">label_name</span> <span class="o">=</span> <span class="n">label_name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span>
+    <span class="n">cl_children</span> <span class="o">=</span> <span class="n">children</span>
+    <span class="n">cl_parents</span> <span class="o">=</span> <span class="n">parents</span>
+    <span class="n">cl_dependencies</span> <span class="o">=</span> <span class="n">dependencies</span>
+
+    <span class="k">class</span> <span class="nc">LabelSize</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+        <span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Set the size of the </span><span class="si">%s</span><span class="s2"></span>
+
+<span class="s2">        Possible types</span>
+<span class="s2">        --------------</span>
+<span class="s2">        </span><span class="si">%%</span><span class="s2">(fontsizes)s</span>
+
+<span class="s2">        See Also</span>
+<span class="s2">        --------</span>
+<span class="s2">        </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label_name</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;weight&#39;</span><span class="p">,</span>
+                         <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;props&#39;</span><span class="p">)</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">+</span> <span class="n">cl_children</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;props&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">cl_parents</span>
+        <span class="n">dependencies</span> <span class="o">=</span> <span class="n">cl_dependencies</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;labels&#39;</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Font size of &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">set_size</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">get_fmt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Get a widget with the different font weights&quot;&quot;&quot;</span>
+            <span class="kn">from</span> <span class="nn">psy_simple.widgets.texts</span> <span class="kn">import</span> <span class="n">FontSizeWidget</span>
+            <span class="k">return</span> <span class="n">FontSizeWidget</span><span class="p">(</span>
+                <span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">),</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">base</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LabelSize</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span></div>
+
+
+<span class="n">docstrings</span><span class="o">.</span><span class="n">keep_params</span><span class="p">(</span><span class="s1">&#39;label_weight.parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;base&#39;</span><span class="p">,</span> <span class="s1">&#39;label_name&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="label_props"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.label_props">[docs]</a><span class="nd">@docstrings</span><span class="o">.</span><span class="n">dedent</span>
+<span class="k">def</span> <span class="nf">label_props</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">label_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="p">[],</span> <span class="n">parents</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">dependencies</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function that returns a Formatoption class for modifying the fontsite</span>
+
+<span class="sd">    This function returns a :class:`~psyplot.plotter.Formatoption` instance</span>
+<span class="sd">    that modifies the size of the given `base` formatoption</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    %(label_weight.parameters)s</span>
+<span class="sd">    children: list of str</span>
+<span class="sd">        The childrens of the resulting formatoption class (besides the `base`</span>
+<span class="sd">        formatoption, the ``base.key + &#39;size&#39;`` and ``base.key + &#39;weight&#39;``</span>
+<span class="sd">        keys, which are included anyway (see :func:`label_size`,</span>
+<span class="sd">        :func:`label_weight`))</span>
+<span class="sd">    parents: list of str</span>
+<span class="sd">        The parents of the resulting formatoption class</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Formatoption</span>
+<span class="sd">        The formatoption instance that modifies the fontsize of `base`</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    label_weight, label_props, Figtitle, Title&quot;&quot;&quot;</span>
+    <span class="n">label_name</span> <span class="o">=</span> <span class="n">label_name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span>
+    <span class="n">cl_children</span> <span class="o">=</span> <span class="n">children</span>
+    <span class="n">cl_parents</span> <span class="o">=</span> <span class="n">parents</span>
+    <span class="n">cl_dependencies</span> <span class="o">=</span> <span class="n">dependencies</span>
+
+    <span class="k">class</span> <span class="nc">LabelProps</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+        <span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Properties of the </span><span class="si">%s</span><span class="s2"></span>
+
+<span class="s2">        Specify the font properties of the figure title manually.</span>
+
+<span class="s2">        Possible types</span>
+<span class="s2">        --------------</span>
+<span class="s2">        dict</span>
+<span class="s2">            Items may be any valid text property</span>
+
+<span class="s2">        See Also</span>
+<span class="s2">        --------</span>
+<span class="s2">        </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label_name</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span>
+                         <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="n">cl_children</span>
+        <span class="n">parents</span> <span class="o">=</span> <span class="n">cl_parents</span>
+        <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="n">cl_dependencies</span>
+
+        <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;labels&#39;</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Font properties of &#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">name</span> <span class="ow">or</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">LabelProps</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_props</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_todefault</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">todefault</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_todefault</span> <span class="o">=</span> <span class="n">todefault</span>
+            <span class="nb">super</span><span class="p">(</span><span class="n">LabelProps</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">validate</span><span class="p">,</span> <span class="n">todefault</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fontprops</span><span class="p">):</span>
+            <span class="n">fontprops</span> <span class="o">=</span> <span class="n">fontprops</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># store default font properties</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="k">return</span>
+            <span class="c1"># TODO: This handling of the default management is not really</span>
+            <span class="c1"># satisfying because you run into troubles when using alternate</span>
+            <span class="c1"># property names (e.g. if you use &#39;ha&#39; and &#39;horizontalalignment&#39;</span>
+            <span class="c1"># at the same time)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_todefault</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fontprops</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s1">&#39;bbox&#39;</span><span class="p">:</span>
+                        <span class="n">default</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">default</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s1">&#39;get_&#39;</span> <span class="o">+</span> <span class="n">key</span><span class="p">)()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">default_props</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fontprops</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_props</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">default_props</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;size&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fontprops</span> <span class="ow">and</span> <span class="s1">&#39;fontsize&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fontprops</span><span class="p">:</span>
+                <span class="n">fontprops</span><span class="p">[</span><span class="s1">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;size&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">if</span> <span class="s1">&#39;weight&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fontprops</span> <span class="ow">and</span> <span class="s1">&#39;fontweight&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fontprops</span><span class="p">:</span>
+                <span class="n">fontprops</span><span class="p">[</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;weight&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fontprops</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_todefault</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">def</span> <span class="nf">get_fmt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Get a widget with the different font weights&quot;&quot;&quot;</span>
+            <span class="kn">from</span> <span class="nn">psy_simple.widgets.texts</span> <span class="kn">import</span> <span class="n">FontPropertiesWidget</span>
+            <span class="k">return</span> <span class="n">FontPropertiesWidget</span><span class="p">(</span>
+                <span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">texts</span><span class="p">),</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">base</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">LabelProps</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;props&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Title"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Title">[docs]</a><span class="k">class</span> <span class="nc">Title</span><span class="p">(</span><span class="n">TextBase</span><span class="p">,</span> <span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the title</span>
+
+<span class="sd">    Set the title of the plot.</span>
+<span class="sd">    %(replace_note)s</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    str</span>
+<span class="sd">        The title for the :func:`~matplotlib.pyplot.title` function.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This is the title of this specific subplot! For the title of the whole</span>
+<span class="sd">    figure, see the :attr:`figtitle` formatoption.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    figtitle, titlesize, titleweight, titleprops&quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Axes title&#39;</span>
+
+<div class="viewcode-block" id="Title.initialize_plot"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Title.initialize_plot">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enhanced_attrs</span><span class="p">))]</span></div>
+
+<div class="viewcode-block" id="Title.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Title.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">arr</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">enhanced_attrs</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="Figtitle"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Figtitle">[docs]</a><span class="k">class</span> <span class="nc">Figtitle</span><span class="p">(</span><span class="n">TextBase</span><span class="p">,</span> <span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot a figure title</span>
+
+<span class="sd">    Set the title of the figure.</span>
+<span class="sd">    %(replace_note)s</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    str</span>
+<span class="sd">        The title for the :func:`~matplotlib.pyplot.suptitle` function</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - If the plotter is part of a :class:`psyplot.project.Project` and multiple</span>
+<span class="sd">      plotters of this project are on the same figure, the replacement</span>
+<span class="sd">      attributes (see above) are joined by a delimiter. If the</span>
+<span class="sd">      :attr:`delimiter` attribute of this :class:`Figtitle` instance is not</span>
+<span class="sd">      None, it will be used. Otherwise the rcParams[&#39;texts.delimiter&#39;] item is</span>
+<span class="sd">      used.</span>
+<span class="sd">    - This is the title of the whole figure! For the title of this specific</span>
+<span class="sd">      subplot, see the :attr:`title` formatoption.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    title, figtitlesize, figtitleweight, figtitleprops&quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Figure title&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">enhanced_attrs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fig_data_attrs</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Figtitle.initialize_plot"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Figtitle.initialize_plot">[docs]</a>    <span class="k">def</span> <span class="nf">initialize_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">enhanced_attrs</span><span class="p">))]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_other_texts</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="Figtitle.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Figtitle.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                                                <span class="bp">self</span><span class="o">.</span><span class="n">enhanced_attrs</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear_other_texts</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">texts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Figtitle.clear_other_texts"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Figtitle.clear_other_texts">[docs]</a>    <span class="k">def</span> <span class="nf">clear_other_texts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure that no other text is a the same position as this one</span>
+
+<span class="sd">        This method clears all text instances in the figure that are at the</span>
+<span class="sd">        same position as the :attr:`_text` attribute</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        remove: bool</span>
+<span class="sd">            If True, the Text instances are permanently deleted from the</span>
+<span class="sd">            figure, otherwise there text is simply set to &#39;&#39;&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span>
+        <span class="c1"># don&#39;t do anything if our figtitle is the only Text instance</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">texts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">texts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">text</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_text</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_text</span><span class="o">.</span><span class="n">get_position</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">remove</span><span class="p">:</span>
+                    <span class="n">text</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">fig</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="Text"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text">[docs]</a><span class="k">class</span> <span class="nc">Text</span><span class="p">(</span><span class="n">TextBase</span><span class="p">,</span> <span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add text anywhere on the plot</span>
+
+<span class="sd">    This formatoption draws a text on the specified position on the figure.</span>
+<span class="sd">    %(replace_note)s</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    str</span>
+<span class="sd">        If string s: this will be used as (1., 1., s, {&#39;ha&#39;: &#39;right&#39;}) (i.e. a</span>
+<span class="sd">        string in the upper right corner of the axes).</span>
+<span class="sd">    tuple or list of tuples (x,y,s[,coord.-system][,options]])</span>
+<span class="sd">        Each tuple defines a text instance on the plot. 0&lt;=x, y&lt;=1 are the</span>
+<span class="sd">        coordinates. The coord.-system can be either the data coordinates</span>
+<span class="sd">        (default, ``&#39;data&#39;``) or the axes coordinates (``&#39;axes&#39;``) or the</span>
+<span class="sd">        figure coordinates (&#39;fig&#39;). The string s finally is the text. options</span>
+<span class="sd">        may be a dictionary to specify format the appearence (e.g. ``&#39;color&#39;``,</span>
+<span class="sd">        ``&#39;fontweight&#39;``, ``&#39;fontsize&#39;``, etc., see</span>
+<span class="sd">        :class:`matplotlib.text.Text` for possible keys).</span>
+<span class="sd">        To remove one single text from the plot, set (x,y,&#39;&#39;[, coord.-system])</span>
+<span class="sd">        for the text at position (x,y)</span>
+<span class="sd">    empty list</span>
+<span class="sd">        remove all texts from the plot</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    title, figtitle&quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Arbitrary text on the plot&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dictionary containing the relevant transformations&quot;&quot;&quot;</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;axes&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+                <span class="s1">&#39;fig&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_figure</span><span class="p">()</span><span class="o">.</span><span class="n">transFigure</span><span class="p">,</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">ax</span><span class="o">.</span><span class="n">transData</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">Formatoption</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1">#: texts that shall be removed when updating</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="c1">#: :class:`matplotlib.texts.Text` instances on the figure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_remove_texttuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Remove a texttuple from the value in the plotter</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pos: tuple (x, y, cs)</span>
+<span class="sd">            x and y are the x- and y-positions and cs the coordinate system&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">old_cs</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span><span class="p">,</span> <span class="n">old_cs</span><span class="p">)</span> <span class="o">==</span> <span class="n">pos</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> not found!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_update_texttuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the text tuple at `x` and `y` with the given `s` and `d`&quot;&quot;&quot;</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span><span class="p">,</span> <span class="n">old_s</span><span class="p">,</span> <span class="n">old_cs</span><span class="p">,</span> <span class="n">old_d</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span><span class="p">,</span> <span class="n">old_cs</span><span class="p">)</span> <span class="o">==</span> <span class="n">pos</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">old_cs</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+                <span class="k">return</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No text tuple found at </span><span class="si">{0}</span><span class="s2">!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Text.set_value"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.set_value">[docs]</a>    <span class="k">def</span> <span class="nf">set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">todefault</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">validate</span> <span class="k">else</span> <span class="n">value</span>
+        <span class="c1"># mark all texts for removing if value is empty</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">or</span> <span class="n">todefault</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">no_validation</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cs</span><span class="p">,</span> <span class="n">texts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
+                    <span class="n">pos</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cs</span><span class="p">))</span>
+
+        <span class="c1"># loop through texttuples to see whether one changed or has to be</span>
+        <span class="c1"># removed. x: x-coord, y: y-coord, s: string, cs: coord.-system,</span>
+        <span class="c1"># d: text params dictionary</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_remove_texttuple</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cs</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cs</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_update_texttuple</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Text.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">texts_to_remove</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># remove texts</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">texts_to_remove</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="p">[</span><span class="n">cs</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">get_position</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="p">[</span><span class="n">cs</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+                    <span class="k">break</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">replot</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">value</span>
+        <span class="c1"># now update the old texts or create new ones</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cs</span> <span class="o">==</span> <span class="s1">&#39;fig&#39;</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fig_data_attrs</span><span class="p">(</span>
+                        <span class="n">d</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;delimiter&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">enhanced_attrs</span><span class="p">)</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="p">[</span><span class="n">cs</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">==</span> <span class="n">t</span><span class="o">.</span><span class="n">get_position</span><span class="p">():</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                    <span class="n">t</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="p">[</span><span class="n">cs</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">transform</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">[</span><span class="n">cs</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="Text.share"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.share">[docs]</a>    <span class="k">def</span> <span class="nf">share</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmto</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Share the settings of this formatoption with other data objects</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fmto: Formatoption</span>
+<span class="sd">            The :class:`Formatoption` instance to share the attributes with</span>
+<span class="sd">        ``**kwargs``</span>
+<span class="sd">            Any other keyword argument that shall be passed to the update</span>
+<span class="sd">            method of `fmto`</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The Text formatoption sets the &#39;texts_to_remove&#39; keyword to the</span>
+<span class="sd">        :attr:`_texts_to_remove` attribute of this instance (if not already</span>
+<span class="sd">        specified in ``**kwargs``&quot;&quot;&quot;</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s1">&#39;texts_to_remove&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">share</span><span class="p">(</span><span class="n">fmto</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Text.diff"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.diff">[docs]</a>    <span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">my_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">my_value</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">val</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">my_value</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Text.finish_update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.finish_update">[docs]</a>    <span class="k">def</span> <span class="nf">finish_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clears the :attr:`_texts_to_remove` set&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_texts_to_remove</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Text.remove"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Text.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="p">)):</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_texts</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="Tight"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Tight">[docs]</a><span class="k">class</span> <span class="nc">Tight</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Automatically adjust the plots.</span>
+
+<span class="sd">    If set to True, the plots are automatically adjusted to fit to the figure</span>
+<span class="sd">    limitations via the :func:`matplotlib.pyplot.tight_layout()` function.</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True for automatic adjustment</span>
+
+<span class="sd">    Warnings</span>
+<span class="sd">    --------</span>
+<span class="sd">    There is no update method to undo what happend after this formatoption is</span>
+<span class="sd">    set to True!&quot;&quot;&quot;</span>
+
+    <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;axes&#39;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Tight layout&#39;</span>
+
+<div class="viewcode-block" id="Tight.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Tight.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">sca</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="BackgroundColor"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.BackgroundColor">[docs]</a><span class="k">class</span> <span class="nc">BackgroundColor</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The background color for the matplotlib axes.</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    &#39;rc&#39;</span>
+<span class="sd">        to use matplotlibs rc params</span>
+<span class="sd">    None</span>
+<span class="sd">        to use a transparent color</span>
+<span class="sd">    color</span>
+<span class="sd">        Any possible matplotlib color</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;axes&#39;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Background color of the plot&#39;</span>
+
+<div class="viewcode-block" id="BackgroundColor.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.BackgroundColor.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s1">&#39;rc&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.facecolor&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.facecolor&#39;</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patch</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BackgroundColor.get_fmt_widget"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.BackgroundColor.get_fmt_widget">[docs]</a>    <span class="k">def</span> <span class="nf">get_fmt_widget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">psy_simple.widgets.colors</span> <span class="kn">import</span> <span class="n">BackGroundColorWidget</span>
+        <span class="k">return</span> <span class="n">BackGroundColorWidget</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ValueMaskBase"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.ValueMaskBase">[docs]</a><span class="k">class</span> <span class="nc">ValueMaskBase</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for masking formatoptions&quot;&quot;&quot;</span>
+    <span class="n">priority</span> <span class="o">=</span> <span class="n">START</span>
+
+    <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;masking&#39;</span>
+
+    <span class="n">data_dependent</span> <span class="o">=</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="ValueMaskBase.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.ValueMaskBase.mask_func">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The masking function that is called&quot;&quot;&quot;</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="ValueMaskBase.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.ValueMaskBase.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_data</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mask_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_mask_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_func</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">)],</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="MaskLess"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskLess">[docs]</a><span class="k">class</span> <span class="nc">MaskLess</span><span class="p">(</span><span class="n">ValueMaskBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask data points smaller than a number</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    float</span>
+<span class="sd">        The floating number to mask below</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    maskleq, maskgreater, maskgeq, maskbetween</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Mask less&#39;</span>
+
+<div class="viewcode-block" id="MaskLess.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskLess.mask_func">[docs]</a>    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="MaskLeq"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskLeq">[docs]</a><span class="k">class</span> <span class="nc">MaskLeq</span><span class="p">(</span><span class="n">ValueMaskBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask data points smaller than or equal to a number</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    float</span>
+<span class="sd">        The floating number to mask below</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    maskless, maskgreater, maskgeq, maskbetween</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Mask lesser than or equal&#39;</span>
+
+<div class="viewcode-block" id="MaskLeq.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskLeq.mask_func">[docs]</a>    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="MaskGreater"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskGreater">[docs]</a><span class="k">class</span> <span class="nc">MaskGreater</span><span class="p">(</span><span class="n">ValueMaskBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask data points greater than a number</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    float</span>
+<span class="sd">        The floating number to mask above</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    maskless, maskleq, maskgeq, maskbetween</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Mask greater&#39;</span>
+
+<div class="viewcode-block" id="MaskGreater.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskGreater.mask_func">[docs]</a>    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="MaskGeq"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskGeq">[docs]</a><span class="k">class</span> <span class="nc">MaskGeq</span><span class="p">(</span><span class="n">ValueMaskBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask data points greater than or equal to a number</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    float</span>
+<span class="sd">        The floating number to mask above</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    maskless, maskleq, maskgreater, maskbetween</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Mask greater than or equal&#39;</span>
+
+<div class="viewcode-block" id="MaskGeq.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskGeq.mask_func">[docs]</a>    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">data</span> <span class="o">&gt;=</span> <span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="MaskBetween"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskBetween">[docs]</a><span class="k">class</span> <span class="nc">MaskBetween</span><span class="p">(</span><span class="n">ValueMaskBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mask data points between two numbers</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    float</span>
+<span class="sd">        The floating number to mask above</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    maskless, maskleq, maskgreater, maskgeq</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Mask between two values&#39;</span>
+
+<div class="viewcode-block" id="MaskBetween.mask_func"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.MaskBetween.mask_func">[docs]</a>    <span class="k">def</span> <span class="nf">mask_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">data</span> <span class="o">&gt;=</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span> <span class="o">&lt;=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">return</span> <span class="n">data</span></div></div>
+
+
+<div class="viewcode-block" id="Mask"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Mask">[docs]</a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">Formatoption</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Mask the data where a certain condition is True</span>
+
+<span class="sd">    This formatoption can be used to mask the plotting data based on another</span>
+<span class="sd">    array. This array can be the name of a variable in the base dataset,</span>
+<span class="sd">    or it can be a numeric array. Note that the data needs to be on exactly</span>
+<span class="sd">    the same coordinates as the data shown here</span>
+
+<span class="sd">    Possible types</span>
+<span class="sd">    --------------</span>
+<span class="sd">    None</span>
+<span class="sd">        Apply no mask</span>
+<span class="sd">    str</span>
+<span class="sd">        The name of a variable in the base dataset to use.</span>
+
+<span class="sd">        - dimensions that are in the given `mask` but not in the visualized</span>
+<span class="sd">          base variable will be aggregated using :func:`numpy.any`</span>
+<span class="sd">        - if the given `mask` misses dimensions that are in the visualized</span>
+<span class="sd">          data (i.e. the data of this plotter), we broadcast the `mask` to</span>
+<span class="sd">          match the shape of the data</span>
+<span class="sd">        - dimensions that are in `mask` and the base variable, but not in the</span>
+<span class="sd">          visualized data will be matched against each other</span>
+<span class="sd">    str</span>
+<span class="sd">        The path to a netCDF file that shall be loaded</span>
+<span class="sd">    xr.DataArray or np.ndarray</span>
+<span class="sd">        An array that can be broadcasted to the shape of the data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">priority</span> <span class="o">=</span> <span class="n">START</span>
+
+    <span class="n">group</span> <span class="o">=</span> <span class="s1">&#39;masking&#39;</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Apply a mask&quot;</span>
+
+<div class="viewcode-block" id="Mask.update"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Mask.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_data</span><span class="p">):</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_mask</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">))</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">base</span>
+            <span class="n">new_data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">idims</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">idims</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">new_data</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mask.diff"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Mask.diff">[docs]</a>    <span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">((</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">|</span>
+                        <span class="p">(</span><span class="n">value</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Mask.load_mask"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.Mask.load_mask">[docs]</a>    <span class="k">def</span> <span class="nf">load_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">base</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">base</span><span class="p">[</span><span class="n">value</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No intersection between dimensions of mask &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mask</span><span class="o">.</span><span class="n">dims</span><span class="si">}</span><span class="s2">, and the data: &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">open_dataset</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is not in the base dataset of &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">arr_name</span><span class="si">}</span><span class="s2"> and could not be loaded with &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;psy.open_dataset(</span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">available_vars</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">mask</span>
+                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="n">v</span><span class="p">]</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">available_vars</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No variable in </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> has an overlap &quot;</span>
+                                     <span class="sa">f</span><span class="s2">&quot;with the data dimensions </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">available_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">base_var</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">iter_base_variables</span><span class="p">)</span>
+
+        <span class="c1"># aggregate mask over dimensions that are not in the base variable</span>
+        <span class="n">dims2agg</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">base_var</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">dims2agg</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">dims2agg</span><span class="p">))</span>
+
+        <span class="c1"># select idims of mask</span>
+        <span class="n">idims</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="n">sl</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">psy</span><span class="o">.</span><span class="n">idims</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                 <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">mask</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dims</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">idims</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="o">**</span><span class="n">idims</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mask</span></div></div>
+
+
+<div class="viewcode-block" id="TitlesPlotter"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.TitlesPlotter">[docs]</a><span class="k">class</span> <span class="nc">TitlesPlotter</span><span class="p">(</span><span class="n">Plotter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plotter class for labels&quot;&quot;&quot;</span>
+    <span class="n">_rcparams_string</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;plotter.baseplotter.&#39;</span><span class="p">]</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">Title</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span>
+    <span class="n">titlesize</span> <span class="o">=</span> <span class="n">label_size</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">titleweight</span> <span class="o">=</span> <span class="n">label_weight</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">titleprops</span> <span class="o">=</span> <span class="n">label_props</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">figtitle</span> <span class="o">=</span> <span class="n">Figtitle</span><span class="p">(</span><span class="s1">&#39;figtitle&#39;</span><span class="p">)</span>
+    <span class="n">figtitlesize</span> <span class="o">=</span> <span class="n">label_size</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="s1">&#39;figure title&#39;</span><span class="p">)</span>
+    <span class="n">figtitleweight</span> <span class="o">=</span> <span class="n">label_weight</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="s1">&#39;figure title&#39;</span><span class="p">)</span>
+    <span class="n">figtitleprops</span> <span class="o">=</span> <span class="n">label_props</span><span class="p">(</span><span class="n">figtitle</span><span class="p">,</span> <span class="s1">&#39;figure title&#39;</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">Text</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BasePlotter"><a class="viewcode-back" href="../../api/psy_simple.base.html#psy_simple.base.BasePlotter">[docs]</a><span class="k">class</span> <span class="nc">BasePlotter</span><span class="p">(</span><span class="n">TitlesPlotter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class with formatoptions for plotting on an matplotlib axes&quot;&quot;&quot;</span>
+    <span class="n">_rcparams_string</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;plotter.baseplotter.&#39;</span><span class="p">]</span>
+
+    <span class="n">tight</span> <span class="o">=</span> <span class="n">Tight</span><span class="p">(</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+    <span class="n">background</span> <span class="o">=</span> <span class="n">BackgroundColor</span><span class="p">(</span><span class="s1">&#39;background&#39;</span><span class="p">)</span>
+    <span class="n">maskless</span> <span class="o">=</span> <span class="n">MaskLess</span><span class="p">(</span><span class="s1">&#39;maskless&#39;</span><span class="p">)</span>
+    <span class="n">maskleq</span> <span class="o">=</span> <span class="n">MaskLeq</span><span class="p">(</span><span class="s1">&#39;maskleq&#39;</span><span class="p">)</span>
+    <span class="n">maskgreater</span> <span class="o">=</span> <span class="n">MaskGreater</span><span class="p">(</span><span class="s1">&#39;maskgreater&#39;</span><span class="p">)</span>
+    <span class="n">maskgeq</span> <span class="o">=</span> <span class="n">MaskGeq</span><span class="p">(</span><span class="s1">&#39;maskgeq&#39;</span><span class="p">)</span>
+    <span class="n">maskbetween</span> <span class="o">=</span> <span class="n">MaskBetween</span><span class="p">(</span><span class="s1">&#39;maskbetween&#39;</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">Mask</span><span class="p">(</span><span class="s1">&#39;mask&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum Geesthacht, 2016-2021 University of Lausanne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

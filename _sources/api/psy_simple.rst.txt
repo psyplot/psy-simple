@@ -1,0 +1,26 @@
+API Reference
+===================
+
+.. automodule:: psy_simple
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   psy_simple.widgets
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   psy_simple.base
+   psy_simple.colors
+   psy_simple.plotters
+   psy_simple.plugin

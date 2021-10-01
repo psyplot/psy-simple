@@ -1,0 +1,6 @@
+psyplot.project.plot.barplot
+============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.barplot

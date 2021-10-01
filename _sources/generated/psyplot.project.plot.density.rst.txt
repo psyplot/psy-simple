@@ -1,0 +1,6 @@
+psyplot.project.plot.density
+============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.density

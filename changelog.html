@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; psy-simple 1.3.1+2.gb164fb4 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="_static/example_gallery_styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="psy_simple.plugin module" href="api/psy_simple.plugin.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> psy-simple
+          </a>
+              <div class="version">
+                1.3.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_methods.html">psyplot plot methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">Contributing to psy-simple</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/psy_simple.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v1-4-0">v1.4.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-3-1">v1.3.1</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-3-0">v1.3.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-2-0">v1.2.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-1-0">v1.1.0</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Changed</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">psy-simple</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Changelog</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changelog.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changelog">
+<span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<section id="v1-4-0">
+<h2>v1.4.0<a class="headerlink" href="#v1-4-0" title="Permalink to this headline">¶</a></h2>
+<p>Compatibility fixes and LGPL license</p>
+<p>As with psyplot 1.4.0, psy-simple is now continuously tested and deployed with
+CircleCI.</p>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Compatibility fixes for matplotlib&gt;=3.3</p></li>
+</ul>
+</section>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>psy-simple is now officially licensed under LGPL-3.0-only,
+see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/28">#28</a></p></li>
+<li><p>We use CicleCI now for a standardized CI/CD pipeline to build and test
+the code and docs all at one place, see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/27">#27</a></p></li>
+</ul>
+</section>
+</section>
+<section id="v1-3-1">
+<h2>v1.3.1<a class="headerlink" href="#v1-3-1" title="Permalink to this headline">¶</a></h2>
+<p>Patch for plotting the polygons with 3D bounds</p>
+<section id="id2">
+<h3>Changed<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>the values <code class="docutils literal notranslate"><span class="pre">'tri'</span></code>, <code class="docutils literal notranslate"><span class="pre">'tricontour'</span></code> and <code class="docutils literal notranslate"><span class="pre">'tricontourf'</span></code> for the <code class="docutils literal notranslate"><span class="pre">plot</span></code>
+formatoptions have been depreceated and should be replaced by <code class="docutils literal notranslate"><span class="pre">'poly'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'contour'</span></code> and <code class="docutils literal notranslate"><span class="pre">'contourf'</span></code> respectively, see
+<a class="reference external" href="https://github.com/psyplot/psy-simple/pull/23">#23</a></p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>Fixed<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>A bug was fixed with the <code class="docutils literal notranslate"><span class="pre">extend</span></code> formatoption if <code class="docutils literal notranslate"><span class="pre">plot=None</span></code>, see
+<a class="reference external" href="https://github.com/psyplot/psy-simple/pull/20">#20</a></p></li>
+<li><p>variables with 3D bounds are now interpreted correctly, see
+<a class="reference external" href="https://github.com/psyplot/psy-simple/pull/24">#24</a></p></li>
+</ul>
+</section>
+</section>
+<section id="v1-3-0">
+<h2>v1.3.0<a class="headerlink" href="#v1-3-0" title="Permalink to this headline">¶</a></h2>
+<p>New background and mask formatoptions and more options for colorbar bounds</p>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p>a new <code class="docutils literal notranslate"><span class="pre">background</span></code> formatoption has been implemented that allows to set the
+facecolor of the axes (i.e. the background color for the plot)</p></li>
+<li><p>a new <code class="docutils literal notranslate"><span class="pre">mask</span></code> formatoption has been implemented that allows to mask the
+data based on a mask that can either be in the dataset or in a separate
+file (see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/15">#15</a>)</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">bounds</span></code> and other <code class="docutils literal notranslate"><span class="pre">ticks</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">xticks,</span> <span class="pre">yticks,</span> <span class="pre">cticks</span></code>)
+formatoptions have gained multiple new  values (all backwards-compatible, see
+<a class="reference external" href="https://github.com/psyplot/psy-simple/pull/13">#13</a>):</p>
+<ul>
+<li><p>they now support discrete logarithmic and symmetric bounds/ticks via
+<code class="docutils literal notranslate"><span class="pre">bounds='log'</span></code> and <code class="docutils literal notranslate"><span class="pre">bounds='symlog'</span></code>.</p></li>
+<li><p>The bounds and other tick formatoptions (<cite>xticks, cticks, yticks, etc.</cite>) now
+support a dictionary as a value, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plotter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="s1">&#39;percmin&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+</pre></div>
+</div>
+</li>
+<li><p>You can specify <code class="docutils literal notranslate"><span class="pre">vmin</span></code> and <code class="docutils literal notranslate"><span class="pre">vmax</span></code> for color bounds and ticks which
+prevents their automatic estimation, e.g. via:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plotter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="s1">&#39;vmin&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;vmax&#39;</span><span class="p">:</span> <span class="mi">75</span><span class="p">})</span>
+<span class="c1"># or</span>
+<span class="n">plotter</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bounds</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">75</span><span class="p">])</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h3>Changed<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>values in the statusbar are only shown, if the drawn artist contains the
+cursor position, see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/18">#18</a></p></li>
+<li><p>psy-simple now requires matplotlib greater or equal than 2.0</p></li>
+<li><p>psy-simple has been moved from <a class="reference external" href="https://github.com/Chilipp/psy-simple">https://github.com/Chilipp/psy-simple</a> to <a class="reference external" href="https://github.com/psyplot/psy-simple">https://github.com/psyplot/psy-simple</a>,
+see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/7">#7</a></p></li>
+<li><p>The color handling of the <cite>color</cite> formatoption has been changed to allow
+appending of new data. The <cite>colors</cite> attribute can be extended by the
+<cite>color_cycle</cite> using the <cite>extended_colors</cite> attribute (see
+<a class="reference external" href="https://github.com/psyplot/psy-simple/pull/10">#10</a>)</p></li>
+</ul>
+</section>
+<section id="id5">
+<h3>Fixed<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed a bug to calculate color bounds for uniform data,
+see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/9">#9</a></p></li>
+<li><p>An issue has been fixed with the setting of colorbar ticks after updating
+the colorbar bounds (see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/13">#13</a>)</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-2-0">
+<h2>v1.2.0<a class="headerlink" href="#v1-2-0" title="Permalink to this headline">¶</a></h2>
+<section id="id6">
+<h3>Added<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">plot2d</span></code> plotmethod now also supports unstructured data of any shape
+(see <a class="reference external" href="https://github.com/psyplot/psyplot/issues/6">issue#6</a>)</p></li>
+<li><p>Added a <code class="docutils literal notranslate"><span class="pre">categorical</span></code> formatoption to the <code class="docutils literal notranslate"><span class="pre">barplot</span></code> plot method to allow
+a switch between categorical and non-categorical plots</p></li>
+<li><p>The lineplot method now also support <code class="docutils literal notranslate"><span class="pre">'stacked'</span></code> plots</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-1-0">
+<h2>v1.1.0<a class="headerlink" href="#v1-1-0" title="Permalink to this headline">¶</a></h2>
+<section id="id7">
+<h3>Added<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Changelog</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interp_bounds</span></code> formatoption for the <code class="docutils literal notranslate"><span class="pre">plot2d</span></code> plot method (see the
+<a class="reference external" href="https://psyplot.readthedocs.io/projects/psy-simple/en/latest/api/psy_simple.plotters.html#psy_simple.plotters.Simple2DPlotter.interp_bounds">docs</a>)</p></li>
+<li><p>Added the <code class="docutils literal notranslate"><span class="pre">fldmean</span></code> plot method that can be used to directly calculate and
+plot the mean over the x- and y-dimensions</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Changed<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The xlim and ylim formatoptions now consider inverted x- and y-axes</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api/psy_simple.plugin.html" class="btn btn-neutral float-left" title="psy_simple.plugin module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum Geesthacht, 2016-2021 University of Lausanne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

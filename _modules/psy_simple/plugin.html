@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>psy_simple.plugin &mdash; psy-simple 1.3.1+2.gb164fb4 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/example_gallery_styles.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> psy-simple
+          </a>
+              <div class="version">
+                1.3.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_methods.html">psyplot plot methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contribute.html">Contributing to psy-simple</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/psy_simple.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">psy-simple</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>psy_simple.plugin</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for psy_simple.plugin</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;psy-simple psyplot plugin</span>
+
+<span class="sd">This module defines the rcParams for the psy-simple plugin.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Disclaimer</span>
+<span class="c1"># ----------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2021 Helmholtz-Zentrum Hereon</span>
+<span class="c1"># Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht</span>
+<span class="c1"># Copyright (C) 2016-2021 University of Lausanne</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of psy-simple and is released under the GNU LGPL-3.O license.</span>
+<span class="c1"># See COPYING and COPYING.LESSER in the root of the repository for full</span>
+<span class="c1"># licensing details.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU Lesser General Public License version 3.0 as</span>
+<span class="c1"># published by the Free Software Foundation.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU LGPL-3.0 license for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU LGPL-3.0 license</span>
+<span class="c1"># along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">dataclasses</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">enum</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">ArrowStyle</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">repeat</span>
+<span class="kn">from</span> <span class="nn">psyplot.config.rcsetup</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">RcParams</span><span class="p">,</span> <span class="n">safe_list</span><span class="p">,</span> <span class="n">SubDict</span><span class="p">,</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="n">validate_stringlist</span><span class="p">,</span>
+    <span class="n">validate_stringset</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">matplotlib.rcsetup</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">validate_bool</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span>
+    <span class="n">ValidateInStrings</span><span class="p">,</span> <span class="n">validate_int</span><span class="p">,</span> <span class="n">validate_legend_loc</span><span class="p">,</span>
+    <span class="n">validate_colorlist</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">psy_simple</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">plugin_version</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+
+<div class="viewcode-block" id="get_versions"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.get_versions">[docs]</a><span class="k">def</span> <span class="nf">get_versions</span><span class="p">(</span><span class="n">requirements</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="n">plugin_version</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="patch_prior_1_0"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.patch_prior_1_0">[docs]</a><span class="k">def</span> <span class="nf">patch_prior_1_0</span><span class="p">(</span><span class="n">plotter_d</span><span class="p">,</span> <span class="n">versions</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Patch psy_simple plotters for versions smaller than 1.0</span>
+
+<span class="sd">    Before psyplot 1.0.0, the plotters in the psy_simple package where part of</span>
+<span class="sd">    the psyplot.plotter.simple module. This has to be corrected&quot;&quot;&quot;</span>
+    <span class="n">plotter_d</span><span class="p">[</span><span class="s1">&#39;cls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span> <span class="n">plotter_d</span><span class="p">[</span><span class="s1">&#39;cls&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<span class="c1">#: patches to apply when loading a project</span>
+<span class="n">patches</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;LinRegPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;DensityRegPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;ViolinPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;Simple2DPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;SimpleVectorPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;BarPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;CombinedSimplePlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;DensityPlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;LinePlotter&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">(</span><span class="s1">&#39;psyplot.plotter.simple&#39;</span><span class="p">,</span> <span class="s1">&#39;SimplePlotterBase&#39;</span><span class="p">):</span> <span class="n">patch_prior_1_0</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
+<span class="n">bound_strings</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="s1">&#39;mid&#39;</span><span class="p">,</span> <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="s1">&#39;roundedsym&#39;</span><span class="p">,</span> <span class="s1">&#39;minmax&#39;</span><span class="p">,</span> <span class="s1">&#39;sym&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="s1">&#39;symlog&#39;</span><span class="p">]</span>
+
+<span class="n">tick_strings</span> <span class="o">=</span> <span class="n">bound_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span> <span class="s1">&#39;day&#39;</span><span class="p">,</span> <span class="s1">&#39;week&#39;</span><span class="p">,</span> <span class="s1">&#39;month&#39;</span><span class="p">,</span> <span class="s1">&#39;monthend&#39;</span><span class="p">,</span>
+                                <span class="s1">&#39;monthbegin&#39;</span><span class="p">,</span> <span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="s1">&#39;yearend&#39;</span><span class="p">,</span> <span class="s1">&#39;yearbegin&#39;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="strEnum"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.strEnum">[docs]</a><span class="k">class</span> <span class="nc">strEnum</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<span class="n">BoundsMethod</span> <span class="o">=</span> <span class="n">strEnum</span><span class="p">(</span>
+    <span class="s1">&#39;BoundsMethod&#39;</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bound_strings</span><span class="p">,</span> <span class="n">bound_strings</span><span class="p">),</span> <span class="n">module</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">cticks_strings</span> <span class="o">=</span> <span class="n">bound_strings</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;midbounds&#39;</span><span class="p">]</span>
+
+
+<span class="n">CTicksMethod</span> <span class="o">=</span> <span class="n">strEnum</span><span class="p">(</span>
+    <span class="s1">&#39;CTicksMethod&#39;</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">cticks_strings</span><span class="p">,</span> <span class="n">cticks_strings</span><span class="p">),</span> <span class="n">module</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">TicksMethod</span> <span class="o">=</span> <span class="n">strEnum</span><span class="p">(</span>
+    <span class="s1">&#39;TicksMethod&#39;</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tick_strings</span><span class="p">,</span> <span class="n">tick_strings</span><span class="p">),</span> <span class="n">module</span><span class="o">=</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BoundsType"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.BoundsType">[docs]</a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">BoundsType</span><span class="p">:</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">BoundsMethod</span>
+    <span class="n">N</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">percmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">percmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">vmin</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">vmax</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;method&#39;</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="n">dataclasses</span><span class="o">.</span><span class="n">astuple</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="CTicksType"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.CTicksType">[docs]</a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">CTicksType</span><span class="p">(</span><span class="n">BoundsType</span><span class="p">):</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">CTicksMethod</span></div>
+
+
+<div class="viewcode-block" id="TicksType"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.TicksType">[docs]</a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span> <span class="nc">TicksType</span><span class="p">(</span><span class="n">BoundsType</span><span class="p">):</span>
+    <span class="n">method</span><span class="p">:</span> <span class="n">TicksMethod</span></div>
+
+
+<div class="viewcode-block" id="try_and_error"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.try_and_error">[docs]</a><span class="k">def</span> <span class="nf">try_and_error</span><span class="p">(</span><span class="o">*</span><span class="n">funcs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply multiple validation functions</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ``*funcs``</span>
+<span class="sd">        Validation functions to test</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    function&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">exc</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">exc</span> <span class="o">=</span> <span class="n">e</span>
+        <span class="k">raise</span> <span class="n">exc</span>
+    <span class="k">return</span> <span class="n">validate</span></div>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># ------------------------- validation functions ------------------------------</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="validate_str"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_str">[docs]</a><span class="k">def</span> <span class="nf">validate_str</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a string</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    s: str</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Did not found string!&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_float"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_float">[docs]</a><span class="k">def</span> <span class="nf">validate_float</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;convert `s` to float or raise</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    s converted to a float: float</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not convert &quot;</span><span class="si">%s</span><span class="s1">&quot; to float&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="validate_text"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_text">[docs]</a><span class="k">def</span> <span class="nf">validate_text</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a text formatoption</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value: see :attr:`psyplot.plotter.labelplotter.text`</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="n">possible_transform</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="s1">&#39;fig&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">]</span>
+    <span class="n">validate_transform</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;transform&#39;</span><span class="p">,</span> <span class="n">possible_transform</span><span class="p">,</span>
+                                           <span class="kc">True</span><span class="p">)</span>
+    <span class="n">tests</span> <span class="o">=</span> <span class="p">[</span><span class="n">validate_float</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">,</span>
+             <span class="n">validate_transform</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">xpos</span><span class="p">,</span> <span class="n">ypos</span> <span class="o">=</span> <span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;texts.default_position&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">xpos</span><span class="p">,</span> <span class="n">ypos</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="s1">&#39;axes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;ha&#39;</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span><span class="p">})]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)[:]</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value must be string or list of tuples!&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Text must be an iterable of the form &quot;</span>
+                <span class="s2">&quot;(x, y, s[, trans, params])!&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Text tuple must at least be like [x, y, s], with floats x, &quot;</span>
+                <span class="s2">&quot;y and string s!&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">val</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">val</span> <span class="o">+=</span> <span class="p">[{}]</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Text tuple must not be longer then length 5. It can be &quot;</span>
+                <span class="s2">&quot;like (x, y, s[, trans, params])!&quot;</span><span class="p">)</span>
+        <span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">validate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">validate</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tests</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="validate_fontweight"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_fontweight">[docs]</a><span class="k">def</span> <span class="nf">validate_fontweight</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mpl</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;=</span> <span class="s1">&#39;1.5&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">validate_float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Font weights must be None or a string!&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_limits"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_limits">[docs]</a><span class="k">def</span> <span class="nf">validate_limits</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Limits must have length 2!&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_none"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_none">[docs]</a><span class="k">def</span> <span class="nf">validate_none</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate that None is given</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    b: {None, &#39;none&#39;}</span>
+<span class="sd">        None or string (the case is ignored)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="o">==</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not convert &quot;</span><span class="si">%s</span><span class="s1">&quot; to None&#39;</span> <span class="o">%</span> <span class="n">b</span><span class="p">)</span></div>
+
+
+<span class="n">validate_bool_maybe_none</span> <span class="o">=</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_bool</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="validate_axiscolor"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_axiscolor">[docs]</a><span class="k">def</span> <span class="nf">validate_axiscolor</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a dictionary containing axiscolor definitions</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value: dict</span>
+<span class="sd">        see :attr:`psyplot.plotter.baseplotter.axiscolor`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="n">validate</span> <span class="o">=</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">)</span>
+    <span class="n">possible_keys</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;bottom&#39;</span><span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">false_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-</span> <span class="n">possible_keys</span>
+        <span class="k">if</span> <span class="n">false_keys</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong keys (</span><span class="si">%s</span><span class="s2">)!&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">false_keys</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">possible_keys</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">))))</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="validate_dataarray"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_dataarray">[docs]</a><span class="k">def</span> <span class="nf">validate_dataarray</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Require xarray.DataArray, not </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="validate_marker"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_marker">[docs]</a><span class="k">def</span> <span class="nf">validate_marker</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Does not really make a validation because markers can be quite of</span>
+<span class="sd">    different types&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">safe_list</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_alpha"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_alpha">[docs]</a><span class="k">def</span> <span class="nf">validate_alpha</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Validate an alpha value between 0 and 1&#39;&#39;&#39;</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">validate_float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Alpha values must lay between 0 and 1!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="validate_iter"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_iter">[docs]</a><span class="k">def</span> <span class="nf">validate_iter</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate that the given value is an iterable&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">iter</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not an iterable!&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="validate_cbarpos"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_cbarpos">[docs]</a><span class="k">def</span> <span class="nf">validate_cbarpos</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a colorbar position</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value: bool or str</span>
+<span class="sd">        A string can be a combination of &#39;sh|sv|fl|fr|ft|fb|b|r&#39;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        list of strings with possible colorbar positions</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="n">patt</span> <span class="o">=</span> <span class="s1">&#39;sh|sv|fl|fr|ft|fb|b|r&#39;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;b&#39;</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="s1">&#39;[^</span><span class="si">%s</span><span class="s1">]+&#39;</span> <span class="o">%</span> <span class="n">patt</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Unknown colorbar position </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="o">.</span><span class="n">group</span><span class="p">(),</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">patt</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">validate_stringset</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">(</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span>
+                  <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">patt</span><span class="p">,</span> <span class="n">s</span><span class="p">)):</span>
+            <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Unknown colorbar position </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="n">s</span><span class="p">)</span>
+            <span class="n">value</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="validate_cmap"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_cmap">[docs]</a><span class="k">def</span> <span class="nf">validate_cmap</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a colormap</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    val: str or :class:`mpl.colors.Colormap`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str or :class:`mpl.colors.Colormap`</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError&quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">Colormap</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">validate_str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Colormap</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Could not find a valid colormap!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="validate_cmaps"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_cmaps">[docs]</a><span class="k">def</span> <span class="nf">validate_cmaps</span><span class="p">(</span><span class="n">cmaps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a dictionary of color lists</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cmaps: dict</span>
+<span class="sd">        a mapping from a colormap name to a list of colors</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If one of the values in `cmaps` is not a color list</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For all items (listname, list) in `cmaps`, the reversed list is</span>
+<span class="sd">    automatically inserted with the ``listname + &#39;_r&#39;`` key.&quot;&quot;&quot;</span>
+    <span class="n">cmaps</span> <span class="o">=</span> <span class="p">{</span><span class="n">validate_str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">validate_colorlist</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">cmaps</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">cmaps</span><span class="p">):</span>
+        <span class="n">cmaps</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;_r&#39;</span><span class="p">,</span> <span class="n">val</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">cmaps</span></div>
+
+
+<div class="viewcode-block" id="validate_sym_lims"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_sym_lims">[docs]</a><span class="k">def</span> <span class="nf">validate_sym_lims</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+        <span class="s1">&#39;sym_links&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">))</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">safe_list</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">val</span> <span class="o">+</span> <span class="n">val</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need two values for the symmetric limits, not </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">validator</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="validate_legend"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_legend">[docs]</a><span class="k">def</span> <span class="nf">validate_legend</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="n">validate_int</span><span class="p">(</span><span class="n">value</span><span class="p">)}</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="n">validate_legend_loc</span><span class="p">(</span><span class="n">value</span><span class="p">)}</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">validate_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="s1">&#39;best&#39;</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="kc">False</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="validate_lineplot"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_lineplot">[docs]</a><span class="k">def</span> <span class="nf">validate_lineplot</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate the value for the LinePlotter.plot formatoption</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    value: None, str or list with mixture of both</span>
+<span class="sd">        The value to validate&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+                <span class="n">value</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expected None or string, found </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="p">))</span>
+    <span class="k">return</span> <span class="n">value</span></div>
+
+
+<span class="n">validate_ticklabels</span> <span class="o">=</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">,</span>
+                                    <span class="n">validate_stringlist</span><span class="p">)</span>
+
+<span class="n">validate_extend</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;extend&#39;</span><span class="p">,</span>
+                                    <span class="p">[</span><span class="s1">&#39;neither&#39;</span><span class="p">,</span> <span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="ValidateList"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.ValidateList">[docs]</a><span class="k">class</span> <span class="nc">ValidateList</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validate a list of the specified `dtype`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">listtype</span><span class="o">=</span><span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dtype: object</span>
+<span class="sd">            A datatype (e.g. :class:`float`) that shall be used for the</span>
+<span class="sd">            conversion</span>
+<span class="sd">        length: int</span>
+<span class="sd">            The expected length of the list</span>
+<span class="sd">        listtype: type</span>
+<span class="sd">            The type to use for creating the list. Should accept any iterable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#: data type (e.g. :class:`float`) used for the conversion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span> <span class="o">=</span> <span class="nb">list</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Validate whether `l` is a list with contents of :attr:`dtype`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        l: list-like</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            list with values of dtype :attr:`dtype`</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">validated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="n">validated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">validated</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">listtype</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+                        <span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">validated</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dtype</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                                <span class="k">pass</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="k">break</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s2"> cannot be converted to any of the &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;given data types: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Could not convert to list!&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Could not convert to list of type </span><span class="si">%s</span><span class="s2">!&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">validated</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;List with length </span><span class="si">%i</span><span class="s1"> is required! Not </span><span class="si">%i</span><span class="s1">!&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">validated</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">validated</span></div>
+
+
+<div class="viewcode-block" id="validate_err_calc"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_err_calc">[docs]</a><span class="k">def</span> <span class="nf">validate_err_calc</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Validation function for the</span>
+<span class="sd">    :attr:`psy_simple.plotter.FldmeanPlotter.err_calc` formatoption&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">validate_float</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;=</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Percentiles for the error calculation must lie &quot;</span>
+                         <span class="s2">&quot;between 0 and 100, not </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="mi">2</span><span class="p">)(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">((</span><span class="n">v</span> <span class="o">&lt;=</span> <span class="mi">100</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">val</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Percentiles for the error calculation must lie &quot;</span>
+                         <span class="s2">&quot;between 0 and 100, not </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">val</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">validate_str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;std&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;A string for the error calculation must contain std!&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<div class="viewcode-block" id="DictValValidator"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.DictValValidator">[docs]</a><span class="k">class</span> <span class="nc">DictValValidator</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A validation class for formatoptions that expect dictionaries as values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">validators</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">ignorecase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key: str</span>
+<span class="sd">            The name of the formatoption (will be used for error handling)</span>
+<span class="sd">        valid: list of str</span>
+<span class="sd">            The valid keys for the dictionary</span>
+<span class="sd">        validators: func</span>
+<span class="sd">            The validation function for the values of the dictionary</span>
+<span class="sd">        default: object</span>
+<span class="sd">            The default value to use if a key from `valid` is given in the</span>
+<span class="sd">            provided value</span>
+<span class="sd">        ignorecase: bool</span>
+<span class="sd">            Whether the case of the keys should be ignored</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="n">valid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">key_validator</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">valid</span><span class="p">,</span> <span class="n">ignorecase</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validate</span> <span class="o">=</span> <span class="n">validators</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+            <span class="n">failed_key</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">iteritems</span><span class="p">(</span><span class="n">value</span><span class="p">)):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_validator</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="n">failed_key</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span><span class="p">[</span><span class="n">new_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">failed_key</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)}</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid</span><span class="p">,</span> <span class="n">repeat</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">value</span><span class="p">)}</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="TicksValidator"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.TicksValidator">[docs]</a><span class="k">class</span> <span class="nc">TicksValidator</span><span class="p">(</span><span class="n">ValidateInStrings</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="c1"># validate the ticks</span>
+        <span class="c1"># if None, int or tuple (defining min- and max-range), pass</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="c1"># strings must be in the given list</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">TicksType</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">TicksType</span><span class="p">(</span><span class="o">**</span><span class="n">val</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">TicksType</span><span class="p">(</span><span class="o">*</span><span class="n">val</span><span class="p">))</span>
+        <span class="c1"># otherwise we assume an array</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ValidateList</span><span class="p">()(</span><span class="n">val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BoundsValidator"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.BoundsValidator">[docs]</a><span class="k">class</span> <span class="nc">BoundsValidator</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="n">possible_instances</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For parameter description see</span>
+<span class="sd">        :class:`matplotlib.rcsetup.ValidateInStrings`.</span>
+
+<span class="sd">        Other Parameters</span>
+<span class="sd">        ----------------</span>
+<span class="sd">        inis: tuple</span>
+<span class="sd">            Tuple of object types that may pass the check</span>
+<span class="sd">        default: str</span>
+<span class="sd">            The default string to use for an integer (Default: &#39;rounded&#39;)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">possible_instances</span> <span class="o">=</span> <span class="n">possible_instances</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+
+<div class="viewcode-block" id="BoundsValidator.instance_check"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.BoundsValidator.instance_check">[docs]</a>    <span class="k">def</span> <span class="nf">instance_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_instances</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">possible_instances</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">instance_check</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="o">**</span><span class="n">val</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="o">*</span><span class="n">val</span><span class="p">))</span>
+        <span class="c1"># otherwise we assume an array</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">float</span><span class="p">)(</span><span class="n">val</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LineWidthValidator"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.LineWidthValidator">[docs]</a><span class="k">class</span> <span class="nc">LineWidthValidator</span><span class="p">(</span><span class="n">ValidateInStrings</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">val</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">ValidateInStrings</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="o">.</span><span class="n">ndim</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">ValidateInStrings</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="c1"># otherwise we assume an array</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="validate_plot"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_plot">[docs]</a><span class="k">def</span> <span class="nf">validate_plot</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+        <span class="s1">&#39;2d plot&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">,</span> <span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;tri&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontourf&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontour&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">val</span> <span class="o">=</span> <span class="n">validator</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="n">depr_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;tri&quot;</span><span class="p">:</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="s2">&quot;tricontourf&quot;</span><span class="p">:</span> <span class="s2">&quot;contourf&quot;</span><span class="p">,</span> <span class="s2">&quot;tricontour&quot;</span><span class="p">:</span> <span class="s2">&quot;contour&quot;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">depr_map</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;plot=</span><span class="si">%r</span><span class="s2"> is depreceated for the plot formatoption and will be &quot;</span>
+             <span class="s2">&quot;removed in psy-simple 1.4.0. Please use plot=</span><span class="si">%r</span><span class="s2"> instead.&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                 <span class="n">val</span><span class="p">,</span> <span class="n">depr_map</span><span class="p">[</span><span class="n">val</span><span class="p">]),</span>
+             <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">depr_map</span><span class="p">[</span><span class="n">val</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">val</span></div>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># ------------------------------ rcParams -------------------------------------</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="c1">#: the :class:`~psyplot.config.rcsetup.RcParams` for the psy-simple plugin</span>
+<span class="n">rcParams</span> <span class="o">=</span> <span class="n">RcParams</span><span class="p">(</span><span class="n">defaultParams</span><span class="o">=</span><span class="p">{</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># ----------------------- Registered plotters -----------------------------</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="s1">&#39;project.plotters&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;simple&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;SimplePlotterBase&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plot_func&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;All plotters that are visualized by the psy-simple &#39;</span>
+                         <span class="s1">&#39;package&#39;</span><span class="p">)},</span>
+         <span class="s1">&#39;lineplot&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;LinePlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a line plot of one-dimensional data&#39;</span><span class="p">},</span>
+         <span class="s1">&#39;fldmean&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;FldmeanPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Calculate and plot the mean over x- and y-dimensions&#39;</span>
+             <span class="p">},</span>
+         <span class="s1">&#39;density&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;DensityPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a density plot of point data&#39;</span><span class="p">},</span>
+         <span class="s1">&#39;barplot&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;BarPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a bar plot of one-dimensional data&#39;</span><span class="p">},</span>
+         <span class="s1">&#39;violinplot&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;ViolinPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a violin plot of your data&#39;</span><span class="p">},</span>
+         <span class="s1">&#39;plot2d&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Simple2DPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+             <span class="s1">&#39;default_dims&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)},</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a simple plot of a 2D scalar field&#39;</span><span class="p">},</span>
+         <span class="s1">&#39;vector&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;SimpleVectorPlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+             <span class="s1">&#39;default_dims&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)},</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="s1">&#39;Make a simple plot of a 2D vector field&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;example_call&#39;</span><span class="p">:</span> <span class="s2">&quot;filename, name=[[&#39;u_var&#39;, &#39;v_var&#39;]], ...&quot;</span><span class="p">},</span>
+         <span class="s1">&#39;combined&#39;</span><span class="p">:</span> <span class="p">{</span>
+             <span class="s1">&#39;module&#39;</span><span class="p">:</span> <span class="s1">&#39;psy_simple.plotters&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;plotter_name&#39;</span><span class="p">:</span> <span class="s1">&#39;CombinedSimplePlotter&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;prefer_list&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+             <span class="s1">&#39;default_slice&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+             <span class="s1">&#39;default_dims&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)},</span>
+             <span class="s1">&#39;summary&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;Plot a 2D scalar field with an overlying vector &#39;</span>
+                         <span class="s1">&#39;field&#39;</span><span class="p">),</span>
+             <span class="s1">&#39;example_call&#39;</span><span class="p">:</span> <span class="p">(</span>
+                 <span class="s2">&quot;filename, name=[[&#39;my_variable&#39;, [&#39;u_var&#39;, &#39;v_var&#39;]]], ...&quot;</span><span class="p">)},</span>
+         <span class="p">},</span>
+        <span class="n">validate_dict</span><span class="p">],</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># --------------------- Default formatoptions -----------------------------</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="s1">&#39;plotter.baseplotter.tight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="n">validate_bool</span><span class="p">,</span>
+                                  <span class="s1">&#39;fmt key for tight layout of the plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.grid&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">False</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_bool_maybe_none</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to visualize the grid on simple plots (i.e. without &#39;</span>
+        <span class="s1">&#39;projection)&#39;</span><span class="p">],</span>
+
+    <span class="c1"># labels</span>
+    <span class="s1">&#39;plotter.baseplotter.title&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="s1">&#39;fmt key to control the title of the axes&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.figtitle&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="s1">&#39;fmt key to control the title of the axes&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.text&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[],</span> <span class="n">validate_text</span><span class="p">,</span> <span class="s1">&#39;fmt key to show text anywhere on the plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.ylabel&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="s1">&#39;fmt key to modify the y-axis label for simple&#39;</span>
+        <span class="s1">&#39;plot (i.e. plots withouth projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xlabel&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="s1">&#39;fmt key to modify the y-axis label for simple&#39;</span>
+        <span class="s1">&#39;plot (i.e. plots withouth projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.clabel&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">,</span> <span class="s1">&#39;fmt key to modify the colorbar label for 2D&#39;</span>
+        <span class="s1">&#39;plots&#39;</span><span class="p">],</span>
+
+    <span class="c1"># text sizes</span>
+    <span class="s1">&#39;plotter.baseplotter.titlesize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;large&#39;</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontsize of the axes title&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.figtitlesize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">12</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span> <span class="s1">&#39;fmt key for the fontsize of the figure title&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.labelsize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;labelsize&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">validate_fontsize</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the fontsize of the x- and y-l abel of simple plots &#39;</span>
+        <span class="s1">&#39;(i.e. without projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.ticksize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;ticksize&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">validate_fontsize</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the fontsize of the ticklabels of x- and y-axis of &#39;</span>
+        <span class="s1">&#39;simple plots (i.e. without projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cticksize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontsize of the ticklabels of the colorbar of 2D &#39;</span>
+        <span class="s1">&#39;plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.clabelsize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontsize of the colorbar label&#39;</span><span class="p">],</span>
+
+    <span class="c1"># text weights</span>
+    <span class="s1">&#39;plotter.baseplotter.titleweight&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_fontweight</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontweight of the axes title&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.figtitleweight&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_fontweight</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontweight of the figure title&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.labelweight&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;labelweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">validate_fontweight</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the fontweight of the x- and y-l abel of simple plots &#39;</span>
+        <span class="s1">&#39;(i.e. without projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.tickweight&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span>
+        <span class="s1">&#39;tickweight&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">validate_fontweight</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the fontweight of the ticklabels of x- and y-axis of &#39;</span>
+        <span class="s1">&#39;simple plots (i.e. without projection)&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.ctickweight&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_fontweight</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontweight of the ticklabels of the colorbar of 2D &#39;</span>
+        <span class="s1">&#39;plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.clabelweight&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_fontweight</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the fontweight of the colorbar label&#39;</span><span class="p">],</span>
+
+    <span class="c1"># text properties</span>
+    <span class="s1">&#39;plotter.baseplotter.titleprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{},</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="s1">&#39;fmt key for the additional properties of the title&#39;</span>
+        <span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.figtitleprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{},</span> <span class="n">validate_dict</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the additional properties of the figure title&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.labelprops&#39;</span><span class="p">:</span> <span class="p">[{},</span> <span class="n">DictValValidator</span><span class="p">(</span>
+        <span class="s1">&#39;labelprops&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the additional properties of the x- and y-label&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xtickprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="p">{}},</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;xtickprops&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the additional properties of the ticklabels of x-axis&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.ytickprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="p">{}},</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;ytickprops&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the additional properties of the ticklabels of y-axis&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.clabelprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{},</span> <span class="n">validate_dict</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the additional properties of the colorbar label&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.ctickprops&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{},</span> <span class="n">validate_dict</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key for the additional properties of the colorbar ticklabels&#39;</span><span class="p">],</span>
+
+    <span class="c1"># mask formatoptions</span>
+    <span class="s1">&#39;plotter.baseplotter.background&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;rc&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;background&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rc&#39;</span><span class="p">]),</span>
+                            <span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">),</span>
+        <span class="s2">&quot;The background color for the plot&quot;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.mask&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">,</span> <span class="n">validate_dataarray</span><span class="p">)],</span>
+    <span class="s1">&#39;plotter.baseplotter.maskleq&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to mask values less or equal than a certain threshold&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.maskless&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to mask values less than a certain threshold&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.maskgreater&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to mask values greater than a certain threshold&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.maskgeq&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to mask values greater than or equal to a certain threshold&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.baseplotter.maskbetween&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key to mask values between a certain range&#39;</span><span class="p">],</span>
+
+    <span class="c1"># density plotter</span>
+    <span class="s1">&#39;plotter.density.coord&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_dataarray</span><span class="p">,</span>
+                            <span class="n">validate_str</span><span class="p">,</span> <span class="n">validate_stringlist</span><span class="p">),</span>
+        <span class="s1">&#39;Alternative x-coordinate to use for DensityPlotter&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.xrange&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;minmax&#39;</span><span class="p">,</span> <span class="n">validate_limits</span><span class="p">,</span> <span class="s1">&#39;The histogram limits of the density plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.yrange&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;minmax&#39;</span><span class="p">,</span> <span class="n">validate_limits</span><span class="p">,</span> <span class="s1">&#39;The histogram limits of the density plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.precision&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_float</span><span class="p">,</span> <span class="n">ValidateList</span><span class="p">((</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
+                         <span class="n">validate_str</span><span class="p">),</span>
+        <span class="s1">&#39;The precision of the data to make sure that the bin width is not &#39;</span>
+        <span class="s1">&#39;below this value&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.bins&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">10</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_int</span><span class="p">,</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="s1">&#39;The bins in x- and y-direction of the density plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.normed&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+            <span class="s1">&#39;normed&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;area&#39;</span><span class="p">,</span> <span class="s1">&#39;counts&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;col&#39;</span><span class="p">,</span> <span class="s1">&#39;column&#39;</span><span class="p">,</span> <span class="s1">&#39;columns&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="s1">&#39;rows&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)),</span>
+        <span class="s1">&#39;The normalization of the density histogram&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.density.density&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;hist&#39;</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;density&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;hist&#39;</span><span class="p">,</span> <span class="s1">&#39;kde&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)],</span>
+
+    <span class="c1"># axis color</span>
+    <span class="s1">&#39;plotter.simple.axiscolor&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_axiscolor</span><span class="p">,</span> <span class="s1">&#39;fmt key to modify the color of the spines&#39;</span><span class="p">],</span>
+
+    <span class="c1"># SimplePlot</span>
+    <span class="s1">&#39;plotter.line.coord&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_dataarray</span><span class="p">,</span>
+                            <span class="n">validate_str</span><span class="p">,</span> <span class="n">validate_stringlist</span><span class="p">),</span>
+        <span class="s1">&#39;Alternative x-coordinate to use for LinePlotter&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.plot&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">validate_lineplot</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to modify the line style&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.error&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;fill&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;fill&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">),</span>
+                              <span class="n">validate_none</span><span class="p">),</span>
+        <span class="s1">&#39;The visualization type of the errors for line plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.marker&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_marker</span><span class="p">,</span> <span class="s1">&#39;The symbol of the marker&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.markersize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;The size of the marker&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.linewidth&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;The widths of the lines&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.line.erroralpha&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mf">0.15</span><span class="p">,</span> <span class="n">validate_alpha</span><span class="p">,</span> <span class="s1">&#39;The alpha value of the error range&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.bar.coord&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_dataarray</span><span class="p">,</span>
+                            <span class="n">validate_str</span><span class="p">,</span> <span class="n">validate_stringlist</span><span class="p">),</span>
+        <span class="s1">&#39;Alternative x-coordinate to use for BarPlotter&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.bar.widths&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span>
+            <span class="n">validate_float</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+                <span class="s1">&#39;widths&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;equal&#39;</span><span class="p">,</span> <span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key to change between equal and data given width of the bars&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.bar.categorical&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_bool_maybe_none</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to change between categorical and non-categorical plotting&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.bar.alpha&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mf">1.0</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to control the transparency for the bar plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.bar.plot&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="n">validate_lineplot</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to modify whether bar plots shall be stacked or not&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.violin.plot&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">True</span><span class="p">,</span> <span class="n">validate_bool_maybe_none</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to modify whether violin plots shall be drawn&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.transpose&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">False</span><span class="p">,</span> <span class="n">validate_bool</span><span class="p">,</span> <span class="s1">&#39;fmt key to switch x- and y-axis&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.color&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_cmap</span><span class="p">,</span> <span class="n">validate_iter</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to modify the color cycle simple plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.ylim&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="n">validate_limits</span><span class="p">,</span> <span class="s1">&#39;fmt key to specify the y-axis limits&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xlim&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="n">validate_limits</span><span class="p">,</span> <span class="s1">&#39;fmt key to specify the x-axis limits&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.sym_lims&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_sym_lims</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to make symmetric x- and y-axis limits&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xticks&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;xticks&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">TicksValidator</span><span class="p">(</span>
+                <span class="s1">&#39;xticks&#39;</span><span class="p">,</span> <span class="n">tick_strings</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to modify the x-axis ticks&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.yticks&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span><span class="s1">&#39;major&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span> <span class="n">DictValValidator</span><span class="p">(</span>
+            <span class="s1">&#39;yticks&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="n">TicksValidator</span><span class="p">(</span>
+                <span class="s1">&#39;yticks&#39;</span><span class="p">,</span> <span class="n">tick_strings</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to modify the y-axis ticks&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xticklabels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span><span class="s1">&#39;xticklabels&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span>
+                               <span class="n">validate_ticklabels</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to modify the x-axis ticklabels&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.yticklabels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">DictValValidator</span><span class="p">(</span><span class="s1">&#39;yticklabels&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span>
+                               <span class="n">validate_ticklabels</span><span class="p">,</span> <span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to modify the y-axis ticklabels&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.xrotation&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to modify the rotation of the x-axis ticklabels&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.yrotation&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to modify the rotation of the x-axis ticklabels&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.legendlabels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;</span><span class="si">%(arr_name)s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span>
+            <span class="n">validate_str</span><span class="p">,</span> <span class="n">ValidateList</span><span class="p">(</span><span class="n">six</span><span class="o">.</span><span class="n">text_type</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key to modify the legend labels&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.simple.legend&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">True</span><span class="p">,</span> <span class="n">validate_legend</span><span class="p">,</span> <span class="s1">&#39;fmt key to draw a legend&#39;</span><span class="p">],</span>
+
+    <span class="c1"># FldmeanPlotter</span>
+    <span class="s1">&#39;plotter.fldmean.mean&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span>
+            <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">),</span>
+            <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s2">&quot;The calculation result, either the &#39;mean&#39;, &#39;median&#39; or a percentile&quot;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.fldmean.err_calc&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">validate_err_calc</span><span class="p">,</span>
+        <span class="s2">&quot;The error calculation method, either the &#39;std&#39; or a minimum &quot;</span>
+        <span class="s2">&quot;and maximum percentile&quot;</span><span class="p">],</span>
+
+    <span class="c1"># Plot2D</span>
+    <span class="s1">&#39;plotter.plot2d.interp_bounds&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_bool_maybe_none</span><span class="p">,</span>
+        <span class="s1">&#39;Switch to interpolate the bounds for 2D plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.plot&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;mesh&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_plot</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to specify the plot type of 2D scalar plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.plot.min_circle_ratio&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mf">0.05</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to specify the min_circle_ratio that is used to mask very &#39;</span>
+        <span class="s1">&#39; flat triangles in a triangular plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cbar&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="n">validate_cbarpos</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to specify the position of the colorbar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cbarspacing&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;uniform&#39;</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to specify the spacing of the colorbar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.miss_color&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to specify the color of missing values&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cmap&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;white_blue_red&#39;</span><span class="p">,</span> <span class="n">validate_cmap</span><span class="p">,</span> <span class="s1">&#39;fmt key to specify the colormap&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cticks&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">BoundsValidator</span><span class="p">(</span>
+            <span class="n">CTicksType</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;bounds&#39;</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key to specify the ticks of the colorbar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.cticklabels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">validate_ticklabels</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to specify the ticklabels of the colorbar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.extend&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;neither&#39;</span><span class="p">,</span> <span class="n">validate_extend</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to specify the style of the colorbar on minimum and maximum&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.bounds&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;rounded&#39;</span><span class="p">,</span> <span class="n">BoundsValidator</span><span class="p">(</span><span class="n">BoundsType</span><span class="p">,</span> <span class="s1">&#39;bounds&#39;</span><span class="p">,</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to specify bounds and norm of the colorbar&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.levels&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">BoundsValidator</span><span class="p">(</span><span class="n">BoundsType</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to specify the levels for a contour plot&#39;</span><span class="p">],</span>
+    <span class="c1"># TODO: Implement opacity</span>
+    <span class="c1"># &#39;plotter.plot2d.opacity&#39;: [None, try_and_error(validate_none,</span>
+    <span class="c1">#                                                validate_opacity)],</span>
+    <span class="s1">&#39;plotter.plot2d.datagrid&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_dict</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key to plot the lines of the data grid&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.plot2d.mask_datagrid&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">True</span><span class="p">,</span> <span class="n">validate_bool</span><span class="p">,</span>
+        <span class="s1">&#39;fmt key to mask cells with NaN when plotting the data grid&#39;</span><span class="p">],</span>
+
+    <span class="c1"># VectorPlot</span>
+    <span class="s1">&#39;plotter.vector.plot&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;quiver&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+            <span class="s1">&#39;2d plot&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;quiver&#39;</span><span class="p">,</span> <span class="s1">&#39;stream&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key for the plot type of vector plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.vector.arrowsize&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_none</span><span class="p">,</span> <span class="n">validate_float</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the size of the arrows on vector plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.vector.arrowstyle&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;-|&gt;&#39;</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s1">&#39;arrowstyle&#39;</span><span class="p">,</span> <span class="n">ArrowStyle</span><span class="o">.</span><span class="n">_style_list</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the style of the arrows on stream plots&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.vector.density&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="mf">1.0</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_float</span><span class="p">,</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key for the density of arrows on a vector plot&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.vector.linewidth&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">LineWidthValidator</span><span class="p">(</span><span class="s1">&#39;linewidth&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;absolute&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;fmt key for the linewidths of the arrows&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;plotter.vector.color&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">try_and_error</span><span class="p">(</span><span class="n">validate_float</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+            <span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;absolute&#39;</span><span class="p">,</span> <span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="s1">&#39;v&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)),</span>
+        <span class="s1">&#39;fmt key for the colors of the arrows&#39;</span><span class="p">],</span>
+
+    <span class="c1"># default texts</span>
+    <span class="s1">&#39;texts.labels&#39;</span><span class="p">:</span> <span class="p">[{</span><span class="s1">&#39;tinfo&#39;</span><span class="p">:</span> <span class="s1">&#39;%H:%M&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;dtinfo&#39;</span><span class="p">:</span> <span class="s1">&#39;%B </span><span class="si">%d</span><span class="s1">, %Y. %H:%M&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;dinfo&#39;</span><span class="p">:</span> <span class="s1">&#39;%B </span><span class="si">%d</span><span class="s1">, %Y&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;desc&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(long_name)s</span><span class="s1"> [</span><span class="si">%(units)s</span><span class="s1">]&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;sdesc&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(name)s</span><span class="s1"> [</span><span class="si">%(units)s</span><span class="s1">]&#39;</span><span class="p">},</span> <span class="n">validate_dict</span><span class="p">,</span>
+                     <span class="s1">&#39;labels that shall be replaced in TextBase formatoptions&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39; (e.g. the title formatoption) when inserted within &#39;</span>
+                     <span class="s1">&#39;curly braces (</span><span class="si">{}</span><span class="s1">))&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;texts.default_position&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">ValidateList</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                               <span class="s1">&#39;default position for the text fmt key&#39;</span><span class="p">],</span>
+    <span class="s1">&#39;texts.delimiter&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">validate_str</span><span class="p">,</span>
+                        <span class="s1">&#39;default delimiter to separate netCDF meta attributes &#39;</span>
+                        <span class="s1">&#39;when displayed on the plot&#39;</span><span class="p">],</span>
+
+    <span class="c1"># -------------------------------------------------------------------------</span>
+    <span class="c1"># ---------------------------- Miscallaneous ------------------------------</span>
+    <span class="c1"># -------------------------------------------------------------------------</span>
+
+    <span class="c1"># color lists for user-defined colormaps (see for example</span>
+    <span class="c1"># psy_simple.colors._cmapnames)</span>
+    <span class="s1">&#39;colors.cmaps&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{},</span> <span class="n">validate_cmaps</span><span class="p">,</span>
+        <span class="s1">&#39;User defined color lists that shall be accessible through the &#39;</span>
+        <span class="s1">&#39;:meth:`psyplot.plotter.colors.get_cmap` function&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;widgets.colors.cmaps&#39;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="s2">&quot;Reds&quot;</span><span class="p">,</span> <span class="s2">&quot;Blues&quot;</span><span class="p">,</span> <span class="s2">&quot;Greens&quot;</span><span class="p">,</span> <span class="s2">&quot;binary&quot;</span><span class="p">,</span> <span class="s2">&quot;RdBu&quot;</span><span class="p">,</span> <span class="s2">&quot;coolwarm&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;red_white_blue&quot;</span><span class="p">,</span> <span class="s2">&quot;winter&quot;</span><span class="p">,</span> <span class="s2">&quot;jet&quot;</span><span class="p">,</span> <span class="s2">&quot;white_blue_red&quot;</span><span class="p">,</span> <span class="s2">&quot;gist_ncar&quot;</span><span class="p">,</span>
+         <span class="s2">&quot;gist_earth&quot;</span><span class="p">,</span> <span class="s2">&quot;Paired&quot;</span><span class="p">,</span> <span class="s2">&quot;gnuplot&quot;</span><span class="p">,</span> <span class="s2">&quot;gnuplot2&quot;</span><span class="p">],</span>
+        <span class="n">validate_stringlist</span><span class="p">,</span>
+        <span class="s1">&#39;Colormaps that should be listed in the context menu of the cmap &#39;</span>
+        <span class="s1">&#39;button&#39;</span><span class="p">],</span>
+
+    <span class="s1">&#39;ticks.which&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
+        <span class="s1">&#39;ticks.which&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;major&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">),</span>
+        <span class="s1">&#39;default tick that is used when using a x- or y-tick formatoption&#39;</span><span class="p">],</span>
+    <span class="p">})</span>
+
+
+<span class="c1"># add combinedplotter strings for vectorplot</span>
+<span class="n">_subd</span> <span class="o">=</span> <span class="n">SubDict</span><span class="p">(</span><span class="n">rcParams</span><span class="o">.</span><span class="n">defaultParams</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;plotter.vector.&#39;</span><span class="p">,</span> <span class="s1">&#39;plotter.plot2d.&#39;</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">_key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;plot&#39;</span><span class="p">,</span> <span class="s1">&#39;cbar&#39;</span><span class="p">,</span> <span class="s1">&#39;cmap&#39;</span><span class="p">,</span> <span class="s1">&#39;bounds&#39;</span><span class="p">,</span> <span class="s1">&#39;cticksize&#39;</span><span class="p">,</span> <span class="s1">&#39;cbarspacing&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;ctickweight&#39;</span><span class="p">,</span> <span class="s1">&#39;ctickprops&#39;</span><span class="p">,</span> <span class="s1">&#39;clabel&#39;</span><span class="p">,</span> <span class="s1">&#39;cticks&#39;</span><span class="p">,</span> <span class="s1">&#39;cticklabels&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;clabelsize&#39;</span><span class="p">,</span> <span class="s1">&#39;clabelprops&#39;</span><span class="p">,</span> <span class="s1">&#39;clabelweight&#39;</span><span class="p">]:</span>
+    <span class="n">rcParams</span><span class="o">.</span><span class="n">defaultParams</span><span class="p">[</span><span class="s1">&#39;plotter.combinedsimple.v</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_subd</span><span class="p">[</span><span class="n">_key</span><span class="p">]</span>
+<span class="n">rcParams</span><span class="o">.</span><span class="n">defaultParams</span><span class="p">[</span><span class="s1">&#39;plotter.combinedsimple.plot&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rcParams</span><span class="o">.</span><span class="n">defaultParams</span><span class="p">[</span>
+    <span class="s1">&#39;plotter.plot2d.plot&#39;</span><span class="p">]</span>
+<span class="k">del</span> <span class="n">_key</span><span class="p">,</span> <span class="n">_subd</span>
+
+
+<span class="n">rcParams</span><span class="o">.</span><span class="n">update_from_defaultParams</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum Geesthacht, 2016-2021 University of Lausanne.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

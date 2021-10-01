@@ -1,0 +1,6 @@
+psyplot.project.plot.fldmean
+============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.fldmean

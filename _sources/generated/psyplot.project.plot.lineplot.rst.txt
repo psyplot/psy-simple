@@ -1,0 +1,6 @@
+psyplot.project.plot.lineplot
+=============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.lineplot

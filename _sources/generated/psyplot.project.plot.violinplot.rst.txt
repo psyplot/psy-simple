@@ -1,0 +1,6 @@
+psyplot.project.plot.violinplot
+===============================
+
+.. currentmodule:: psyplot.project
+
+.. autoattribute:: plot.violinplot

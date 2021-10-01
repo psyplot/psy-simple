@@ -1,0 +1,16 @@
+psy\_simple.widgets package
+===========================
+
+.. automodule:: psy_simple.widgets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   psy_simple.widgets.colors
+   psy_simple.widgets.texts
