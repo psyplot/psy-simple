@@ -239,8 +239,7 @@ intersphinx_mapping = {
     'cartopy': ('https://scitools.org.uk/cartopy/docs/latest/', None),
     'mpl_toolkits': ('https://matplotlib.org/basemap/', None),
     'psyplot': ('https://psyplot.github.io/psyplot/', None),
-    'psy_maps': (
-        'https://psyplot.readthedocs.io/projects/psy-maps/en/latest/', None),
+    'psy_maps': ('https://psyplot.github.io/psy-maps/', None),
     'psy_reg': ('https://psyplot.readthedocs.io/projects/psy-reg/en/latest/',
                 None),
     'python': ('https://docs.python.org/3/', None),
