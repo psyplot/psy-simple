@@ -80,11 +80,6 @@ templates_path = ['_templates']
 process_examples = (
     not osp.exists(osp.join(osp.dirname(__file__), 'examples')))
 
-if on_rtd:
-    spr.call([sys.executable] +
-             ('-m ipykernel install --user --name python3 '
-              '--display-name python3').split())
-
 if not osp.exists(osp.join(osp.dirname(__file__), 'api')):
     spr.check_call(['bash', 'apigen.bash'])
 
