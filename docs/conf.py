@@ -76,10 +76,6 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from
-# docs.readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
 # process the examples if they don't exist already
 process_examples = (
     not osp.exists(osp.join(osp.dirname(__file__), 'examples')))
@@ -164,18 +160,13 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = 'sphinx_rtd_theme'
 
-    # Add any paths that contain custom static files (such as style sheets)
-    # here, relative to this directory. They are copied after the builtin
-    # static files, so a file named "default.css" will overwrite the builtin
-    # "default.css".
-    html_static_path = ['_static']
-
-# otherwise, readthedocs.org uses their theme by default, so no need to specify
+# Add any paths that contain custom static files (such as style sheets)
+# here, relative to this directory. They are copied after the builtin
+# static files, so a file named "default.css" will overwrite the builtin
+# "default.css".
+html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'psy-simpledoc'

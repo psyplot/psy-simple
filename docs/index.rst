@@ -16,7 +16,7 @@ the psy-maps_ or psy-reg_ plugin.
 See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
 
 
-.. _psy-maps: http://psyplot.readthedocs.io/projects/psy-maps/en/latest/
+.. _psy-maps: http://psyplot.github.io/psy-maps/
 .. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/en/latest/
 
 .. start-badges
@@ -36,9 +36,9 @@ See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
         * - implementations
           - |supported-versions| |supported-implementations|
 
-    .. |docs| image:: http://readthedocs.org/projects/psy-simple/badge/?version=latest
-        :alt: Documentation Status
-        :target: http://psy-simple.readthedocs.io/en/latest/?badge=latest
+    .. |docs| image:: https://img.shields.io/github/deployments/psyplot/psy-simple/github-pages
+        :alt: Documentation
+        :target: http://psyplot.github.io/psy-simple/
 
     .. |circleci| image:: https://circleci.com/gh/psyplot/psy-simple/tree/master.svg?style=svg
         :alt: CircleCI
