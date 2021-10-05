@@ -233,7 +233,7 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'matplotlib': ('http://matplotlib.org/stable/', None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
     'sphinx': ('https://www.sphinx-doc.org/en/stable/', None),
     'xarray': ('https://xarray.pydata.org/en/stable/', None),
     'cartopy': ('https://scitools.org.uk/cartopy/docs/latest/', None),
