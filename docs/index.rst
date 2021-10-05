@@ -30,7 +30,7 @@ See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
         * - docs
           - |docs|
         * - tests
-          - |circleci| |appveyor| |requires| |codecov|
+          - |circleci| |appveyor| |codecov|
         * - package
           - |version| |conda| |github| |zenodo|
         * - implementations
@@ -51,10 +51,6 @@ See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
     .. |codecov| image:: https://codecov.io/gh/psyplot/psy-simple/branch/master/graph/badge.svg
         :alt: Coverage
         :target: https://codecov.io/gh/psyplot/psy-simple
-
-    .. |requires| image:: https://requires.io/github/psyplot/psy-simple/requirements.svg?branch=master
-        :alt: Requirements Status
-        :target: https://requires.io/github/psyplot/psy-simple/requirements/?branch=master
 
     .. |version| image:: https://img.shields.io/pypi/v/psy-simple.svg?style=flat
         :alt: PyPI Package latest release
@@ -94,6 +90,28 @@ Documentation
     contribute
     api/psy_simple
     changelog
+
+
+Copyright
+---------
+Copyright © 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum
+Geesthacht, 2016-2021 University of Lausanne
+
+This file is part of psy-simple and is released under the GNU LGPL-3.O license.
+See COPYING and COPYING.LESSER in the root of the repository for full
+licensing details.
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License version 3.0 as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU LGPL-3.0 license for more details.
+
+You should have received a copy of the GNU LGPL-3.0 license
+along with this program.  If not, see https://www.gnu.org/licenses/.
 
 
 
