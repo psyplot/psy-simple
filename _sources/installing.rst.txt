@@ -11,12 +11,12 @@ How to install
 Installation using conda
 ^^^^^^^^^^^^^^^^^^^^^^^^
 We highly recommend to use conda_ for installing psy-simple. After downloading
-the installer from anaconda_, you can install psy-simple simply via::
+the `miniconda installer`_, you can install psy-simple simply via::
 
     $ conda install -c conda-forge psy-simple
 
-.. _anaconda: https://www.continuum.io/downloads
-.. _conda: http://conda.io/
+.. _miniconda installer: https://conda.io/en/latest/miniconda.html
+.. _conda: https://docs.conda.io/en/latest/
 
 Installation using pip
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -37,5 +37,5 @@ First, clone the github_ repository, and install psy-simple and pytest_. Then
 
     $ pytest
 
-.. _pytest: https://pytest.org/latest/contents.html
+.. _pytest: https://pytest.org/en/latest/contents.html
 .. _github: https://github.com/psyplot/psy-simple

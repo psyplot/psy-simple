@@ -4,11 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>psy_simple.colors module &mdash; psy-simple 1.3.1+2.gb164fb4 documentation</title>
+  <title>psy_simple.colors module &mdash; psy-simple 1.3.1+4.gc7e3acf documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/plot_directive.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/example_gallery_styles.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -87,7 +86,7 @@
            <div itemprop="articleBody">
              
   <section id="module-psy_simple.colors">
-<span id="psy-simple-colors-module"></span><h1>psy_simple.colors module<a class="headerlink" href="#module-psy_simple.colors" title="Permalink to this headline">¶</a></h1>
+<span id="psy-simple-colors-module"></span><h1>psy_simple.colors module<a class="headerlink" href="#module-psy_simple.colors" title="Permalink to this headline"></a></h1>
 <p>colors module of the psyplot package.</p>
 <p>This module contains some additional color maps and the show_colormaps
 function to visualize available colormaps.</p>
@@ -123,8 +122,8 @@ function to visualize available colormaps.</p>
 </table>
 <dl class="py class">
 <dt class="sig sig-object py" id="psy_simple.colors.FixedBoundaryNorm">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">FixedBoundaryNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncolors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neither'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedBoundaryNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedBoundaryNorm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.BoundaryNorm.html#matplotlib.colors.BoundaryNorm" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.BoundaryNorm</span></code></a></p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">FixedBoundaryNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncolors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'neither'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedBoundaryNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedBoundaryNorm" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.BoundaryNorm.html#matplotlib.colors.BoundaryNorm" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.BoundaryNorm</span></code></a></p>
 <p>Bug fixing Norm with same functionality as matplotlibs BoundaryNorm</p>
 <p>This class fixes a bug in the
 <a class="reference external" href="https://scitools.org.uk/cartopy/docs/latest/reference/generated/cartopy.mpl.geoaxes.GeoAxes.html#cartopy.mpl.geoaxes.GeoAxes.streamplot" title="(in cartopy v0.20.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cartopy.mpl.geoaxes.GeoAxes.streamplot()</span></code></a> for matplotlib version 1.5</p>
@@ -151,7 +150,7 @@ function to visualize available colormaps.</p>
 </pre></div>
 </div>
 <p>This raises in matplotlib.colors, line 1316, in
-<a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.BoundaryNorm.html#matplotlib.colors.BoundaryNorm.__call__" title="(in Matplotlib v3.4.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.colors.BoundaryNorm.__call__()</span></code></a>:</p>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.BoundaryNorm.html#matplotlib.colors.BoundaryNorm.__call__" title="(in Matplotlib v3.4.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.colors.BoundaryNorm.__call__()</span></code></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>``ret = int(ret[0])  # assume python scalar``
 MaskError: Cannot convert masked element to a Python int.
 </pre></div>
@@ -160,8 +159,8 @@ MaskError: Cannot convert masked element to a Python int.
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>boundaries</strong> (<em>array-like</em>) – Monotonically increasing sequence of at least 2 boundaries.</p></li>
-<li><p><strong>ncolors</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – Number of colors in the colormap to be used.</p></li>
-<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>If clip is <code class="docutils literal notranslate"><span class="pre">True</span></code>, out of range values are mapped to 0 if they
+<li><p><strong>ncolors</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – Number of colors in the colormap to be used.</p></li>
+<li><p><strong>clip</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – <p>If clip is <code class="docutils literal notranslate"><span class="pre">True</span></code>, out of range values are mapped to 0 if they
 are below <code class="docutils literal notranslate"><span class="pre">boundaries[0]</span></code> or mapped to <code class="docutils literal notranslate"><span class="pre">ncolors</span> <span class="pre">-</span> <span class="pre">1</span></code> if they
 are above <code class="docutils literal notranslate"><span class="pre">boundaries[-1]</span></code>.</p>
 <p>If clip is <code class="docutils literal notranslate"><span class="pre">False</span></code>, out of range values are mapped to -1 if
@@ -195,8 +194,8 @@ the <code class="docutils literal notranslate"><span class="pre">[0,</span> <spa
 
 <dl class="py class">
 <dt class="sig sig-object py" id="psy_simple.colors.FixedColorMap">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">FixedColorMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedColorMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedColorMap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.LinearSegmentedColormap.html#matplotlib.colors.LinearSegmentedColormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.LinearSegmentedColormap</span></code></a></p>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">FixedColorMap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segmentdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedColorMap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedColorMap" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.LinearSegmentedColormap.html#matplotlib.colors.LinearSegmentedColormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.LinearSegmentedColormap</span></code></a></p>
 <p>Bug fixing colormap with same functionality as matplotlibs colormap</p>
 <p>This class fixes a bug in the
 <a class="reference external" href="https://scitools.org.uk/cartopy/docs/latest/reference/generated/cartopy.mpl.geoaxes.GeoAxes.html#cartopy.mpl.geoaxes.GeoAxes.streamplot" title="(in cartopy v0.20.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cartopy.mpl.geoaxes.GeoAxes.streamplot()</span></code></a> method in python 3.4</p>
@@ -219,7 +218,7 @@ the <code class="docutils literal notranslate"><span class="pre">[0,</span> <spa
 </pre></div>
 </div>
 <p>This raises in matplotlib.colors, line 557, in
-<a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap.__call__" title="(in Matplotlib v3.4.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap.__call__()</span></code></a>:</p>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap.__call__" title="(in Matplotlib v3.4.3)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap.__call__()</span></code></a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>``xa = np.array([X])``
 ValueError: setting an array element with a sequence.
 </pre></div>
@@ -278,19 +277,19 @@ will be linearly interpolated between <em>y1[i]</em> and <em>y0[i+1]</em>:</p>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="psy_simple.colors.FixedColorMap.from_list">
-<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedColorMap.from_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedColorMap.from_list" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">static</span> </em><span class="sig-name descname"><span class="pre">from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#FixedColorMap.from_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.FixedColorMap.from_list" title="Permalink to this definition"></a></dt>
 <dd><p>Create a <cite>LinearSegmentedColormap</cite> from a list of colors.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/stdtypes.html#str" title="(in Python v3.7)"><em>str</em></a>) – The name of the colormap.</p></li>
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The name of the colormap.</p></li>
 <li><p><strong>colors</strong> (<em>array-like of colors</em><em> or </em><em>array-like of</em><em> (</em><em>value</em><em>, </em><em>color</em><em>)</em>) – If only colors are given, they are equidistantly mapped from the
 range <span class="math notranslate nohighlight">\([0, 1]\)</span>; i.e. 0 maps to <code class="docutils literal notranslate"><span class="pre">colors[0]</span></code> and 1 maps to
 <code class="docutils literal notranslate"><span class="pre">colors[-1]</span></code>.
 If (value, color) pairs are given, the mapping is from <em>value</em>
 to <em>color</em>. This can be used to divide the range unevenly.</p></li>
-<li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – The number of rgb quantization levels.</p></li>
-<li><p><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#float" title="(in Python v3.7)"><em>float</em></a>) – </p></li>
+<li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – The number of rgb quantization levels.</p></li>
+<li><p><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -300,28 +299,28 @@ to <em>color</em>. This can be used to divide the range unevenly.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="psy_simple.colors.get_cmap">
-<span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">get_cmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#get_cmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.get_cmap" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">get_cmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#get_cmap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.get_cmap" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the specified colormap.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (str or <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a>) – <p>If a colormap, it returned unchanged.</p>
+<li><p><strong>name</strong> (str or <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a>) – <p>If a colormap, it returned unchanged.</p>
 <blockquote>
 <div><p>Strings may be any valid colormap name suitable for the
-<a class="reference external" href="https://matplotlib.org/api/cm_api.html#matplotlib.cm.get_cmap" title="(in Matplotlib v3.4.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.cm.get_cmap()</span></code></a> function or one of the color lists
+<a class="reference external" href="https://matplotlib.org/stable/api/cm_api.html#matplotlib.cm.get_cmap" title="(in Matplotlib v3.4.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.cm.get_cmap()</span></code></a> function or one of the color lists
 defined in the ‘colors.cmaps’ key of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">psyplot.rcParams</span></code>
 dictionary (including their reversed color maps given via the ‘_r’
 extension).</p>
 </div></blockquote>
 </p></li>
-<li><p><strong>lut</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) – An integer giving the number of entries desired in the lookup table</p></li>
+<li><p><strong>lut</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a>) – An integer giving the number of entries desired in the lookup table</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The colormap specified by <cite>name</cite></p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)">matplotlib.colors.Colormap</a></p>
+<dd class="field-odd"><p><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)">matplotlib.colors.Colormap</a></p>
 </dd>
 </dl>
 <div class="admonition seealso">
@@ -334,29 +333,29 @@ extension).</p>
 <p class="rubric">Notes</p>
 <p>Different from the :func::<cite>matpltolib.pyplot.get_cmap</cite> function, this
 function changes the number of colors if <cite>name</cite> is a
-<a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a> instance to match the given <cite>lut</cite>.</p>
+<a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a> instance to match the given <cite>lut</cite>.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="psy_simple.colors.show_colormaps">
-<span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">show_colormaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_qt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#show_colormaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.show_colormaps" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">psy_simple.colors.</span></span><span class="sig-name descname"><span class="pre">show_colormaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_qt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/psy_simple/colors.html#show_colormaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#psy_simple.colors.show_colormaps" title="Permalink to this definition"></a></dt>
 <dd><p>Function to show standard colormaps from pyplot</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>*args</strong> (str or <a class="reference external" href="https://matplotlib.org/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a>) – <p>If a colormap, it returned unchanged.</p>
+<li><p><strong>*args</strong> (str or <a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.colors.Colormap.html#matplotlib.colors.Colormap" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.colors.Colormap</span></code></a>) – <p>If a colormap, it returned unchanged.</p>
 <blockquote>
 <div><p>Strings may be any valid colormap name suitable for the
-<a class="reference external" href="https://matplotlib.org/api/cm_api.html#matplotlib.cm.get_cmap" title="(in Matplotlib v3.4.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.cm.get_cmap()</span></code></a> function or one of the color lists
+<a class="reference external" href="https://matplotlib.org/stable/api/cm_api.html#matplotlib.cm.get_cmap" title="(in Matplotlib v3.4.3)"><code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.cm.get_cmap()</span></code></a> function or one of the color lists
 defined in the ‘colors.cmaps’ key of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">psyplot.rcParams</span></code>
 dictionary (including their reversed color maps given via the ‘_r’
 extension).</p>
 </div></blockquote>
 </p></li>
-<li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a><em>, </em><em>optional</em>) – Default: 11. The number of increments in the colormap.</p></li>
-<li><p><strong>show</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a><em>, </em><em>optional</em>) – Default: True. If True, show the created figure at the end with
+<li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Default: 11. The number of increments in the colormap.</p></li>
+<li><p><strong>show</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Default: True. If True, show the created figure at the end with
 pyplot.show(block=False)</p></li>
-<li><p><strong>use_qt</strong> (<a class="reference external" href="https://docs.python.org/3.7/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) – If True, use the
+<li><p><strong>use_qt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a>) – If True, use the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">psy_simple.widgets.color.ColormapDialog.show_colormaps</span></code>, if
 False use a matplotlib implementation based on <a class="footnote-reference brackets" href="#id2" id="id1">1</a>. If None, use
 the Qt implementation if it is running in the psyplot GUI.</p></li>
@@ -365,7 +364,7 @@ the Qt implementation if it is running in the psyplot GUI.</p></li>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Depending on <cite>use_qt</cite>, either an instance of the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">psy_simple.widgets.color.ColormapDialog</span></code> or the
-<a class="reference external" href="https://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
+<a class="reference external" href="https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure" title="(in Matplotlib v3.4.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></a></p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>psy_simple.widgets.color.ColormapDialog or matplitlib.figure.Figure</p>
