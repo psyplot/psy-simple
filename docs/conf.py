@@ -70,24 +70,14 @@ extensions = [
     'IPython.sphinxext.ipython_directive',
     'psyplot.sphinxext.extended_napoleon',
     'autodocsumm',
-    'sphinx_nbexamples',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from
-# docs.readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
 # process the examples if they don't exist already
 process_examples = (
     not osp.exists(osp.join(osp.dirname(__file__), 'examples')))
-
-if on_rtd:
-    spr.call([sys.executable] +
-             ('-m ipykernel install --user --name python3 '
-              '--display-name python3').split())
 
 if not osp.exists(osp.join(osp.dirname(__file__), 'api')):
     spr.check_call(['bash', 'apigen.bash'])
@@ -164,18 +154,13 @@ todo_include_todos = True
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 
-if not on_rtd:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+html_theme = 'sphinx_rtd_theme'
 
-    # Add any paths that contain custom static files (such as style sheets)
-    # here, relative to this directory. They are copied after the builtin
-    # static files, so a file named "default.css" will overwrite the builtin
-    # "default.css".
-    html_static_path = ['_static']
-
-# otherwise, readthedocs.org uses their theme by default, so no need to specify
+# Add any paths that contain custom static files (such as style sheets)
+# here, relative to this directory. They are copied after the builtin
+# static files, so a file named "default.css" will overwrite the builtin
+# "default.css".
+html_static_path = ['_static']
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'psy-simpledoc'
@@ -231,23 +216,18 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'pandas': ('http://pandas.pydata.org/pandas-docs/stable/', None),
+    'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
-    'matplotlib': ('http://matplotlib.org/', None),
-    'sphinx': ('http://www.sphinx-doc.org/en/stable/', None),
-    'xarray': ('http://xarray.pydata.org/en/stable/', None),
-    'cartopy': ('http://scitools.org.uk/cartopy/docs/latest/', None),
-    'mpl_toolkits': ('http://matplotlib.org/basemap/', None),
-    'psyplot': ('https://psyplot.readthedocs.io/en/dev', None),
-    'psy_maps': (
-        'https://psyplot.readthedocs.io/projects/psy-maps/en/latest/', None),
-    'psy_reg': ('https://psyplot.readthedocs.io/projects/psy-reg/en/latest/',
-                None),
+    'matplotlib': ('https://matplotlib.org/stable/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/stable/', None),
+    'xarray': ('https://xarray.pydata.org/en/stable/', None),
+    'cartopy': ('https://scitools.org.uk/cartopy/docs/latest/', None),
+    'mpl_toolkits': ('https://matplotlib.org/basemap/', None),
+    'psyplot': ('https://psyplot.github.io/psyplot/', None),
+    'psy_maps': ('https://psyplot.github.io/psy-maps/', None),
+    'psy_reg': ('https://psyplot.github.io/psy-reg/', None),
+    'python': ('https://docs.python.org/3/', None),
 }
-if six.PY3:
-    intersphinx_mapping['python'] = ('https://docs.python.org/3.7/', None)
-else:
-    intersphinx_mapping['python'] = ('https://docs.python.org/2.7/', None)
 
 
 def group_formatoptions(app, what, name, obj, section, parent):

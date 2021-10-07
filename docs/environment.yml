@@ -13,5 +13,4 @@ dependencies:
     - psy-simple
     - psyplot-gui
     - autodocsumm
-    - sphinx-nbexamples
     - pip

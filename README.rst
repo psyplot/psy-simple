@@ -17,9 +17,9 @@ psy-simple: The psyplot plugin for simple visualizations
     * - implementations
       - |supported-versions| |supported-implementations|
 
-.. |docs| image:: http://readthedocs.org/projects/psy-simple/badge/?version=latest
-    :alt: Documentation Status
-    :target: http://psy-simple.readthedocs.io/en/latest/?badge=latest
+.. |docs| image:: https://img.shields.io/github/deployments/psyplot/psy-simple/github-pages
+    :alt: Documentation
+    :target: http://psyplot.github.io/psy-simple/
 
 .. |circleci| image:: https://circleci.com/gh/psyplot/psy-simple/tree/master.svg?style=svg
     :alt: CircleCI
@@ -70,21 +70,18 @@ It provides the basics for all the more advanced and specialized plugins like
 the psy-maps_ or psy-reg_ plugin.
 
 See the full documentation on
-`readthedocs.org <http://psyplot.readthedocs.io/projects/psy-simple>`__ for all
-`plot methods`_ and examples_.
+`psyplot.github.io/psy-simple/ <http://psyplot.github.io/psy-simple>`__ for all
+`plot methods`_, and checkout the examples_.
 
-.. _psy-maps: http://psyplot.readthedocs.io/projects/psy-maps/
-.. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/
-.. _plot methods: http://psyplot.readthedocs.io/projects/psy-simple/en/latest/plot_methods
-.. _examples: http://psyplot.readthedocs.io/projects/psy-simple/en/latest/examples
+.. _psy-maps: http://psyplot.github.io/psy-maps/
+.. _psy-reg: http://psyplot.github.io/psy-reg/
+.. _plot methods: http://psyplot.github.io/psy-simple/plot_methods
+.. _examples: http://psyplot.github.io/examples/
 
 Copyright
 ---------
-Copyright (C) 2021 Helmholtz-Zentrum Hereon
-
-Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-
-Copyright (C) 2016-2021 University of Lausanne
+Copyright © 2021 Helmholtz-Zentrum Hereon, 2020-2021 Helmholtz-Zentrum
+Geesthacht, 2016-2021 University of Lausanne
 
 This file is part of psy-simple and is released under the GNU LGPL-3.O license.
 See COPYING and COPYING.LESSER in the root of the repository for full
@@ -100,4 +97,4 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU LGPL-3.0 license for more details.
 
 You should have received a copy of the GNU LGPL-3.0 license
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+along with this program.  If not, see https://www.gnu.org/licenses/.
