@@ -74,7 +74,7 @@ See the full documentation on
 `plot methods`_, and checkout the examples_.
 
 .. _psy-maps: http://psyplot.github.io/psy-maps/
-.. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/
+.. _psy-reg: http://psyplot.github.io/psy-reg/
 .. _plot methods: http://psyplot.github.io/psy-simple/plot_methods
 .. _examples: http://psyplot.github.io/examples/
 

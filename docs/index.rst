@@ -17,7 +17,7 @@ See the :ref:`plot_methods` and :ref:`gallery_examples` for more information.
 
 
 .. _psy-maps: http://psyplot.github.io/psy-maps/
-.. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/en/latest/
+.. _psy-reg: http://psyplot.github.io/psy-reg/
 
 .. start-badges
 
