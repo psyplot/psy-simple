@@ -75,7 +75,7 @@ See the full documentation on
 
 .. _psy-maps: http://psyplot.github.io/psy-maps/
 .. _psy-reg: http://psyplot.readthedocs.io/projects/psy-reg/
-.. _plot methods: http://psyplot.github.io/psy-simple/en/latest/plot_methods
+.. _plot methods: http://psyplot.github.io/psy-simple/plot_methods
 .. _examples: http://psyplot.github.io/examples/
 
 Copyright
