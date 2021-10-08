@@ -25,3 +25,12 @@ psy-simple: The psyplot plugin for simple visualizations
     contribute
     api/psy_simple
     changelog
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

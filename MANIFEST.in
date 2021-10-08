@@ -1,7 +1,0 @@
-include README.rst
-include COPYING
-include COPYING.LESSER
-include psy_simple/widgets/icons/*.png
-include psy_simple/widgets/icons/cmaps/*.png
-include versioneer.py
-include psy_simple/_version.py
