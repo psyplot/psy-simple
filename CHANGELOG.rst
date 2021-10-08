@@ -9,6 +9,10 @@ Fixed
 -----
 - Compatibility fixes for matplotlib>=3.3
 
+Added
+-----
+- psyplot does now have a CITATION.cff file, see https://citation-file-format.github.io
+
 Changed
 -------
 - psy-simple is now officially licensed under LGPL-3.0-only,
