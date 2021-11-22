@@ -40,8 +40,8 @@ from psyplot.config.rcsetup import (
     validate_stringset)
 from matplotlib.rcsetup import (
     validate_bool, validate_color, validate_fontsize,
-    ValidateInStrings, validate_int, validate_legend_loc,
-    validate_colorlist)
+    ValidateInStrings, validate_int, validate_colorlist
+)
 from psy_simple import __version__ as plugin_version
 import xarray as xr
 
@@ -435,6 +435,16 @@ def validate_sym_lims(val):
         raise ValueError("Need two values for the symmetric limits, not %i" % (
             len(val)))
     return list(map(validator, val))
+
+
+valid_legend_locs = [
+    "best",
+    "upper right", "upper left", "lower left", "lower right", "right",
+    "center left", "center right", "lower center", "upper center",
+    "center"
+]
+
+validate_legend_loc = ValidateInStrings("legend_loc", valid_legend_locs, True)
 
 
 def validate_legend(value):
