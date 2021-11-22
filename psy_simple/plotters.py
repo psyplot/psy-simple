@@ -138,6 +138,11 @@ def convert_radian(coord, *variables):
     xr.Variable
         The transformed variable if one of the given `variables` has units in
         radian"""
+    warn(
+        "The psy_simple.plotters.convert_radian method has been deprecated."
+        "Please use the `plotter.convert_coordinate` instead.",
+        DeprecationWarning
+    )
     if any(v.attrs.get('units', '').startswith('radian') for v in variables):
         return coord * 180. / np.pi
     return coord
@@ -2807,8 +2812,7 @@ class Xlim2D(Xlim):
                 data, axis='x', coords=data.coords)
             if bounds is None:
                 bounds = xcoord
-            if self.plotter.convert_radian:
-                bounds = convert_radian(bounds, xcoord, bounds)
+            bounds = self.convert_coordinate(bounds, xcoord)
             return bounds.values.ravel()
         return self.decoder.get_plotbounds(xcoord)
 
@@ -2826,8 +2830,7 @@ class Ylim2D(Ylim):
                 data, axis='y', coords=data.coords)
             if bounds is None:
                 bounds = ycoord
-            if self.plotter.convert_radian:
-                bounds = convert_radian(bounds, ycoord, bounds)
+            bounds = self.convert_coordinate(bounds, ycoord)
             return bounds.values.ravel()
         return self.decoder.get_plotbounds(self.transpose.get_y(self.data))
 
@@ -3357,11 +3360,8 @@ class Plot2D(Formatoption):
             self._plot.set_norm(self.bounds.norm)
         else:
             levels = self.levels.norm.boundaries
-            xcoord = self.xcoord
-            ycoord = self.ycoord
-            if self.plotter.convert_radian:
-                xcoord = convert_radian(xcoord, xcoord)
-                ycoord = convert_radian(ycoord, ycoord)
+            xcoord = self.convert_coordinate(self.xcoord)
+            ycoord = self.convert_coordinate(self.ycoord)
             if (self.value in ['tricontourf', 'tricontour'] or
                     self.decoder.is_unstructured(self.raw_data)):
                 pm = self.ax.tricontourf if filled else self.ax.tricontour
@@ -3385,8 +3385,7 @@ class Plot2D(Formatoption):
         data = self.data
         xbounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='x')
-        if self.plotter.convert_radian:
-            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
     @property
@@ -3397,8 +3396,7 @@ class Plot2D(Formatoption):
         data = self.data
         ybounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='y')
-        if self.plotter.convert_radian:
-            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        ybounds = self.convert_coordinate(ybounds, ycoord)
         return ybounds.values
 
     def _polycolor(self):
@@ -3631,8 +3629,7 @@ class DataGrid(Formatoption):
         xbounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='x',
             nans='skip' if self.mask_datagrid.value else None)
-        if self.plotter.convert_radian:
-            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
     @property
@@ -3644,8 +3641,7 @@ class DataGrid(Formatoption):
         ybounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='y',
             nans='skip' if self.mask_datagrid.value else None)
-        if self.plotter.convert_radian:
-            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        ybounds = self.convert_coordinate(ybounds, ycoord, ybounds)
         return ybounds.values
 
     def __init__(self, *args, **kwargs):
@@ -5649,10 +5645,6 @@ class XYTickPlotter(Plotter):
 class Base2D(Plotter):
     """Base plotter for 2-dimensional plots
     """
-
-    #: Boolean that is True if coordinates with units in radian should be
-    #: converted to degrees
-    convert_radian = False
 
     _rcparams_string = ['plotter.plot2d.']
 
