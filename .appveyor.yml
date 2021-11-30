@@ -18,6 +18,7 @@ install:
     - pip install -i https://pypi.anaconda.org/psyplot/simple --no-deps psyplot-ci-orb
     - conda config --add channels conda-forge
     - conda config --add channels psyplot
+    - conda config --add channels psyplot/label/develop
     - conda info -a
     - conda list
     # windows config
