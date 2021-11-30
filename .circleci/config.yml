@@ -28,7 +28,7 @@ parameters:
   parallelism:
     description: How many parallel jobs to execute
     type: integer
-    default: 2
+    default: 4
   build_docs:
     description: Build the documentation
     type: boolean
