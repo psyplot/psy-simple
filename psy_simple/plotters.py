@@ -3131,6 +3131,9 @@ class Bounds(DataTicksCalculator):
         else:
             if isinstance(value[0], six.string_types):
                 value = self.calc_funcs[value[0]](*value[1:])
+            if value[0] == value[-1]:
+                # make sure we have a small difference between the values
+                value[-1] += value[-1] * 0.5
             self.bounds = value
             self.norm = mpl.colors.BoundaryNorm(
                 value, len(value) - 1)
@@ -3219,8 +3222,7 @@ class Plot2D(Formatoption):
         dataset, we will interpolate them
     'contourf'
         Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`
-        function or the :func:`matplotlib.pyplot.tricontourf` for unstructured
-        data. The levels for the contour plot are controlled by the
+        function. The levels for the contour plot are controlled by the
         :attr:`levels` formatoption
     'contour'
         Same a ``'contourf'``, but does not make a filled contour plot, only
@@ -3354,7 +3356,7 @@ class Plot2D(Formatoption):
             self.remove()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
-        filled = self.value not in ['contour', 'tricontour']
+        filled = self.value != 'contour'
         if hasattr(self, '_plot'):
             self._plot.set_cmap(cmap)
             self._plot.set_norm(self.bounds.norm)
@@ -3362,8 +3364,7 @@ class Plot2D(Formatoption):
             levels = self.levels.norm.boundaries
             xcoord = self.convert_coordinate(self.xcoord)
             ycoord = self.convert_coordinate(self.ycoord)
-            if (self.value in ['tricontourf', 'tricontour'] or
-                    self.decoder.is_unstructured(self.raw_data)):
+            if self.decoder.is_unstructured(self.raw_data):
                 pm = self.ax.tricontourf if filled else self.ax.tricontour
                 mask = ~np.isnan(arr)
                 x = xcoord.values[mask]
@@ -3989,8 +3990,14 @@ class Cbar(Formatoption):
                     old.callbacksSM.disconnect(old.colorbar_cid)
                     old.colorbar = None
                     old.colorbar_cid = None
-                cid = mappable.callbacksSM.connect(
-                    'changed', cbar.on_mappable_changed)
+                if mpl.__version__ < "3.3":
+                    cid = mappable.callbacksSM.connect(
+                        'changed', cbar.on_mappable_changed
+                    )
+                else:
+                    cid = mappable.callbacksSM.connect(
+                        'changed', cbar.update_normal
+                    )
                 mappable.colorbar = cbar
                 mappable.colorbar_cid = cid
             cbar.update_normal(cbar.mappable)
@@ -4893,8 +4900,9 @@ class VectorPlot(Formatoption):
             except ValueError:
                 pass
             # remove arrows
-            self.ax.patches = [patch for patch in self.ax.patches
-                               if keep(patch)]
+            for patch in list(self.ax.patches):
+                if not keep(patch):
+                    self.ax.patches.remove(patch)
         else:
             try:
                 self._plot.remove()
