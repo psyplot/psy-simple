@@ -40,8 +40,8 @@ from psyplot.config.rcsetup import (
     validate_stringset)
 from matplotlib.rcsetup import (
     validate_bool, validate_color, validate_fontsize,
-    ValidateInStrings, validate_int, validate_legend_loc,
-    validate_colorlist)
+    ValidateInStrings, validate_int, validate_colorlist
+)
 from psy_simple import __version__ as plugin_version
 import xarray as xr
 
@@ -437,6 +437,16 @@ def validate_sym_lims(val):
     return list(map(validator, val))
 
 
+valid_legend_locs = [
+    "best",
+    "upper right", "upper left", "lower left", "lower right", "right",
+    "center left", "center right", "lower center", "upper center",
+    "center"
+]
+
+validate_legend_loc = ValidateInStrings("legend_loc", valid_legend_locs, True)
+
+
 def validate_legend(value):
     if isinstance(value, dict):
         return value
@@ -713,19 +723,9 @@ class LineWidthValidator(ValidateInStrings):
 
 def validate_plot(val):
     validator = ValidateInStrings(
-        '2d plot', ['mesh', 'contourf', 'contour', 'poly',
-                    'tri', 'tricontourf', 'tricontour'], True)
+        '2d plot', ['mesh', 'contourf', 'contour', 'poly'], True)
 
     val = validator(val)
-    depr_map = {
-        "tri": "poly", "tricontourf": "contourf", "tricontour": "contour"
-    }
-    if val in depr_map:
-        warn("plot=%r is depreceated for the plot formatoption and will be "
-             "removed in psy-simple 1.4.0. Please use plot=%r instead." % (
-                 val, depr_map[val]),
-             DeprecationWarning)
-        return depr_map[val]
     return val
 
 

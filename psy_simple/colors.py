@@ -28,6 +28,7 @@ function to visualize available colormaps.
 # You should have received a copy of the GNU LGPL-3.0 license
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from psyplot.compat.pycompat import isstring
 import six
 import matplotlib as mpl
 from matplotlib.colors import Colormap, LinearSegmentedColormap, BoundaryNorm
@@ -203,11 +204,11 @@ def get_cmap(name, lut=None):
     Different from the :func::`matpltolib.pyplot.get_cmap` function, this
     function changes the number of colors if `name` is a
     :class:`matplotlib.colors.Colormap` instance to match the given `lut`."""
-    if name in rcParams['colors.cmaps']:
+    if isstring(name) and name in rcParams['colors.cmaps']:
         colors = rcParams['colors.cmaps'][name]
         lut = lut or len(colors)
         return FixedColorMap.from_list(name=name, colors=colors, N=lut)
-    elif name in _cmapnames:
+    elif isstring(name) and name in _cmapnames:
         colors = _cmapnames[name]
         lut = lut or len(colors)
         return FixedColorMap.from_list(name=name, colors=colors, N=lut)

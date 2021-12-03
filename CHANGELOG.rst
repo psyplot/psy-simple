@@ -9,6 +9,11 @@ Changed
   `psyplot/psyplot#39 <https://github.com/psyplot/psyplot/pull/39>`__ and
   `#30 <https://github.com/psyplot/psy-simple/pull/30>`__)
 
+Fixed
+-----
+- psy-simple is now compatible with matplotlib 3.5 (see
+  `#31 <https://github.com/psyplot/psy-simple/pull/31>`__)
+
 v1.4.0
 ======
 Compatibility fixes and LGPL license
