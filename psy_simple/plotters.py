@@ -4095,6 +4095,18 @@ class Cbar(Formatoption):
             kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
+        if mpl.__version__.startswith("3.5.0"):
+            from matplotlib.contour import ContourSet
+            if (
+                kwargs.get("orientation") == "horizontal" and
+                isinstance(self.plot.mappable, ContourSet)
+            ):
+                warn(
+                    "Horizontal colorbars are not possible for contour plots "
+                    "with matplotlib 3.5.0, see "
+                    "https://github.com/matplotlib/matplotlib/issues/21683"
+                )
+                kwargs.pop("orientation")
         self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)
         self._just_drawn.add(cbar)
         self.set_label_pos(pos)
