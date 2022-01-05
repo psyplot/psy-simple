@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  psyplot: psyplot/psyplot-ci-orb@1.5.29
+  psyplot: psyplot/psyplot-ci-orb@1.5.30
   mattermost-plugin-notify: nathanaelhoun/mattermost-plugin-notify@1.2.0
 
 executors:
@@ -133,3 +133,8 @@ workflows:
           filters:
             branches:
               only: master
+      - psyplot/deploy-pkg:
+          build_pkg: true
+          context: anaconda
+          requires:
+            - hold-for-deploy
