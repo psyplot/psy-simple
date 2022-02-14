@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>psy_simple.plotters &mdash; psy-simple 1.3.1+5.gac305c0 documentation</title>
+  <title>psy_simple.plotters &mdash; psy-simple 1.4.0+1.g91d3bda documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> psy-simple
           </a>
               <div class="version">
-                1.3.1
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -211,6 +211,11 @@
 <span class="sd">    xr.Variable</span>
 <span class="sd">        The transformed variable if one of the given `variables` has units in</span>
 <span class="sd">        radian&quot;&quot;&quot;</span>
+    <span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;The psy_simple.plotters.convert_radian method has been deprecated.&quot;</span>
+        <span class="s2">&quot;Please use the `plotter.convert_coordinate` instead.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;radian&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">coord</span> <span class="o">*</span> <span class="mf">180.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="k">return</span> <span class="n">coord</span></div>
@@ -2880,8 +2885,7 @@
                 <span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">bounds</span> <span class="o">=</span> <span class="n">xcoord</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-                <span class="n">bounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bounds</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">get_plotbounds</span><span class="p">(</span><span class="n">xcoord</span><span class="p">)</span></div>
 
@@ -2899,8 +2903,7 @@
                 <span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">bounds</span> <span class="o">=</span> <span class="n">ycoord</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-                <span class="n">bounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">,</span> <span class="n">bounds</span><span class="p">)</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">bounds</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">get_plotbounds</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transpose</span><span class="o">.</span><span class="n">get_y</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span></div>
 
@@ -3201,6 +3204,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_funcs</span><span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="o">*</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="c1"># make sure we have a small difference between the values</span>
+                <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.5</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">value</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">BoundaryNorm</span><span class="p">(</span>
                 <span class="n">value</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span></div>
@@ -3289,8 +3295,7 @@
 <span class="sd">        dataset, we will interpolate them</span>
 <span class="sd">    &#39;contourf&#39;</span>
 <span class="sd">        Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`</span>
-<span class="sd">        function or the :func:`matplotlib.pyplot.tricontourf` for unstructured</span>
-<span class="sd">        data. The levels for the contour plot are controlled by the</span>
+<span class="sd">        function. The levels for the contour plot are controlled by the</span>
 <span class="sd">        :attr:`levels` formatoption</span>
 <span class="sd">    &#39;contour&#39;</span>
 <span class="sd">        Same a ``&#39;contourf&#39;``, but does not make a filled contour plot, only</span>
@@ -3424,19 +3429,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
         <span class="n">arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span>
         <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
-        <span class="n">filled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontour&#39;</span><span class="p">]</span>
+        <span class="n">filled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;contour&#39;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_plot&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">set_norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="o">.</span><span class="n">norm</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">levels</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">boundaries</span>
-            <span class="n">xcoord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xcoord</span>
-            <span class="n">ycoord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ycoord</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-                <span class="n">xcoord</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">xcoord</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">)</span>
-                <span class="n">ycoord</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">ycoord</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;tricontourf&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontour&#39;</span><span class="p">]</span> <span class="ow">or</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">is_unstructured</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">)):</span>
+            <span class="n">xcoord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xcoord</span><span class="p">)</span>
+            <span class="n">ycoord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ycoord</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">is_unstructured</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_data</span><span class="p">):</span>
                 <span class="n">pm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span> <span class="k">if</span> <span class="n">filled</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tricontour</span>
                 <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">xcoord</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
@@ -3458,8 +3459,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
         <span class="n">xbounds</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">get_cell_node_coord</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-            <span class="n">xbounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">xbounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">xbounds</span><span class="p">)</span>
+        <span class="n">xbounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">xbounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">xbounds</span><span class="o">.</span><span class="n">values</span>
 
     <span class="nd">@property</span>
@@ -3470,8 +3470,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
         <span class="n">ybounds</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">get_cell_node_coord</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-            <span class="n">ybounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">ybounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">,</span> <span class="n">ybounds</span><span class="p">)</span>
+        <span class="n">ybounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">ybounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ybounds</span><span class="o">.</span><span class="n">values</span>
 
     <span class="k">def</span> <span class="nf">_polycolor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -3704,8 +3703,7 @@
         <span class="n">xbounds</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">get_cell_node_coord</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span>
             <span class="n">nans</span><span class="o">=</span><span class="s1">&#39;skip&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_datagrid</span><span class="o">.</span><span class="n">value</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-            <span class="n">xbounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">xbounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">,</span> <span class="n">xbounds</span><span class="p">)</span>
+        <span class="n">xbounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">xbounds</span><span class="p">,</span> <span class="n">xcoord</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">xbounds</span><span class="o">.</span><span class="n">values</span>
 
     <span class="nd">@property</span>
@@ -3717,8 +3715,7 @@
         <span class="n">ybounds</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">get_cell_node_coord</span><span class="p">(</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span>
             <span class="n">nans</span><span class="o">=</span><span class="s1">&#39;skip&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_datagrid</span><span class="o">.</span><span class="n">value</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotter</span><span class="o">.</span><span class="n">convert_radian</span><span class="p">:</span>
-            <span class="n">ybounds</span> <span class="o">=</span> <span class="n">convert_radian</span><span class="p">(</span><span class="n">ybounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">,</span> <span class="n">ybounds</span><span class="p">)</span>
+        <span class="n">ybounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_coordinate</span><span class="p">(</span><span class="n">ybounds</span><span class="p">,</span> <span class="n">ycoord</span><span class="p">,</span> <span class="n">ybounds</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ybounds</span><span class="o">.</span><span class="n">values</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -4066,8 +4063,14 @@
                     <span class="n">old</span><span class="o">.</span><span class="n">callbacksSM</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">colorbar_cid</span><span class="p">)</span>
                     <span class="n">old</span><span class="o">.</span><span class="n">colorbar</span> <span class="o">=</span> <span class="kc">None</span>
                     <span class="n">old</span><span class="o">.</span><span class="n">colorbar_cid</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">cid</span> <span class="o">=</span> <span class="n">mappable</span><span class="o">.</span><span class="n">callbacksSM</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
-                    <span class="s1">&#39;changed&#39;</span><span class="p">,</span> <span class="n">cbar</span><span class="o">.</span><span class="n">on_mappable_changed</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">mpl</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3.3&quot;</span><span class="p">:</span>
+                    <span class="n">cid</span> <span class="o">=</span> <span class="n">mappable</span><span class="o">.</span><span class="n">callbacksSM</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="s1">&#39;changed&#39;</span><span class="p">,</span> <span class="n">cbar</span><span class="o">.</span><span class="n">on_mappable_changed</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cid</span> <span class="o">=</span> <span class="n">mappable</span><span class="o">.</span><span class="n">callbacksSM</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="s1">&#39;changed&#39;</span><span class="p">,</span> <span class="n">cbar</span><span class="o">.</span><span class="n">update_normal</span>
+                    <span class="p">)</span>
                 <span class="n">mappable</span><span class="o">.</span><span class="n">colorbar</span> <span class="o">=</span> <span class="n">cbar</span>
                 <span class="n">mappable</span><span class="o">.</span><span class="n">colorbar_cid</span> <span class="o">=</span> <span class="n">cid</span>
             <span class="n">cbar</span><span class="o">.</span><span class="n">update_normal</span><span class="p">(</span><span class="n">cbar</span><span class="o">.</span><span class="n">mappable</span><span class="p">)</span>
@@ -4165,6 +4168,18 @@
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;extend&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extend</span><span class="o">.</span><span class="n">value</span>
         <span class="k">if</span> <span class="s1">&#39;location&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orientation</span>
+        <span class="k">if</span> <span class="n">mpl</span><span class="o">.</span><span class="n">__version__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;3.5.0&quot;</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">matplotlib.contour</span> <span class="kn">import</span> <span class="n">ContourSet</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;orientation&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;horizontal&quot;</span> <span class="ow">and</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mappable</span><span class="p">,</span> <span class="n">ContourSet</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;Horizontal colorbars are not possible for contour plots &quot;</span>
+                    <span class="s2">&quot;with matplotlib 3.5.0, see &quot;</span>
+                    <span class="s2">&quot;https://github.com/matplotlib/matplotlib/issues/21683&quot;</span>
+                <span class="p">)</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;orientation&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cbars</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">mappable</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_just_drawn</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cbar</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_label_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span></div>
@@ -4970,8 +4985,9 @@
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                 <span class="k">pass</span>
             <span class="c1"># remove arrows</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patches</span> <span class="o">=</span> <span class="p">[</span><span class="n">patch</span> <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patches</span>
-                               <span class="k">if</span> <span class="n">keep</span><span class="p">(</span><span class="n">patch</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patches</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">keep</span><span class="p">(</span><span class="n">patch</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">patches</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">patch</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_plot</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
@@ -5722,10 +5738,6 @@
 <div class="viewcode-block" id="Base2D"><a class="viewcode-back" href="../../api/psy_simple.plotters.html#psy_simple.plotters.Base2D">[docs]</a><span class="k">class</span> <span class="nc">Base2D</span><span class="p">(</span><span class="n">Plotter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base plotter for 2-dimensional plots</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1">#: Boolean that is True if coordinates with units in radian should be</span>
-    <span class="c1">#: converted to degrees</span>
-    <span class="n">convert_radian</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="n">_rcparams_string</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;plotter.plot2d.&#39;</span><span class="p">]</span>
 

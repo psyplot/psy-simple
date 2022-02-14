@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>psy_simple.plugin &mdash; psy-simple 1.3.1+5.gac305c0 documentation</title>
+  <title>psy_simple.plugin &mdash; psy-simple 1.4.0+1.g91d3bda documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/plot_directive.css" type="text/css" />
@@ -28,7 +28,7 @@
             <a href="../../index.html" class="icon icon-home"> psy-simple
           </a>
               <div class="version">
-                1.3.1
+                1.4.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -113,8 +113,8 @@
     <span class="n">validate_stringset</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">matplotlib.rcsetup</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">validate_bool</span><span class="p">,</span> <span class="n">validate_color</span><span class="p">,</span> <span class="n">validate_fontsize</span><span class="p">,</span>
-    <span class="n">ValidateInStrings</span><span class="p">,</span> <span class="n">validate_int</span><span class="p">,</span> <span class="n">validate_legend_loc</span><span class="p">,</span>
-    <span class="n">validate_colorlist</span><span class="p">)</span>
+    <span class="n">ValidateInStrings</span><span class="p">,</span> <span class="n">validate_int</span><span class="p">,</span> <span class="n">validate_colorlist</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">psy_simple</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">plugin_version</span>
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 
@@ -510,6 +510,16 @@
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">validator</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span></div>
 
 
+<span class="n">valid_legend_locs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;best&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;upper right&quot;</span><span class="p">,</span> <span class="s2">&quot;upper left&quot;</span><span class="p">,</span> <span class="s2">&quot;lower left&quot;</span><span class="p">,</span> <span class="s2">&quot;lower right&quot;</span><span class="p">,</span> <span class="s2">&quot;right&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;center left&quot;</span><span class="p">,</span> <span class="s2">&quot;center right&quot;</span><span class="p">,</span> <span class="s2">&quot;lower center&quot;</span><span class="p">,</span> <span class="s2">&quot;upper center&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;center&quot;</span>
+<span class="p">]</span>
+
+<span class="n">validate_legend_loc</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span><span class="s2">&quot;legend_loc&quot;</span><span class="p">,</span> <span class="n">valid_legend_locs</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="validate_legend"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_legend">[docs]</a><span class="k">def</span> <span class="nf">validate_legend</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">value</span>
@@ -786,19 +796,9 @@
 
 <div class="viewcode-block" id="validate_plot"><a class="viewcode-back" href="../../api/psy_simple.plugin.html#psy_simple.plugin.validate_plot">[docs]</a><span class="k">def</span> <span class="nf">validate_plot</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
     <span class="n">validator</span> <span class="o">=</span> <span class="n">ValidateInStrings</span><span class="p">(</span>
-        <span class="s1">&#39;2d plot&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">,</span> <span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;tri&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontourf&#39;</span><span class="p">,</span> <span class="s1">&#39;tricontour&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="s1">&#39;2d plot&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">,</span> <span class="s1">&#39;contourf&#39;</span><span class="p">,</span> <span class="s1">&#39;contour&#39;</span><span class="p">,</span> <span class="s1">&#39;poly&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>
 
     <span class="n">val</span> <span class="o">=</span> <span class="n">validator</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-    <span class="n">depr_map</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;tri&quot;</span><span class="p">:</span> <span class="s2">&quot;poly&quot;</span><span class="p">,</span> <span class="s2">&quot;tricontourf&quot;</span><span class="p">:</span> <span class="s2">&quot;contourf&quot;</span><span class="p">,</span> <span class="s2">&quot;tricontour&quot;</span><span class="p">:</span> <span class="s2">&quot;contour&quot;</span>
-    <span class="p">}</span>
-    <span class="k">if</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">depr_map</span><span class="p">:</span>
-        <span class="n">warn</span><span class="p">(</span><span class="s2">&quot;plot=</span><span class="si">%r</span><span class="s2"> is depreceated for the plot formatoption and will be &quot;</span>
-             <span class="s2">&quot;removed in psy-simple 1.4.0. Please use plot=</span><span class="si">%r</span><span class="s2"> instead.&quot;</span> <span class="o">%</span> <span class="p">(</span>
-                 <span class="n">val</span><span class="p">,</span> <span class="n">depr_map</span><span class="p">[</span><span class="n">val</span><span class="p">]),</span>
-             <span class="ne">DeprecationWarning</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">depr_map</span><span class="p">[</span><span class="n">val</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">val</span></div>
 
 
