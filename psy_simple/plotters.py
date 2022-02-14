@@ -138,6 +138,11 @@ def convert_radian(coord, *variables):
     xr.Variable
         The transformed variable if one of the given `variables` has units in
         radian"""
+    warn(
+        "The psy_simple.plotters.convert_radian method has been deprecated."
+        "Please use the `plotter.convert_coordinate` instead.",
+        DeprecationWarning
+    )
     if any(v.attrs.get('units', '').startswith('radian') for v in variables):
         return coord * 180. / np.pi
     return coord
@@ -2807,8 +2812,7 @@ class Xlim2D(Xlim):
                 data, axis='x', coords=data.coords)
             if bounds is None:
                 bounds = xcoord
-            if self.plotter.convert_radian:
-                bounds = convert_radian(bounds, xcoord, bounds)
+            bounds = self.convert_coordinate(bounds, xcoord)
             return bounds.values.ravel()
         return self.decoder.get_plotbounds(xcoord)
 
@@ -2826,8 +2830,7 @@ class Ylim2D(Ylim):
                 data, axis='y', coords=data.coords)
             if bounds is None:
                 bounds = ycoord
-            if self.plotter.convert_radian:
-                bounds = convert_radian(bounds, ycoord, bounds)
+            bounds = self.convert_coordinate(bounds, ycoord)
             return bounds.values.ravel()
         return self.decoder.get_plotbounds(self.transpose.get_y(self.data))
 
@@ -3128,6 +3131,9 @@ class Bounds(DataTicksCalculator):
         else:
             if isinstance(value[0], six.string_types):
                 value = self.calc_funcs[value[0]](*value[1:])
+            if value[0] == value[-1]:
+                # make sure we have a small difference between the values
+                value[-1] += value[-1] * 0.5
             self.bounds = value
             self.norm = mpl.colors.BoundaryNorm(
                 value, len(value) - 1)
@@ -3216,8 +3222,7 @@ class Plot2D(Formatoption):
         dataset, we will interpolate them
     'contourf'
         Make a filled contour plot using the :func:`matplotlib.pyplot.contourf`
-        function or the :func:`matplotlib.pyplot.tricontourf` for unstructured
-        data. The levels for the contour plot are controlled by the
+        function. The levels for the contour plot are controlled by the
         :attr:`levels` formatoption
     'contour'
         Same a ``'contourf'``, but does not make a filled contour plot, only
@@ -3351,19 +3356,15 @@ class Plot2D(Formatoption):
             self.remove()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
-        filled = self.value not in ['contour', 'tricontour']
+        filled = self.value != 'contour'
         if hasattr(self, '_plot'):
             self._plot.set_cmap(cmap)
             self._plot.set_norm(self.bounds.norm)
         else:
             levels = self.levels.norm.boundaries
-            xcoord = self.xcoord
-            ycoord = self.ycoord
-            if self.plotter.convert_radian:
-                xcoord = convert_radian(xcoord, xcoord)
-                ycoord = convert_radian(ycoord, ycoord)
-            if (self.value in ['tricontourf', 'tricontour'] or
-                    self.decoder.is_unstructured(self.raw_data)):
+            xcoord = self.convert_coordinate(self.xcoord)
+            ycoord = self.convert_coordinate(self.ycoord)
+            if self.decoder.is_unstructured(self.raw_data):
                 pm = self.ax.tricontourf if filled else self.ax.tricontour
                 mask = ~np.isnan(arr)
                 x = xcoord.values[mask]
@@ -3385,8 +3386,7 @@ class Plot2D(Formatoption):
         data = self.data
         xbounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='x')
-        if self.plotter.convert_radian:
-            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
     @property
@@ -3397,8 +3397,7 @@ class Plot2D(Formatoption):
         data = self.data
         ybounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='y')
-        if self.plotter.convert_radian:
-            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        ybounds = self.convert_coordinate(ybounds, ycoord)
         return ybounds.values
 
     def _polycolor(self):
@@ -3631,8 +3630,7 @@ class DataGrid(Formatoption):
         xbounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='x',
             nans='skip' if self.mask_datagrid.value else None)
-        if self.plotter.convert_radian:
-            xbounds = convert_radian(xbounds, xcoord, xbounds)
+        xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
     @property
@@ -3644,8 +3642,7 @@ class DataGrid(Formatoption):
         ybounds = decoder.get_cell_node_coord(
             data, coords=data.coords, axis='y',
             nans='skip' if self.mask_datagrid.value else None)
-        if self.plotter.convert_radian:
-            ybounds = convert_radian(ybounds, ycoord, ybounds)
+        ybounds = self.convert_coordinate(ybounds, ycoord, ybounds)
         return ybounds.values
 
     def __init__(self, *args, **kwargs):
@@ -3993,8 +3990,14 @@ class Cbar(Formatoption):
                     old.callbacksSM.disconnect(old.colorbar_cid)
                     old.colorbar = None
                     old.colorbar_cid = None
-                cid = mappable.callbacksSM.connect(
-                    'changed', cbar.on_mappable_changed)
+                if mpl.__version__ < "3.3":
+                    cid = mappable.callbacksSM.connect(
+                        'changed', cbar.on_mappable_changed
+                    )
+                else:
+                    cid = mappable.callbacksSM.connect(
+                        'changed', cbar.update_normal
+                    )
                 mappable.colorbar = cbar
                 mappable.colorbar_cid = cid
             cbar.update_normal(cbar.mappable)
@@ -4092,6 +4095,18 @@ class Cbar(Formatoption):
             kwargs['extend'] = self.extend.value
         if 'location' not in kwargs:
             kwargs['orientation'] = orientation
+        if mpl.__version__.startswith("3.5.0"):
+            from matplotlib.contour import ContourSet
+            if (
+                kwargs.get("orientation") == "horizontal" and
+                isinstance(self.plot.mappable, ContourSet)
+            ):
+                warn(
+                    "Horizontal colorbars are not possible for contour plots "
+                    "with matplotlib 3.5.0, see "
+                    "https://github.com/matplotlib/matplotlib/issues/21683"
+                )
+                kwargs.pop("orientation")
         self.cbars[pos] = cbar = fig.colorbar(self.plot.mappable, **kwargs)
         self._just_drawn.add(cbar)
         self.set_label_pos(pos)
@@ -4897,8 +4912,9 @@ class VectorPlot(Formatoption):
             except ValueError:
                 pass
             # remove arrows
-            self.ax.patches = [patch for patch in self.ax.patches
-                               if keep(patch)]
+            for patch in list(self.ax.patches):
+                if not keep(patch):
+                    self.ax.patches.remove(patch)
         else:
             try:
                 self._plot.remove()
@@ -5649,10 +5665,6 @@ class XYTickPlotter(Plotter):
 class Base2D(Plotter):
     """Base plotter for 2-dimensional plots
     """
-
-    #: Boolean that is True if coordinates with units in radian should be
-    #: converted to degrees
-    convert_radian = False
 
     _rcparams_string = ['plotter.plot2d.']
 

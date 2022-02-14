@@ -18,6 +18,7 @@ install:
     - pip install -i https://pypi.anaconda.org/psyplot/simple --no-deps psyplot-ci-orb
     - conda config --add channels conda-forge
     - conda config --add channels psyplot
+    - conda config --add channels psyplot/label/develop
     - conda info -a
     - conda list
     # windows config
@@ -43,7 +44,7 @@ after_test:
 deploy_script:
     - cmd: "
         IF NOT DEFINED APPVEYOR_REPO_TAG_NAME (
-            deploy-conda-recipe -l %APPVEYOR_REPO_BRANCH% -py %PYTHON_VERSION% ci/conda-recipe
+            deploy-conda-recipe -l %APPVEYOR_REPO_BRANCH:/=-% -py %PYTHON_VERSION% ci/conda-recipe
         ) ELSE (
             deploy-conda-recipe -py %PYTHON_VERSION% ci/conda-recipe
         )"

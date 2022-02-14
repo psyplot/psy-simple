@@ -402,20 +402,7 @@ class Simple2DPlotterTestArtificial(unittest.TestCase):
         ds = xr.Dataset()
         ds["test"] = (("y", "x"), np.ones((4, 5)))
         sp = ds.psy.plot.plot2d(cmap="Reds", bounds=["rounded", 3])
-        self.assertEqual(list(sp.plotters[0].bounds.bounds), [1.0, 1.0, 1.0])
-
-
-@pytest.mark.parametrize(
-    "old,new",
-    (("tri", "poly"), ("tricontour", "contour"), ("tricontourf", "contourf")),
-)
-def test_plot_deprecation(old, new):
-    """Test if tri is deprecated correctly"""
-    with psy.open_dataset(os.path.join(bt.test_dir, "icon_test.nc")) as ds:
-        with pytest.warns(DeprecationWarning, match="plot=[\"']%s[\"']" % old):
-            sp = ds.psy.plot.plot2d(name="t2m", plot=old)
-    plotter = sp.plotters[0]
-    assert plotter.plot.value == new
+        self.assertEqual(list(sp.plotters[0].bounds.bounds), [1.0, 1.0, 1.5])
 
 
 def test_plot_poly_3D_bounds():
