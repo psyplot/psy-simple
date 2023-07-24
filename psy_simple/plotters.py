@@ -4918,7 +4918,7 @@ class VectorPlot(Formatoption):
             # remove arrows
             for patch in list(self.ax.patches):
                 if not keep(patch):
-                    self.ax.patches.remove(patch)
+                    patch.remove()
         else:
             try:
                 self._plot.remove()
