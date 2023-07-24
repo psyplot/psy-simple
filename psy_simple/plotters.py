@@ -5509,8 +5509,11 @@ class NormedHist2D(Formatoption):
             normed = True
         y = da.values
         x = da.coords[da.dims[0]].values
-        counts, xedges, yedges = np.histogram2d(
-            x, y, normed=normed, **kwargs)
+        if mpl_version < 3.3:
+            kwargs["normed"] = normed
+        else:
+            kwargs["density"] = normed
+        counts, xedges, yedges = np.histogram2d(x, y, **kwargs)
         if self.value == 'counts':  # normalize such that all values sum to one
             counts = counts / counts.sum().astype(float)
         elif self.value in ['x', 'col', 'column', 'columns']:
