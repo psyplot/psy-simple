@@ -308,7 +308,6 @@ def show_colormaps(names=[], N=10, show=True, use_qt=None):
         pos = list(ax.get_position().bounds)
         fig.text(pos[0] - 0.01, pos[1], m, fontsize=10,
                  horizontalalignment='right')
-    fig.canvas.set_window_title("Figure %i: Predefined colormaps" % fig.number)
     if show:
         plt.show(block=False)
     return fig
