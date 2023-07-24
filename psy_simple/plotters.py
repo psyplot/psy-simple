@@ -3994,8 +3994,12 @@ class Cbar(Formatoption):
                     cid = mappable.callbacksSM.connect(
                         'changed', cbar.on_mappable_changed
                     )
-                else:
+                elif mpl.__version__ < "3.5":
                     cid = mappable.callbacksSM.connect(
+                        'changed', cbar.update_normal
+                    )
+                else:
+                    cid = mappable.callbacks.connect(
                         'changed', cbar.update_normal
                     )
                 mappable.colorbar = cbar
