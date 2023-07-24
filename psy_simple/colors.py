@@ -227,8 +227,12 @@ def get_cmap(name, lut=None):
 def _get_cmaps(names):
     """Filter the given `names` for colormaps"""
     import matplotlib.pyplot as plt
+    try:
+        builtin_cmaps = mpl.colormaps
+    except AttributeError:  # matplotlib <3.6
+        builtin_cmaps = plt.cm.cmap_d
     available_cmaps = list(
-        chain(plt.cm.cmap_d, _cmapnames, rcParams['colors.cmaps']))
+        chain(builtin_cmaps, _cmapnames, rcParams['colors.cmaps']))
     names = safe_list(names)
     wrongs = []
     for arg in (arg for arg in names if (not isinstance(arg, Colormap) and
