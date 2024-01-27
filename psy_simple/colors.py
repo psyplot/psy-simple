@@ -5,83 +5,94 @@ This module contains some additional color maps and the show_colormaps
 function to visualize available colormaps.
 """
 
-# Disclaimer
-# ----------
-#
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from psyplot.compat.pycompat import isstring
-import six
-import matplotlib as mpl
-from matplotlib.colors import Colormap, LinearSegmentedColormap, BoundaryNorm
-from matplotlib.cm import get_cmap as mpl_get_cmap
-import numpy as np
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
+#
+# SPDX-License-Identifier: LGPL-3.0-only
+
+
 from difflib import get_close_matches
 from itertools import chain
 from warnings import warn
-from psyplot.docstring import docstrings
+
+import matplotlib as mpl
+import numpy as np
+import psyplot
+import six
+from matplotlib.cm import get_cmap as mpl_get_cmap
+from matplotlib.colors import BoundaryNorm, Colormap, LinearSegmentedColormap
 from psyplot import rcParams
 from psyplot.data import safe_list
-import psyplot
-
+from psyplot.docstring import docstrings
+from psyplot.utils import isstring
 
 _cmapnames = {  # names of self defined colormaps (see get_cmap function below)
-    'red_white_blue': [  # symmetric water fluxes
-        (1, 0, 0), (1, 0.5, 0), (1, 1, 0), (1, 1., 1),
-        (0, 1, 1), (0, 0.5, 1), (0, 0, 1)],
-    'blue_white_red': [  # symmetric temperature
-        (0, 0, 1), (0, 0.5, 1), (0, 1, 1), (1, 1., 1),
-        (1, 1, 0), (1, 0.5, 0), (1, 0, 0)],
-    'white_blue_red': [  # temperature
-        (1, 1., 1), (0, 0, 1), (0, 1, 1), (1, 1, 0), (1, 0, 0)],
-    'white_red_blue': [  # water fluxes
-        (1, 1., 1), (1, 0, 0), (1, 1, 0), (0, 1, 1), (0, 0, 1)],
-    'rwb': [
-        (1, 0, 0), (1, 1., 1), (0, 0, 1)],
-    'wrb': [
-        (1, 1., 1), (1, 0, 0), (0, 0, 1)],
-    'wbr': [
-        (1, 1., 1), (0, 0, 1), (1, 0, 0)]
-    }
+    "red_white_blue": [  # symmetric water fluxes
+        (1, 0, 0),
+        (1, 0.5, 0),
+        (1, 1, 0),
+        (1, 1.0, 1),
+        (0, 1, 1),
+        (0, 0.5, 1),
+        (0, 0, 1),
+    ],
+    "blue_white_red": [  # symmetric temperature
+        (0, 0, 1),
+        (0, 0.5, 1),
+        (0, 1, 1),
+        (1, 1.0, 1),
+        (1, 1, 0),
+        (1, 0.5, 0),
+        (1, 0, 0),
+    ],
+    "white_blue_red": [  # temperature
+        (1, 1.0, 1),
+        (0, 0, 1),
+        (0, 1, 1),
+        (1, 1, 0),
+        (1, 0, 0),
+    ],
+    "white_red_blue": [  # water fluxes
+        (1, 1.0, 1),
+        (1, 0, 0),
+        (1, 1, 0),
+        (0, 1, 1),
+        (0, 0, 1),
+    ],
+    "rwb": [(1, 0, 0), (1, 1.0, 1), (0, 0, 1)],
+    "wrb": [(1, 1.0, 1), (1, 0, 0), (0, 0, 1)],
+    "wbr": [(1, 1.0, 1), (0, 0, 1), (1, 0, 0)],
+}
 for key, val in list(_cmapnames.items()):
-    _cmapnames[key + '_r'] = val[::-1]
+    _cmapnames[key + "_r"] = val[::-1]
 
 _color_array = np.linspace(0, 1, 256, endpoint=True)
 
-_cmapnames['w_RdBu'] = np.append(
-    [[1., 1., 1., 1.]], mpl_get_cmap('RdBu')(_color_array), axis=0)
-_cmapnames['w_RdBu_r'] = np.append(
-    [[1., 1., 1., 1.]], mpl_get_cmap('RdBu_r')(_color_array), axis=0)
+_cmapnames["w_RdBu"] = np.append(
+    [[1.0, 1.0, 1.0, 1.0]], mpl_get_cmap("RdBu")(_color_array), axis=0
+)
+_cmapnames["w_RdBu_r"] = np.append(
+    [[1.0, 1.0, 1.0, 1.0]], mpl_get_cmap("RdBu_r")(_color_array), axis=0
+)
 
-_cmapnames['w_Reds'] = np.append(
-    [[1., 1., 1., 1.]], mpl_get_cmap('Reds')(_color_array), axis=0)
+_cmapnames["w_Reds"] = np.append(
+    [[1.0, 1.0, 1.0, 1.0]], mpl_get_cmap("Reds")(_color_array), axis=0
+)
 
-_cmapnames['w_Blues'] = np.append(
-    [[1., 1., 1., 1.]], mpl_get_cmap('Blues')(_color_array), axis=0)
+_cmapnames["w_Blues"] = np.append(
+    [[1.0, 1.0, 1.0, 1.0]], mpl_get_cmap("Blues")(_color_array), axis=0
+)
 
-_cmapnames['w_Greens'] = np.append(
-    [[1., 1., 1., 1.]], mpl_get_cmap('Greens')(_color_array), axis=0)
+_cmapnames["w_Greens"] = np.append(
+    [[1.0, 1.0, 1.0, 1.0]], mpl_get_cmap("Greens")(_color_array), axis=0
+)
 
 
-docstrings.params['cmap_note'] = """
+docstrings.params[
+    "cmap_note"
+] = """
         Strings may be any valid colormap name suitable for the
         :func:`matplotlib.cm.get_cmap` function or one of the color lists
         defined in the 'colors.cmaps' key of the :attr:`psyplot.rcParams`
@@ -103,16 +114,26 @@ class FixedColorMap(LinearSegmentedColormap):
         >>> import matplotlib.pyplot as plt
         >>> import psyplot.project as psy
         >>> maps = psy.plot.mapvector(
-        ...     'test-t2m-u-v.nc', name=[['u', 'v']], plot='stream',
-        ...     lonlatbox='Europe', color='absolute')
+        ...     "test-t2m-u-v.nc",
+        ...     name=[["u", "v"]],
+        ...     plot="stream",
+        ...     lonlatbox="Europe",
+        ...     color="absolute",
+        ... )
         >>> plotter = maps[0].plotter
         >>> x, y, u, v = plotter.plot._get_data()
         >>> maps.close(True, True)
         >>> ax = plt.axes(projection=ccrs.PlateCarree())
         >>> ax.set_extent(plotter.lonlatbox.lonlatbox, crs=ccrs.PlateCarree())
-        >>> m = ax.streamplot(x, y, u, v, density=[1.0, 1.0],
-        ...                   color=plotter.plot._kwargs['color'],
-        ...                   norm=plotter.plot._kwargs['norm'])
+        >>> m = ax.streamplot(
+        ...     x,
+        ...     y,
+        ...     u,
+        ...     v,
+        ...     density=[1.0, 1.0],
+        ...     color=plotter.plot._kwargs["color"],
+        ...     norm=plotter.plot._kwargs["norm"],
+        ... )
 
     This raises in matplotlib.colors, line 557, in
     :meth:`matplotlib.colors.Colormap.__call__`::
@@ -122,6 +143,7 @@ class FixedColorMap(LinearSegmentedColormap):
     """
 
     if six.PY3:
+
         def __call__(self, X, *args, **kwargs):
             if isinstance(X, np.ma.core.MaskedArray) and X.ndim == 0:
                 X = np.array(np.nan)
@@ -130,8 +152,9 @@ class FixedColorMap(LinearSegmentedColormap):
         @staticmethod
         def from_list(*args, **kwargs):
             cmap = LinearSegmentedColormap.from_list(*args, **kwargs)
-            return FixedColorMap(cmap.name, cmap._segmentdata, cmap.N,
-                                 cmap._gamma)
+            return FixedColorMap(
+                cmap.name, cmap._segmentdata, cmap.N, cmap._gamma
+            )
 
 
 class FixedBoundaryNorm(BoundaryNorm):
@@ -149,19 +172,30 @@ class FixedBoundaryNorm(BoundaryNorm):
         >>> import psyplot.project as psy
         >>> import matplotlib.colors as mcol
         >>> maps = psy.plot.mapvector(
-        ...     'test-t2m-u-v.nc', name=[['u', 'v']], plot='stream',
-        ...     lonlatbox='Europe', color='absolute')
+        ...     "test-t2m-u-v.nc",
+        ...     name=[["u", "v"]],
+        ...     plot="stream",
+        ...     lonlatbox="Europe",
+        ...     color="absolute",
+        ... )
         >>> plotter = maps[0].plotter
         >>> x, y, u, v = plotter.plot._get_data()
         >>> maps.close(True, True)
         >>> ax = plt.axes(projection=ccrs.PlateCarree())
         >>> ax.set_extent(plotter.lonlatbox.lonlatbox, crs=ccrs.PlateCarree())
         >>> m = ax.streamplot(
-        ...     x, y, u, v, color=plotter.plot._kwargs['color'],
-        ...     norm=mcol.BoundaryNorm(plotter.bounds.norm.boundaries,
-        ...                            plotter.bounds.norm.Ncmap,
-        ...                            plotter.bounds.norm.clip),
-        ...                            density=[1.0, 1.0])
+        ...     x,
+        ...     y,
+        ...     u,
+        ...     v,
+        ...     color=plotter.plot._kwargs["color"],
+        ...     norm=mcol.BoundaryNorm(
+        ...         plotter.bounds.norm.boundaries,
+        ...         plotter.bounds.norm.Ncmap,
+        ...         plotter.bounds.norm.clip,
+        ...     ),
+        ...     density=[1.0, 1.0],
+        ... )
 
     This raises in matplotlib.colors, line 1316, in
     :meth:`matplotlib.colors.BoundaryNorm.__call__`::
@@ -170,7 +204,8 @@ class FixedBoundaryNorm(BoundaryNorm):
         MaskError: Cannot convert masked element to a Python int.
     """
 
-    if mpl.__version__ > '1.4':
+    if mpl.__version__ > "1.4":
+
         def __call__(self, value, clip=None):
             if isinstance(value, np.ma.core.MaskedConstant):
                 return value
@@ -204,8 +239,8 @@ def get_cmap(name, lut=None):
     Different from the :func::`matpltolib.pyplot.get_cmap` function, this
     function changes the number of colors if `name` is a
     :class:`matplotlib.colors.Colormap` instance to match the given `lut`."""
-    if isstring(name) and name in rcParams['colors.cmaps']:
-        colors = rcParams['colors.cmaps'][name]
+    if isstring(name) and name in rcParams["colors.cmaps"]:
+        colors = rcParams["colors.cmaps"][name]
         lut = lut or len(colors)
         return FixedColorMap.from_list(name=name, colors=colors, N=lut)
     elif isstring(name) and name in _cmapnames:
@@ -220,31 +255,41 @@ def get_cmap(name, lut=None):
         # it does not match
         if lut is not None and cmap.N != lut:
             cmap = FixedColorMap.from_list(
-                name=cmap.name, colors=cmap(np.linspace(0, 1, lut)), N=lut)
+                name=cmap.name, colors=cmap(np.linspace(0, 1, lut)), N=lut
+            )
         return cmap
 
 
 def _get_cmaps(names):
     """Filter the given `names` for colormaps"""
     import matplotlib.pyplot as plt
+
     try:
         builtin_cmaps = mpl.colormaps
     except AttributeError:  # matplotlib <3.6
         builtin_cmaps = plt.cm.cmap_d
     available_cmaps = list(
-        chain(builtin_cmaps, _cmapnames, rcParams['colors.cmaps']))
+        chain(builtin_cmaps, _cmapnames, rcParams["colors.cmaps"])
+    )
     names = safe_list(names)
     wrongs = []
-    for arg in (arg for arg in names if (not isinstance(arg, Colormap) and
-                                         arg not in available_cmaps)):
+    for arg in (
+        arg
+        for arg in names
+        if (not isinstance(arg, Colormap) and arg not in available_cmaps)
+    ):
         if isinstance(arg, str):
             similarkeys = get_close_matches(arg, available_cmaps)
         if similarkeys != []:
-            warn("Colormap %s not found in standard colormaps.\n"
-                 "Similar colormaps are %s." % (arg, ', '.join(similarkeys)))
+            warn(
+                "Colormap %s not found in standard colormaps.\n"
+                "Similar colormaps are %s." % (arg, ", ".join(similarkeys))
+            )
         else:
-            warn("Colormap %s not found in standard colormaps.\n"
-                 "Run function without arguments to see all colormaps" % arg)
+            warn(
+                "Colormap %s not found in standard colormaps.\n"
+                "Run function without arguments to see all colormaps" % arg
+            )
         names.remove(arg)
         wrongs.append(arg)
     if not names and not wrongs:
@@ -252,7 +297,7 @@ def _get_cmaps(names):
     return names
 
 
-@docstrings.get_sections(base='show_colormaps')
+@docstrings.get_sections(base="show_colormaps")
 @docstrings.dedent
 def show_colormaps(names=[], N=10, show=True, use_qt=None):
     """Function to show standard colormaps from pyplot
@@ -286,10 +331,13 @@ def show_colormaps(names=[], N=10, show=True, use_qt=None):
     """
     names = safe_list(names)
     if use_qt or (use_qt is None and psyplot.with_gui):
-        from psy_simple.widgets.colors import ColormapDialog
         from psyplot_gui.main import mainwindow
+
+        from psy_simple.widgets.colors import ColormapDialog
+
         return ColormapDialog.show_colormap(names, N, show, parent=mainwindow)
     import matplotlib.pyplot as plt
+
     # This example comes from the Cookbook on www.scipy.org.  According to the
     # history, Andrew Straw did the conversion from an old page, but it is
     # unclear who the original author is.
@@ -302,12 +350,13 @@ def show_colormaps(names=[], N=10, show=True, use_qt=None):
     fig = plt.figure(figsize=(5, 10))
     fig.subplots_adjust(top=0.99, bottom=0.01, left=0.2, right=0.99)
     for i, m in enumerate(cmaps):
-        ax = plt.subplot(nargs, 1, i+1)
+        ax = plt.subplot(nargs, 1, i + 1)
         plt.axis("off")
         plt.pcolormesh(a, cmap=get_cmap(m, N + 1))
         pos = list(ax.get_position().bounds)
-        fig.text(pos[0] - 0.01, pos[1], m, fontsize=10,
-                 horizontalalignment='right')
+        fig.text(
+            pos[0] - 0.01, pos[1], m, fontsize=10, horizontalalignment="right"
+        )
     if show:
         plt.show(block=False)
     return fig

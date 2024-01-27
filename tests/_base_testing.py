@@ -1,35 +1,18 @@
 """Base test setup for the psy-simple test suite."""
 
-# Disclaimer
-# ----------
+
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
 #
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: LGPL-3.0-only
+
 
 import os
-import six
-import sys
-import shutil
 import subprocess as spr
-import tempfile
+import sys
 from unittest import TestCase
+
 import numpy as np
 
 test_dir = os.path.dirname(__file__)
@@ -46,11 +29,12 @@ output_dir = os.getenv(
 # If so, disable the import of it when import psyplot.project
 try:
     sns_version = spr.check_output(
-        [sys.executable, '-c', 'import seaborn; print(seaborn.__version__)'])
+        [sys.executable, "-c", "import seaborn; print(seaborn.__version__)"]
+    )
 except spr.CalledProcessError:  # seaborn is not installed
     sns_version = None
 else:
-    sns_version = sns_version.decode('utf-8')
+    sns_version = sns_version.decode("utf-8")
 
 
 class PsyPlotTestCase(TestCase):
@@ -63,14 +47,16 @@ class PsyPlotTestCase(TestCase):
 
     grid_type = None
 
-    ncfile = os.path.join(test_dir, 'test-t2m-u-v.nc')
+    ncfile = os.path.join(test_dir, "test-t2m-u-v.nc")
 
     @classmethod
     def tearDownClass(cls):
         import psyplot
         from psyplot.config.rcsetup import defaultParams
+
         psyplot.rcParams.update(
-            **{key: val[0] for key, val in defaultParams.items()})
+            **{key: val[0] for key, val in defaultParams.items()}
+        )
 
     @classmethod
     def create_dirs(cls):
@@ -96,27 +82,31 @@ class PsyPlotTestCase(TestCase):
         -------
         str
             The basename of the reference file"""
-        identifiers = ['test']
+        identifiers = ["test"]
         if self.plot_type is not None:
             identifiers.append(self.plot_type)
         identifiers.append(identifier)
         if self.grid_type is not None:
             identifiers.append(self.grid_type)
-        return "_".join(identifiers) + '.png'
+        return "_".join(identifiers) + ".png"
 
     def compare_figures(self, fname, tol=5, **kwargs):
         """Saves and compares the figure to the reference figure with the same
         name"""
         import matplotlib.pyplot as plt
         from matplotlib.testing.compare import compare_images
+
         plt.savefig(os.path.join(self.odir, fname), **kwargs)
         results = compare_images(
-            os.path.join(ref_dir, fname), os.path.join(self.odir, fname),
-            tol=tol)
+            os.path.join(ref_dir, fname),
+            os.path.join(self.odir, fname),
+            tol=tol,
+        )
         self.assertIsNone(results, msg=results)
 
-    def assertAlmostArrayEqual(self, actual, desired, rtol=1e-07, atol=0,
-                               msg=None, **kwargs):
+    def assertAlmostArrayEqual(
+        self, actual, desired, rtol=1e-07, atol=0, msg=None, **kwargs
+    ):
         """Asserts that the two given arrays are almost the same
 
         This method uses the :func:`numpy.testing.assert_allclose` function
@@ -140,10 +130,13 @@ class PsyPlotTestCase(TestCase):
             If True, the conflicting values are appended to the error message.
         """
         try:
-            np.testing.assert_allclose(actual, desired, rtol=rtol, atol=atol,
-                                       err_msg=msg or '', **kwargs)
+            np.testing.assert_allclose(
+                actual,
+                desired,
+                rtol=rtol,
+                atol=atol,
+                err_msg=msg or "",
+                **kwargs,
+            )
         except AssertionError as e:
-            if six.PY2:
-                self.fail(e.message)
-            else:
-                self.fail(str(e))
+            self.fail(str(e))
