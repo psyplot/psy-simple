@@ -1,61 +1,46 @@
 # -*- coding: utf-8 -*-
 """Module defining the base class for the gui test"""
 
-# Disclaimer
-# ----------
-#
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import six
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
+#
+# SPDX-License-Identifier: LGPL-3.0-only
+
+
 import os
 import os.path as osp
-import numpy as np
 import unittest
 
-os.environ['PSYPLOT_PLUGINS'] = 'yes:psy_simple.plugin'
-
-
-from psyplot_gui.compat.qtcompat import QApplication
-from psyplot_gui import rcParams
+import numpy as np
+import six
 from psyplot import rcParams as psy_rcParams
+from psyplot_gui import rcParams
+from psyplot_gui.compat.qtcompat import QApplication
+
+os.environ["PSYPLOT_PLUGINS"] = "yes:psy_simple.plugin"
 
 
 def is_running_in_gui():
     from psyplot_gui.main import mainwindow
+
     return mainwindow is not None
 
 
 running_in_gui = is_running_in_gui()
 
 
-on_travis = os.environ.get('TRAVIS')
+on_travis = os.environ.get("TRAVIS")
 
 
 def setup_rcparams():
-    rcParams.defaultParams['console.start_channels'][0] = False
-    rcParams.defaultParams['main.listen_to_port'][0] = False
-    rcParams.defaultParams['help_explorer.render_docs_parallel'][0] = False
-    rcParams.defaultParams['help_explorer.use_intersphinx'][0] = False
-    rcParams.defaultParams['plugins.include'][0] = []
-    rcParams.defaultParams['plugins.exclude'][0] = 'all'
+    rcParams.defaultParams["console.start_channels"][0] = False
+    rcParams.defaultParams["main.listen_to_port"][0] = False
+    rcParams.defaultParams["help_explorer.render_docs_parallel"][0] = False
+    rcParams.defaultParams["help_explorer.use_intersphinx"][0] = False
+    rcParams.defaultParams["plugins.include"][0] = []
+    rcParams.defaultParams["plugins.exclude"][0] = "all"
     rcParams.update_from_defaultParams()
 
 
@@ -69,6 +54,7 @@ class PsyPlotGuiTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         from psyplot_gui.main import mainwindow
+
         cls._close_app = mainwindow is None
         cls._app = QApplication.instance()
         if not running_in_gui:
@@ -84,6 +70,7 @@ class PsyPlotGuiTestCase(unittest.TestCase):
 
     def setUp(self):
         import psyplot_gui.main as main
+
         if not running_in_gui:
             setup_rcparams()
             self.window = main.MainWindow.run(show=False)
@@ -91,10 +78,12 @@ class PsyPlotGuiTestCase(unittest.TestCase):
             self.window = main.mainwindow
 
     def tearDown(self):
-        import psyplot.project as psy
         import matplotlib.pyplot as plt
+        import psyplot.project as psy
+
         if not running_in_gui:
             import psyplot_gui.main as main
+
             self.window.close()
             rcParams.update_from_defaultParams()
             psy_rcParams.update_from_defaultParams()
@@ -102,8 +91,8 @@ class PsyPlotGuiTestCase(unittest.TestCase):
             psy_rcParams.disconnect()
             main._set_mainwindow(None)
         del self.window
-        psy.close('all')
-        plt.close('all')
+        psy.close("all")
+        plt.close("all")
 
     def get_file(self, fname):
         """Get the path to the file `fname`
@@ -119,8 +108,9 @@ class PsyPlotGuiTestCase(unittest.TestCase):
             The complete path to the given file"""
         return osp.join(osp.dirname(__file__), fname)
 
-    def assertAlmostArrayEqual(self, actual, desired, rtol=1e-07, atol=0,
-                               msg=None, **kwargs):
+    def assertAlmostArrayEqual(
+        self, actual, desired, rtol=1e-07, atol=0, msg=None, **kwargs
+    ):
         """Asserts that the two given arrays are almost the same
 
         This method uses the :func:`numpy.testing.assert_allclose` function
@@ -144,8 +134,14 @@ class PsyPlotGuiTestCase(unittest.TestCase):
             If True, the conflicting values are appended to the error message.
         """
         try:
-            np.testing.assert_allclose(actual, desired, rtol=rtol, atol=atol,
-                                       err_msg=msg or '', **kwargs)
+            np.testing.assert_allclose(
+                actual,
+                desired,
+                rtol=rtol,
+                atol=atol,
+                err_msg=msg or "",
+                **kwargs,
+            )
         except AssertionError as e:
             if six.PY2:
                 self.fail(e.message)

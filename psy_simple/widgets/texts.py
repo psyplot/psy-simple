@@ -5,87 +5,88 @@ This module contains PyQt widgets that can be used to modify label
 formatoptions (e.g. title, xlabel, titleprops, etc.) in the psyplot GUI.
 """
 
-# Disclaimer
-# ----------
-#
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from psyplot_gui.compat.qtcompat import (
-    QWidget, QComboBox, QHBoxLayout, QPushButton, QLabel, QtGui, with_qt5,
-    QToolButton, QIcon, Qt)
-from psy_simple.widgets import get_icon, Switch2FmtButton
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
+#
+# SPDX-License-Identifier: LGPL-3.0-only
+
+
+from functools import partial
 from warnings import warn
+
 import matplotlib as mpl
 import matplotlib.colors as mcol
-from psyplot.compat.pycompat import OrderedDict
-from psyplot.docstring import docstrings
 from psyplot import utils
-from functools import partial
+from psyplot.docstring import docstrings
+from psyplot_gui.compat.qtcompat import (
+    QComboBox,
+    QHBoxLayout,
+    QIcon,
+    QLabel,
+    QPushButton,
+    Qt,
+    QtGui,
+    QToolButton,
+    QWidget,
+    with_qt5,
+)
+
+from psy_simple.widgets import Switch2FmtButton, get_icon
+
+if with_qt5:
+    from PyQt5.QtWidgets import QColorDialog, QFontDialog, QSpinBox
+else:
+    from PyQt4.QtGui import QColorDialog, QFontDialog, QSpinBox
 
 
 if with_qt5:
-    from PyQt5.QtWidgets import QSpinBox, QFontDialog, QColorDialog
+    weights_mpl2qt = dict(
+        [
+            ("ultralight", QtGui.QFont.ExtraLight),
+            ("light", QtGui.QFont.Light),
+            ("normal", QtGui.QFont.Normal),
+            ("regular", QtGui.QFont.Normal),
+            ("book", QtGui.QFont.Normal),
+            ("medium", QtGui.QFont.Medium),
+            ("roman", QtGui.QFont.Medium),
+            ("semibold", QtGui.QFont.DemiBold),
+            ("demibold", QtGui.QFont.DemiBold),
+            ("demi", QtGui.QFont.DemiBold),
+            ("bold", QtGui.QFont.Bold),
+            ("heavy", QtGui.QFont.Bold),
+            ("extra bold", QtGui.QFont.ExtraBold),
+            ("black", QtGui.QFont.Black),
+        ]
+    )
 else:
-    from PyQt4.QtGui import QSpinBox, QFontDialog, QColorDialog
+    weights_mpl2qt = dict(
+        [
+            ("ultralight", QtGui.QFont.Light),
+            ("light", QtGui.QFont.Light),
+            ("normal", QtGui.QFont.Normal),
+            ("regular", QtGui.QFont.Normal),
+            ("book", QtGui.QFont.Normal),
+            ("medium", QtGui.QFont.Normal),
+            ("roman", QtGui.QFont.Normal),
+            ("semibold", QtGui.QFont.DemiBold),
+            ("demibold", QtGui.QFont.DemiBold),
+            ("demi", QtGui.QFont.DemiBold),
+            ("bold", QtGui.QFont.Bold),
+            ("heavy", QtGui.QFont.Bold),
+            ("extra bold", QtGui.QFont.Black),
+            ("black", QtGui.QFont.Black),
+        ]
+    )
 
 
-if with_qt5:
-    weights_mpl2qt = OrderedDict([
-        ('ultralight', QtGui.QFont.ExtraLight),
-        ('light', QtGui.QFont.Light),
-        ('normal', QtGui.QFont.Normal),
-        ('regular', QtGui.QFont.Normal),
-        ('book', QtGui.QFont.Normal),
-        ('medium', QtGui.QFont.Medium),
-        ('roman', QtGui.QFont.Medium),
-        ('semibold', QtGui.QFont.DemiBold),
-        ('demibold', QtGui.QFont.DemiBold),
-        ('demi', QtGui.QFont.DemiBold),
-        ('bold', QtGui.QFont.Bold),
-        ('heavy', QtGui.QFont.Bold),
-        ('extra bold', QtGui.QFont.ExtraBold),
-        ('black', QtGui.QFont.Black),
-        ])
-else:
-    weights_mpl2qt = OrderedDict([
-        ('ultralight', QtGui.QFont.Light),
-        ('light', QtGui.QFont.Light),
-        ('normal', QtGui.QFont.Normal),
-        ('regular', QtGui.QFont.Normal),
-        ('book', QtGui.QFont.Normal),
-        ('medium', QtGui.QFont.Normal),
-        ('roman', QtGui.QFont.Normal),
-        ('semibold', QtGui.QFont.DemiBold),
-        ('demibold', QtGui.QFont.DemiBold),
-        ('demi', QtGui.QFont.DemiBold),
-        ('bold', QtGui.QFont.Bold),
-        ('heavy', QtGui.QFont.Bold),
-        ('extra bold', QtGui.QFont.Black),
-        ('black', QtGui.QFont.Black),
-        ])
-
-
-weights_qt2mpl = OrderedDict(
-    map(reversed, utils.unique_everseen(weights_mpl2qt.items(),
-                                        key=lambda t: t[1])))
+weights_qt2mpl = dict(
+    map(
+        reversed,
+        utils.unique_everseen(weights_mpl2qt.items(), key=lambda t: t[1]),
+    )
+)
 
 
 def mpl_weight2qt(weight):
@@ -110,8 +111,10 @@ def mpl_weight2qt(weight):
             weight = QtGui.QFont.Normal
         else:
             try:
-                weight = min(filter(lambda w: w >= weight, weights_qt2mpl),
-                             key=lambda w: abs(w - weight))
+                weight = min(
+                    filter(lambda w: w >= weight, weights_qt2mpl),
+                    key=lambda w: abs(w - weight),
+                )
             except ValueError:
                 weight = QtGui.QFont.Normal
     return weight
@@ -124,18 +127,18 @@ class DictCombo(QComboBox):
         QComboBox.__init__(self)
         self.fmt_widget = fmt_widget
         self.addItems(
-            [''] +
-            [(key + ': ' + str(val))[:40] for key, val in attrs.items()])
+            [""] + [(key + ": " + str(val))[:40] for key, val in attrs.items()]
+        )
         func = self.insert_modulo if modulo_style else self.insert_bracketed
         self.currentTextChanged.connect(func)
 
     def insert_modulo(self, s):
         self.fmt_widget.insert_obj(
-            ('%(' + s.split(':')[0] + ')s') if s else '')
+            ("%(" + s.split(":")[0] + ")s") if s else ""
+        )
 
     def insert_bracketed(self, s):
-        self.fmt_widget.insert_obj(
-                ('{' + s.split(':')[0] + '}') if s else '')
+        self.fmt_widget.insert_obj(("{" + s.split(":")[0] + "}") if s else "")
 
 
 class LabelWidget(QWidget):
@@ -149,7 +152,7 @@ class LabelWidget(QWidget):
     of the corresponding fontsize, fontweight and fontproperties of this
     label"""
 
-    @docstrings.get_sections(base='LabelWidget')
+    @docstrings.get_sections(base="LabelWidget")
     def __init__(self, parent, fmto, project, properties=True):
         """
         Parameters
@@ -164,23 +167,30 @@ class LabelWidget(QWidget):
         hbox = QHBoxLayout()
 
         # Create a combo box for the rcParams 'labels' key
-        label_combo = DictCombo(fmto.rc['labels'], parent, modulo_style=False)
+        label_combo = DictCombo(fmto.rc["labels"], parent, modulo_style=False)
         hbox.addWidget(label_combo)
 
         # Create a combo for the :attr:`enhanced_attrs`
-        attrs = OrderedDict(sorted(utils.join_dicts(
-            [getattr(plotter, fmto.key).enhanced_attrs
-             for plotter in project.plotters],
-            delimiter=', ').items()))
+        attrs = dict(
+            sorted(
+                utils.join_dicts(
+                    [
+                        getattr(plotter, fmto.key).enhanced_attrs
+                        for plotter in project.plotters
+                    ],
+                    delimiter=", ",
+                ).items()
+            )
+        )
         attr_combo = DictCombo(attrs, parent)
         hbox.addWidget(attr_combo)
 
         fmtos = [
             # add a button to change to the properties formatoption
-            getattr(fmto.plotter, fmto.key + 'props', None),
-            getattr(fmto.plotter, fmto.key + 'size', None),
-            getattr(fmto.plotter, fmto.key + 'weight', None)
-            ]
+            getattr(fmto.plotter, fmto.key + "props", None),
+            getattr(fmto.plotter, fmto.key + "size", None),
+            getattr(fmto.plotter, fmto.key + "weight", None),
+        ]
         fmtos = list(filter(None, fmtos))
         if fmtos and properties:
             hbox.addWidget(Switch2FmtButton(parent, *fmtos))
@@ -188,13 +198,13 @@ class LabelWidget(QWidget):
         self.setLayout(hbox)
 
 
-docstrings.keep_params('LabelWidget.parameters', 'parent', 'fmto')
+docstrings.keep_params("LabelWidget.parameters", "parent", "fmto")
 
 
 class FontWeightWidget(QWidget):
     """A widget for modifying the fontweight of a label"""
 
-    @docstrings.get_sections(base='FontWeightWidget')
+    @docstrings.get_sections(base="FontWeightWidget")
     @docstrings.with_indent(8)
     def __init__(self, parent, fmto, artist=None, base=None):
         """
@@ -208,9 +218,9 @@ class FontWeightWidget(QWidget):
         """
         QWidget.__init__(self, parent)
         hbox = QHBoxLayout()
-        hbox.addWidget(QLabel('Font weights:'))
+        hbox.addWidget(QLabel("Font weights:"))
         if artist is None:
-            weight = 'normal'
+            weight = "normal"
         else:
             weight = artist.get_weight()
 
@@ -238,9 +248,9 @@ class FontWeightWidget(QWidget):
         if base is not None:
             fmtos = [
                 base,
-                getattr(fmto.plotter, base.key + 'props', None),
-                getattr(fmto.plotter, base.key + 'size', None),
-                ]
+                getattr(fmto.plotter, base.key + "props", None),
+                getattr(fmto.plotter, base.key + "size", None),
+            ]
             fmtos = list(filter(None, fmtos))
             hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
@@ -259,7 +269,7 @@ class FontSizeWidget(QWidget):
         """
         QWidget.__init__(self, parent)
         hbox = QHBoxLayout()
-        hbox.addWidget(QLabel('Font sizes:'))
+        hbox.addWidget(QLabel("Font sizes:"))
 
         self.spin_box = spin_box = QSpinBox(self)
         spin_box.setRange(1, int(1e9))
@@ -270,8 +280,17 @@ class FontSizeWidget(QWidget):
         hbox.addWidget(spin_box)
 
         combo = QComboBox()
-        combo.addItems(['xx-small', 'x-small', 'small', 'medium', 'large',
-                        'x-large', 'xx-large'])
+        combo.addItems(
+            [
+                "xx-small",
+                "x-small",
+                "small",
+                "medium",
+                "large",
+                "x-large",
+                "xx-large",
+            ]
+        )
         combo.currentTextChanged.connect(parent.set_obj)
         hbox.addWidget(combo)
 
@@ -279,9 +298,9 @@ class FontSizeWidget(QWidget):
         if base is not None:
             fmtos = [
                 base,
-                getattr(fmto.plotter, base.key + 'props', None),
-                getattr(fmto.plotter, base.key + 'weight', None),
-                ]
+                getattr(fmto.plotter, base.key + "props", None),
+                getattr(fmto.plotter, base.key + "weight", None),
+            ]
             fmtos = list(filter(None, fmtos))
             hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
@@ -306,13 +325,14 @@ class FontPropertiesWidget(QWidget):
         if artist is not None:
             self.current_font = self.artist_to_qfont(artist)
             self.current_color = QtGui.QColor.fromRgbF(
-                *mcol.to_rgba(artist.get_color()))
+                *mcol.to_rgba(artist.get_color())
+            )
         else:
             self.current_color = QtGui.QColor(Qt.black)
         self.fmto_name = fmto.name or fmto.key
 
         # choose font button
-        button = QPushButton('Choose font')
+        button = QPushButton("Choose font")
         button.clicked.connect(partial(self.choose_font, None))
         hbox.addWidget(button)
 
@@ -326,13 +346,13 @@ class FontPropertiesWidget(QWidget):
 
         # font color button
         self.btn_font_color = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('font_color')))
+        button.setIcon(QIcon(get_icon("font_color")))
         button.clicked.connect(partial(self.choose_color, None))
         hbox.addWidget(button)
 
         # bold button
         self.btn_bold = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('bold')))
+        button.setIcon(QIcon(get_icon("bold")))
         button.clicked.connect(self.toggle_bold)
         button.setCheckable(True)
         if artist is not None:
@@ -341,7 +361,7 @@ class FontPropertiesWidget(QWidget):
 
         # italic button
         self.btn_italic = button = QToolButton(self)
-        button.setIcon(QIcon(get_icon('italic')))
+        button.setIcon(QIcon(get_icon("italic")))
         button.clicked.connect(self.toggle_italic)
         button.setCheckable(True)
         if artist is not None:
@@ -352,9 +372,9 @@ class FontPropertiesWidget(QWidget):
             # add a button to change to the base formatoption
             fmtos = [
                 base,
-                getattr(fmto.plotter, base.key + 'size', None),
-                getattr(fmto.plotter, base.key + 'weight', None),
-                ]
+                getattr(fmto.plotter, base.key + "size", None),
+                getattr(fmto.plotter, base.key + "weight", None),
+            ]
             fmtos = list(filter(None, fmtos))
             hbox.addWidget(Switch2FmtButton(parent, *fmtos))
 
@@ -375,10 +395,10 @@ class FontPropertiesWidget(QWidget):
             The QFont object"""
         size = int(artist.get_size())
         weight = mpl_weight2qt(artist.get_weight())
-        italic = artist.get_style() == 'italic'
+        italic = artist.get_style() == "italic"
         for family in artist.get_family():
-            if family in ['sans-serif', 'cursive', 'monospace', 'serif']:
-                for name in mpl.rcParams['font.' + family]:
+            if family in ["sans-serif", "cursive", "monospace", "serif"]:
+                for name in mpl.rcParams["font." + family]:
                     font = QtGui.QFont(name, size, weight, italic)
                     if font.exactMatch():
                         break
@@ -389,34 +409,36 @@ class FontPropertiesWidget(QWidget):
     @staticmethod
     def qfont_to_artist_props(font):
         properties = {
-            'family': font.family(),
-            'size': font.pointSize(),
-            'weight': weights_qt2mpl[font.weight()],
-            'style': 'italic' if font.italic() else 'normal'}
+            "family": font.family(),
+            "size": font.pointSize(),
+            "weight": weights_qt2mpl[font.weight()],
+            "style": "italic" if font.italic() else "normal",
+        }
         if font.underline():
-            warn("Underline is ignored! Use LaTeX syntax: $\\underline{text}$!"
-                 )
+            warn(
+                "Underline is ignored! Use LaTeX syntax: $\\underline{text}$!"
+            )
         if font.strikeOut():
             warn("StrikeOut is ignored! Use LaTeX syntax: $\\sout{text}$!")
         return properties
 
     def modify_size(self, val):
         properties = self.load_properties()
-        properties['fontsize' if 'fontsize' in properties else 'size'] = val
+        properties["fontsize" if "fontsize" in properties else "size"] = val
         self.current_font.setPointSize(val)
         self.parent().set_obj(properties)
 
     def toggle_bold(self):
         properties = self.load_properties()
         bold = self.btn_bold.isChecked()
-        properties['weight'] = 'bold' if bold else 'normal'
+        properties["weight"] = "bold" if bold else "normal"
         self.current_font.setBold(bold)
         self.parent().set_obj(properties)
 
     def toggle_italic(self):
         properties = self.load_properties()
         italic = self.btn_italic.isChecked()
-        properties['style'] = 'italic' if italic else 'normal'
+        properties["style"] = "italic" if italic else "normal"
         self.current_font.setItalic(italic)
         self.parent().set_obj(properties)
 
@@ -429,9 +451,11 @@ class FontPropertiesWidget(QWidget):
         if font is None:
             if self.current_font:
                 font, ok = QFontDialog.getFont(
-                    self.current_font, fmt_widget,
-                    'Select %s font' % self.fmto_name,
-                    QFontDialog.DontUseNativeDialog)
+                    self.current_font,
+                    fmt_widget,
+                    "Select %s font" % self.fmto_name,
+                    QFontDialog.DontUseNativeDialog,
+                )
             else:
                 font, ok = QFontDialog.getFont(fmt_widget)
             if not ok:
@@ -465,11 +489,13 @@ class FontPropertiesWidget(QWidget):
         fmt_widget = self.parent()
         if color is None:
             color = QColorDialog.getColor(
-                self.current_color, fmt_widget,
-                'Select %s color' % self.fmto_name)
+                self.current_color,
+                fmt_widget,
+                "Select %s color" % self.fmto_name,
+            )
         if not color.isValid():
             return
         self.current_color = color
         properties = self.load_properties()
-        properties['color'] = color.getRgbF()
+        properties["color"] = color.getRgbF()
         fmt_widget.set_obj(properties)

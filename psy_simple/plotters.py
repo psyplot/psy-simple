@@ -1,74 +1,79 @@
 """Plotters and formatoptions for the psy-simple plugin."""
 
-# Disclaimer
-# ----------
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
 #
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: LGPL-3.0-only
 
-import six
 import re
-from warnings import warn
-from psyplot.warning import PsyPlotRuntimeWarning
-from abc import abstractproperty, abstractmethod
-from functools import partial
-from itertools import chain, starmap, cycle, islice, repeat
-from pandas import (
-    date_range, to_datetime, DatetimeIndex, to_timedelta, MultiIndex)
 import weakref
-from pandas.tseries import offsets
-import xarray as xr
+from abc import abstractmethod, abstractproperty
+from functools import partial
+from itertools import chain, cycle, islice, repeat, starmap
+from warnings import warn
+
 import matplotlib as mpl
-import matplotlib.axes
-from matplotlib.ticker import FormatStrFormatter, FixedLocator, FixedFormatter
-from matplotlib.dates import DateFormatter, AutoDateFormatter
-import matplotlib.colors as mcol
 import numpy as np
-from psyplot.docstring import docstrings, dedent
-from psyplot.plotter import (
-    Plotter, Formatoption, BEFOREPLOTTING, DictFormatoption, END, rcParams,
-    START)
-from psy_simple.base import (
-    BasePlotter, TextBase, label_size, label_weight, label_props, MaskLess,
-    MaskGreater, MaskBetween, MaskLeq, MaskGeq, Mask)
-from psy_simple.colors import get_cmap
+import six
+import xarray as xr
+from matplotlib.dates import AutoDateFormatter, DateFormatter
+from matplotlib.ticker import FixedFormatter, FixedLocator, FormatStrFormatter
+from pandas import (
+    DatetimeIndex,
+    MultiIndex,
+    date_range,
+    to_datetime,
+    to_timedelta,
+)
+from pandas.tseries import offsets
 from psyplot.data import (
-    InteractiveList, isstring, CFDecoder, _infer_interval_breaks)
-from psyplot.compat.pycompat import map, zip, range
-from psy_simple.plugin import (
-    validate_color, validate_float, safe_list as slist)
+    CFDecoder,
+    InteractiveList,
+    _infer_interval_breaks,
+    isstring,
+)
+from psyplot.docstring import dedent, docstrings
+from psyplot.plotter import (
+    BEFOREPLOTTING,
+    END,
+    START,
+    DictFormatoption,
+    Formatoption,
+    Plotter,
+)
 from psyplot.utils import is_iterable
+from psyplot.warning import PsyPlotRuntimeWarning
+
+from psy_simple.base import (
+    BasePlotter,
+    Mask,
+    MaskBetween,
+    MaskGeq,
+    MaskGreater,
+    MaskLeq,
+    MaskLess,
+    TextBase,
+    label_props,
+    label_size,
+    label_weight,
+)
+from psy_simple.colors import get_cmap
+from psy_simple.plugin import safe_list as slist
+from psy_simple.plugin import validate_color, validate_float
 
 
 def _get_index_vals(index):
-    if (isinstance(index, MultiIndex) and
-            len(index.names) == 1):
+    if isinstance(index, MultiIndex) and len(index.names) == 1:
         return index.get_level_values(0).values
     else:
         return index.values
 
 
-mpl_version = float('.'.join(mpl.__version__.split('.')[:2]))
+mpl_version = float(".".join(mpl.__version__.split(".")[:2]))
 
 
-def round_to_05(n, exp=None, mode='s'):
+def round_to_05(n, exp=None, mode="s"):
     """
     Round to the next 0.5-value.
 
@@ -106,21 +111,25 @@ def round_to_05(n, exp=None, mode='s'):
 
         >>> round_to_05(a, mode='l')
         array([ -1.50000000e+02,   4.50000000e+01,   9.00000000e+00,
-                -2.50000000e-04])"""
+                -2.50000000e-04])
+    """
     n = np.asarray(n)
     if exp is None:
         exp = np.floor(np.log10(np.abs(n)))  # exponent for base 10
-    ntmp = np.abs(n)/10.**exp  # mantissa for base 10
-    if mode == 's':
+    ntmp = np.abs(n) / 10.0**exp  # mantissa for base 10
+    if mode == "s":
         n1 = ntmp
-        s = 1.
+        s = 1.0
         n2 = nret = np.floor(ntmp)
     else:
         n1 = nret = np.ceil(ntmp)
-        s = -1.
+        s = -1.0
         n2 = ntmp
-    return np.where(n1 - n2 > 0.5, np.sign(n)*(nret + s*0.5)*10.**exp,
-                    np.sign(n)*nret*10.**exp)
+    return np.where(
+        n1 - n2 > 0.5,
+        np.sign(n) * (nret + s * 0.5) * 10.0**exp,
+        np.sign(n) * nret * 10.0**exp,
+    )
 
 
 def convert_radian(coord, *variables):
@@ -141,10 +150,10 @@ def convert_radian(coord, *variables):
     warn(
         "The psy_simple.plotters.convert_radian method has been deprecated."
         "Please use the `plotter.convert_coordinate` instead.",
-        DeprecationWarning
+        DeprecationWarning,
     )
-    if any(v.attrs.get('units', '').startswith('radian') for v in variables):
-        return coord * 180. / np.pi
+    if any(v.attrs.get("units", "").startswith("radian") for v in variables):
+        return coord * 180.0 / np.pi
     return coord
 
 
@@ -203,11 +212,12 @@ class AlternativeXCoord(Formatoption):
         >>> plotter.plot_data[0].dims
         ('std',)
 
-    and ``'std'`` is plotted on the x-axis."""
+    and ``'std'`` is plotted on the x-axis.
+    """
 
-    name = 'Alternative X-Variable'
+    name = "Alternative X-Variable"
 
-    group = 'data'
+    group = "data"
 
     priority = START
 
@@ -228,8 +238,10 @@ class AlternativeXCoord(Formatoption):
 
     def diff(self, value):
         try:
-            return ~((np.shape(value) == np.shape(self.value)) &
-                     np.all(value == self.value))
+            return ~(
+                (np.shape(value) == np.shape(self.value))
+                & np.all(value == self.value)
+            )
         except TypeError:
             return True
 
@@ -245,21 +257,26 @@ class AlternativeXCoord(Formatoption):
         Returns
         xarray.DataArray
             The data array with the replaced coordinate"""
-        da = next(islice(self.data_iterator, i, i+1))
+        da = next(islice(self.data_iterator, i, i + 1))
         name, coord = self.get_alternative_coord(da, i)
-        other_coords = {key: da.coords[key]
-                        for key in set(da.coords).difference(da.dims)}
-        ret = da.rename({da.dims[-1]: name}).assign_coords(
-            **{name: coord}).assign_coords(**other_coords)
+        other_coords = {
+            key: da.coords[key] for key in set(da.coords).difference(da.dims)
+        }
+        ret = (
+            da.rename({da.dims[-1]: name})
+            .assign_coords(**{name: coord})
+            .assign_coords(**other_coords)
+        )
         return ret
 
     def get_alternative_coord(self, da, i):
         if isinstance(self.value, xr.DataArray):
             return self.value.name, self.value.variable
-        alternative_name = next(islice(cycle(slist(self.value)), i, i+1))
+        alternative_name = next(islice(cycle(slist(self.value)), i, i + 1))
         coord_da = InteractiveList.from_dataset(
-            da.psy.base, name=alternative_name, dims=da.psy.idims)[0]
-        coord = xr.Variable((coord_da.name, ), coord_da, coord_da.attrs)
+            da.psy.base, name=alternative_name, dims=da.psy.idims
+        )[0]
+        coord = xr.Variable((coord_da.name,), coord_da, coord_da.attrs)
         return coord_da.name, coord
 
 
@@ -295,9 +312,9 @@ class Grid(Formatoption):
     -----
     %(colors)s"""
 
-    group = 'axes'
+    group = "axes"
 
-    name = 'Grid lines'
+    name = "Grid lines"
 
     def update(self, value):
         if self.plotter._initialized and mpl_version == 3.3:
@@ -325,9 +342,9 @@ class AxisColor(DictFormatoption):
     -----
     %(colors)s"""
 
-    group = 'axes'
+    group = "axes"
 
-    name = 'Color of x- and y-axes'
+    name = "Color of x- and y-axes"
 
     @property
     def value2pickle(self):
@@ -335,10 +352,16 @@ class AxisColor(DictFormatoption):
         return {key: s.get_edgecolor() for key, s in self.ax.spines.items()}
 
     def initialize_plot(self, value):
-        positions = ['right', 'left', 'bottom', 'top']
+        positions = ["right", "left", "bottom", "top"]
         #: :class:`dict` storing the default linewidths
-        self.default_lw = dict(zip(positions, map(
-            lambda pos: self.ax.spines[pos].get_linewidth(), positions)))
+        self.default_lw = dict(
+            zip(
+                positions,
+                map(
+                    lambda pos: self.ax.spines[pos].get_linewidth(), positions
+                ),
+            )
+        )
         self.update(value)
 
     def update(self, value):
@@ -348,7 +371,7 @@ class AxisColor(DictFormatoption):
             if color is not None and spine.get_linewidth() == 0.0:
                 spine.set_linewidth(1.0)
             elif color is None:
-                spine.set_color(mpl.rcParams['axes.edgecolor'])
+                spine.set_color(mpl.rcParams["axes.edgecolor"])
                 spine.set_linewidth(self.default_lw[pos])
 
 
@@ -361,7 +384,7 @@ class TicksManagerBase(Formatoption):
         pass
 
 
-@docstrings.get_sections(base='TicksManager')
+@docstrings.get_sections(base="TicksManager")
 class TicksManager(TicksManagerBase, DictFormatoption):
     """
     Abstract base class for ticks formatoptions controlling major and minor
@@ -379,7 +402,7 @@ class TicksManager(TicksManagerBase, DictFormatoption):
         rcParams ``'ticks.which'`` key (usually ``'major'``).
         The values in the dictionary can be one types below."""
 
-    group = 'ticks'
+    group = "ticks"
 
     def update(self, value):
         for which, val in six.iteritems(value):
@@ -387,7 +410,7 @@ class TicksManager(TicksManagerBase, DictFormatoption):
             self.update_axis(val)
 
 
-@docstrings.get_sections(base='DataTicksCalculator')
+@docstrings.get_sections(base="DataTicksCalculator")
 class DataTicksCalculator(Formatoption):
     """
     Abstract base formatoption to calculate ticks and bounds from the data
@@ -459,13 +482,14 @@ class DataTicksCalculator(Formatoption):
     def full_array(self):
         """The full array of this and the shared data"""
         return np.concatenate(
-            [self.array] + [fmto.array for fmto in self.shared])
+            [self.array] + [fmto.array for fmto in self.shared]
+        )
 
     @property
     def array(self):
         """The numpy array of the data"""
         data = self.data
-        if not hasattr(data, 'notnull'):
+        if not hasattr(data, "notnull"):
             data = data.to_series()
         mask = np.asarray(data.notnull())
         return data.values[mask]
@@ -479,7 +503,7 @@ class DataTicksCalculator(Formatoption):
         step = step or 1
         """Array of ticks in the middle between the data points"""
         arr = np.unique(self.array)
-        return ((arr[:-1] + arr[1:])/2.)[::step]
+        return ((arr[:-1] + arr[1:]) / 2.0)[::step]
 
     def _collect_array(self, percmin=None, percmax=None):
         """Collect the data from the shared formatoptions (if necessary)."""
@@ -515,17 +539,19 @@ class DataTicksCalculator(Formatoption):
         else:
             # np.concatenate all arrays if any of the percentiles are required
             if percmin is not None or percmax is not None:
-                arr = np.concatenate(tuple(chain(
-                    [self.array], shared_arrays())))
+                arr = np.concatenate(
+                    tuple(chain([self.array], shared_arrays()))
+                )
             # np.concatenate only min and max-values instead of the full arrays
             else:
-                arr = np.concatenate(tuple(map(minmax, chain(
-                    [self.array], shared_arrays()))))
+                arr = np.concatenate(
+                    tuple(map(minmax, chain([self.array], shared_arrays())))
+                )
         return arr
 
-    def _calc_vmin_vmax(self, percmin=None, percmax=None,
-                        vmin=None, vmax=None):
-
+    def _calc_vmin_vmax(
+        self, percmin=None, percmax=None, vmin=None, vmax=None
+    ):
         def nanmin(arr):
             try:
                 return np.nanmin(arr)
@@ -558,8 +584,9 @@ class DataTicksCalculator(Formatoption):
                 percentiles.append(percmax)
         except ValueError:
             self.logger.warn(
-                'Cannot calculate minimum and maximum of the data!',
-                exc_info=True)
+                "Cannot calculate minimum and maximum of the data!",
+                exc_info=True,
+            )
             return 0, 1
         if percentiles:
             percentiles = iter(np.percentile(arr, percentiles))
@@ -574,28 +601,30 @@ class DataTicksCalculator(Formatoption):
         if vmin == vmax:
             return vmin, vmax
         exp = np.floor(np.log10(abs(vmax - vmin)))
-        larger = round_to_05([vmin, vmax], exp, mode='l')
-        smaller = round_to_05([vmin, vmax], exp, mode='s')
+        larger = round_to_05([vmin, vmax], exp, mode="l")
+        smaller = round_to_05([vmin, vmax], exp, mode="s")
         return min([larger[0], smaller[0]]), max([larger[1], smaller[1]])
 
     def _rounded_ticks(self, N=None, *args, **kwargs):
         N = N or 11
         vmin, vmax = self._round_min_max(
-            *self._calc_vmin_vmax(*args, **kwargs))
+            *self._calc_vmin_vmax(*args, **kwargs)
+        )
         return np.linspace(vmin, vmax, N, endpoint=True)
 
     def _log_bounds(self, expmin, expmax, N):
         bounds = []
         for i in range(int(expmax - expmin)):
-            new_vals = np.linspace(1 * 10 ** (expmin + i),
-                                   9 * 10 ** (expmin + i), N + 1)[:-1]
+            new_vals = np.linspace(
+                1 * 10 ** (expmin + i), 9 * 10 ** (expmin + i), N + 1
+            )[:-1]
             bounds.extend(new_vals)
         return bounds
 
     def _log_ticks(self, symmetric=False, N=None, *args, **kwargs):
         vmin, vmax = self._calc_vmin_vmax(*args, **kwargs)
-        larger = round_to_05([vmin, vmax], mode='l')
-        smaller = round_to_05([vmin, vmax], mode='s')
+        larger = round_to_05([vmin, vmax], mode="l")
+        smaller = round_to_05([vmin, vmax], mode="s")
         vmin, vmax = min([larger[0], smaller[0]]), max([larger[1], smaller[1]])
 
         if symmetric and np.sign(vmin) == np.sign(vmax):
@@ -626,14 +655,14 @@ class DataTicksCalculator(Formatoption):
             less0 = arr < 0
             greater0 = arr > 0
             if not less0.size:
-                vmin0 = round_to_05(arr[arr > 0].min(), mode='s')
+                vmin0 = round_to_05(arr[arr > 0].min(), mode="s")
                 vmax0 = -vmin0
             elif not greater0.size:
-                vmax0 = round_to_05(arr[arr < 0].max(), mode='l')
+                vmax0 = round_to_05(arr[arr < 0].max(), mode="l")
                 vmin0 = -vmax0
             else:
-                vmin0 = round_to_05(arr[arr > 0].min(), mode='s')
-                vmax0 = round_to_05(arr[arr < 0].max(), mode='l')
+                vmin0 = round_to_05(arr[arr > 0].min(), mode="s")
+                vmax0 = round_to_05(arr[arr < 0].max(), mode="l")
                 if symmetric:
                     vmin0 = min(-vmax0, vmin0)
                     vmax0 = -vmin0
@@ -656,24 +685,34 @@ class DataTicksCalculator(Formatoption):
                 N = int(max(np.floor((11 if not symmetric else 12) / dexp), 1))
             if not crossing0:
                 bounds = self._log_bounds(expmin, expmax, N)
-                bounds += [1*10**expmax]
+                bounds += [1 * 10**expmax]
                 if signs[0] == -1 and signs[1] == -1:
                     bounds = -np.array(bounds)
             else:
                 bounds_neg = -np.array(self._log_bounds(expmin, expmax0, N))
                 bounds_pos = self._log_bounds(expmin0, expmax, N)
                 bounds = np.unique(
-                    np.r_[bounds_neg, bounds_pos,
-                          -1 * 10 ** expmin, -1 * 10 ** expmax0,
-                          1 * 10 ** expmin0, 1 * 10 ** expmax])
+                    np.r_[
+                        bounds_neg,
+                        bounds_pos,
+                        -1 * 10**expmin,
+                        -1 * 10**expmax0,
+                        1 * 10**expmin0,
+                        1 * 10**expmax,
+                    ]
+                )
                 bounds = bounds[(bounds <= vmax0) | (bounds >= vmin0)]
 
             return np.unique(bounds)
 
     def _roundedsym_ticks(self, N=None, *args, **kwargs):
         N = N or 10
-        vmax = max(map(abs, self._round_min_max(
-            *self._calc_vmin_vmax(*args, **kwargs))))
+        vmax = max(
+            map(
+                abs,
+                self._round_min_max(*self._calc_vmin_vmax(*args, **kwargs)),
+            )
+        )
         vmin = -vmax
         return np.linspace(vmin, vmax, N, endpoint=True)
 
@@ -691,18 +730,18 @@ class DataTicksCalculator(Formatoption):
     def __init__(self, *args, **kwargs):
         super(DataTicksCalculator, self).__init__(*args, **kwargs)
         self.calc_funcs = {
-            'data': self._data_ticks,
-            'mid': self._mid_data_ticks,
-            'rounded': self._rounded_ticks,
-            'roundedsym': self._roundedsym_ticks,
-            'minmax': self._data_minmax_ticks,
-            'sym': self._data_symminmax_ticks,
-            'log': partial(self._log_ticks, False),
-            'symlog': partial(self._log_ticks, True),
-            }
+            "data": self._data_ticks,
+            "mid": self._mid_data_ticks,
+            "rounded": self._rounded_ticks,
+            "roundedsym": self._roundedsym_ticks,
+            "minmax": self._data_minmax_ticks,
+            "sym": self._data_symminmax_ticks,
+            "log": partial(self._log_ticks, False),
+            "symlog": partial(self._log_ticks, True),
+        }
 
 
-@docstrings.get_sections(base='TicksBase')
+@docstrings.get_sections(base="TicksBase")
 class TicksBase(TicksManagerBase, DataTicksCalculator):
     """
     Abstract base class for calculating ticks
@@ -715,9 +754,9 @@ class TicksBase(TicksManagerBase, DataTicksCalculator):
         for an integer *i*, only every *i-th* tick of the default ticks are
         used"""
 
-    dependencies = ['transpose', 'plot']
+    dependencies = ["transpose", "plot"]
 
-    group = 'ticks'
+    group = "ticks"
 
     @abstractproperty
     def axis(self):
@@ -741,16 +780,17 @@ class TicksBase(TicksManagerBase, DataTicksCalculator):
             return self.set_ticks(self.calc_funcs[value[0]](*value[1:]))
         elif isinstance(value, tuple):
             steps = 11 if len(value) == 2 else value[3]
-            self.set_ticks(np.linspace(value[0], value[1], steps,
-                                       endpoint=True))
+            self.set_ticks(
+                np.linspace(value[0], value[1], steps, endpoint=True)
+            )
         else:
             self.set_ticks(value)
 
     def set_ticks(self, value):
-        self.axis.set_ticks(value, minor=self.which == 'minor')
+        self.axis.set_ticks(value, minor=self.which == "minor")
 
     def get_locator(self):
-        return getattr(self.axis, 'get_%s_locator' % self.which)()
+        return getattr(self.axis, "get_%s_locator" % self.which)()
 
     def set_locator(self, locator):
         """Sets the locator corresponding of the axis
@@ -771,17 +811,17 @@ class TicksBase(TicksManagerBase, DataTicksCalculator):
         ----------
         which: {None, 'minor', 'major'}
             Specify which locator shall be set"""
-        if which is None or which == 'minor':
-            self.default_locators['minor'] = self.axis.get_minor_locator()
-        if which is None or which == 'major':
-            self.default_locators['major'] = self.axis.get_major_locator()
+        if which is None or which == "minor":
+            self.default_locators["minor"] = self.axis.get_minor_locator()
+        if which is None or which == "major":
+            self.default_locators["major"] = self.axis.get_major_locator()
 
     def _reduce_ticks(self, i):
         loc = self.default_locators[self.which]
         self.set_locator(FixedLocator(loc()[::i]))
 
 
-@docstrings.get_sections(base='DtTicksBase')
+@docstrings.get_sections(base="DtTicksBase")
 class DtTicksBase(TicksBase, TicksManager):
     """
     Abstract base class for x- and y-tick formatoptions
@@ -812,25 +852,34 @@ class DtTicksBase(TicksBase, TicksManager):
 
     def __init__(self, *args, **kwargs):
         super(DtTicksBase, self).__init__(*args, **kwargs)
-        self.calc_funcs.update({
-            'hour': self._frequent_ticks('H'),
-            'day': self._frequent_ticks('D'),
-            'week': self._frequent_ticks(offsets.Week()),
-            'month': self._mid_dt_ticks('M'),
-            'monthend': self._frequent_ticks(
-                offsets.MonthEnd(), onset=offsets.MonthBegin()),
-            'monthbegin': self._frequent_ticks(
-                offsets.MonthBegin(), onset=offsets.MonthBegin(),
-                offset=offsets.MonthBegin()),
-            'year': self._mid_dt_ticks(offsets.YearBegin()),
-            'yearend': self._frequent_ticks(
-                offsets.YearEnd(), onset=offsets.YearBegin()),
-            'yearbegin': self._frequent_ticks(
-                offsets.YearBegin(), onset=offsets.YearBegin(),
-                offset=offsets.YearBegin())})
+        self.calc_funcs.update(
+            {
+                "hour": self._frequent_ticks("H"),
+                "day": self._frequent_ticks("D"),
+                "week": self._frequent_ticks(offsets.Week()),
+                "month": self._mid_dt_ticks("M"),
+                "monthend": self._frequent_ticks(
+                    offsets.MonthEnd(), onset=offsets.MonthBegin()
+                ),
+                "monthbegin": self._frequent_ticks(
+                    offsets.MonthBegin(),
+                    onset=offsets.MonthBegin(),
+                    offset=offsets.MonthBegin(),
+                ),
+                "year": self._mid_dt_ticks(offsets.YearBegin()),
+                "yearend": self._frequent_ticks(
+                    offsets.YearEnd(), onset=offsets.YearBegin()
+                ),
+                "yearbegin": self._frequent_ticks(
+                    offsets.YearBegin(),
+                    onset=offsets.YearBegin(),
+                    offset=offsets.YearBegin(),
+                ),
+            }
+        )
 
     def update(self, value):
-        value = value or {'minor': None, 'major': None}
+        value = value or {"minor": None, "major": None}
         super(DtTicksBase, self).update(value)
 
     @property
@@ -839,9 +888,11 @@ class DtTicksBase(TicksBase, TicksManager):
         data = self.data
         # do nothing if the data is a pandas.Index without time informations
         # or not a pandas.Index
-        if not getattr(data, 'is_all_dates', None):
-            warn("[%s] - Could not convert time informations for %s ticks "
-                 "with object %r." % (self.logger.name, self.key, type(data)))
+        if not isinstance(data, DatetimeIndex):
+            warn(
+                "[%s] - Could not convert time informations for %s ticks "
+                "with object %r." % (self.logger.name, self.key, type(data))
+            )
             return None
         else:
             return data
@@ -854,8 +905,10 @@ class DtTicksBase(TicksBase, TicksManager):
                 return
             mindata = data.min() if onset is None else data.min() - onset
             maxdata = data.max() if offset is None else data.max() + offset
-            return date_range(
-                mindata, maxdata, freq=freq)[::step].to_pydatetime()
+            return date_range(mindata, maxdata, freq=freq)[
+                ::step
+            ].to_pydatetime()
+
         return func
 
     def _mid_dt_ticks(self, freq):
@@ -865,9 +918,11 @@ class DtTicksBase(TicksBase, TicksManager):
             if data is None:
                 return
             data = date_range(
-                data.min(), data.max(), freq=freq).to_pydatetime()
-            data[:-1] += (data[1:] - data[:-1])/2
+                data.min(), data.max(), freq=freq
+            ).to_pydatetime()
+            data[:-1] += (data[1:] - data[:-1]) / 2
             return data[:-1:step]
+
         return func
 
 
@@ -896,13 +951,14 @@ class XTicks(DtTicksBase):
 
     See Also
     --------
-    xticklabels, ticksize, tickweight, xtickprops, yticks"""
+    xticklabels, ticksize, tickweight, xtickprops, yticks
+    """
 
-    children = TicksBase.children + ['yticks']
+    children = TicksBase.children + ["yticks"]
 
-    dependencies = DtTicksBase.dependencies + ['plot']
+    dependencies = DtTicksBase.dependencies + ["plot"]
 
-    name = 'Location of the x-Axis ticks'
+    name = "Location of the x-Axis ticks"
 
     @property
     def axis(self):
@@ -914,7 +970,8 @@ class XTicks(DtTicksBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = getattr(self.plot, 'plotted_data', super(XTicks, self).data)
+
+        data = getattr(self.plot, "plotted_data", super(XTicks, self).data)
         if not len(data):
             data = super(XTicks, self).data
         if isinstance(data, InteractiveList):
@@ -931,7 +988,7 @@ class XTicks(DtTicksBase):
 
     def initialize_plot(self, *args, **kwargs):
         super(XTicks, self).initialize_plot(*args, **kwargs)
-        self.transpose.swap_funcs['ticks'] = self._swap_ticks
+        self.transpose.swap_funcs["ticks"] = self._swap_ticks
 
     def _swap_ticks(self):
         xticks = self
@@ -958,9 +1015,9 @@ class YTicks(DtTicksBase):
     yticklabels, ticksize, tickweight, ytickprops
     xticks: for possible examples"""
 
-    dependencies = DtTicksBase.dependencies + ['plot']
+    dependencies = DtTicksBase.dependencies + ["plot"]
 
-    name = 'Location of the y-Axis ticks'
+    name = "Location of the y-Axis ticks"
 
     @property
     def axis(self):
@@ -972,7 +1029,8 @@ class YTicks(DtTicksBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = getattr(self.plot, 'plotted_data', super(XTicks, self).data)
+
+        data = getattr(self.plot, "plotted_data", super(XTicks, self).data)
         if not len(data):
             data = super(XTicks, self).data
         if isinstance(data, InteractiveList):
@@ -988,7 +1046,7 @@ class YTicks(DtTicksBase):
             return df
 
 
-@docstrings.get_sections(base='TickLabelsBase')
+@docstrings.get_sections(base="TickLabelsBase")
 class TickLabelsBase(TicksManagerBase):
     """
     Abstract base class for ticklabels
@@ -1001,9 +1059,9 @@ class TickLabelsBase(TicksManagerBase):
     array
         An array of strings to use for the ticklabels"""
 
-    dependencies = ['transpose']
+    dependencies = ["transpose"]
 
-    group = 'ticks'
+    group = "ticks"
 
     @abstractproperty
     def axis(self):
@@ -1020,18 +1078,20 @@ class TickLabelsBase(TicksManagerBase):
 
     def update_axis(self, value):
         if value is None:
-            self.set_formatter(self.default_formatters['major'])
+            self.set_formatter(self.default_formatters["major"])
         elif isinstance(value, six.string_types):
             self.set_stringformatter(value)
         else:
-            ticks = self.axis.get_ticklocs(minor=self.which == 'minor')
+            ticks = self.axis.get_ticklocs(minor=self.which == "minor")
             if len(ticks) != len(value):
-                warn("[%s] - Length of ticks (%i) and ticklabels (%i)"
-                     "do not match!" % (self.key, len(ticks), len(value)))
+                warn(
+                    "[%s] - Length of ticks (%i) and ticklabels (%i)"
+                    "do not match!" % (self.key, len(ticks), len(value))
+                )
             self.set_ticklabels(value)
 
     def set_stringformatter(self, s):
-        default_formatter = self.default_formatters['major']
+        default_formatter = self.default_formatters["major"]
         if isinstance(default_formatter, AutoDateFormatter):
             self.set_formatter(DateFormatter(s))
         else:
@@ -1053,12 +1113,13 @@ class TickLabelsBase(TicksManagerBase):
 
 
 class TickLabels(TickLabelsBase, TicksManager):
-
     def update(self, value):
-        if (getattr(self, self.key.replace('label', '')).value.get(
-                 'minor') is not None and
-                'minor' not in self.value):
-            items = chain(six.iteritems(value), [('minor', None)])
+        if (
+            getattr(self, self.key.replace("label", "")).value.get("minor")
+            is not None
+            and "minor" not in self.value
+        ):
+            items = chain(six.iteritems(value), [("minor", None)])
         else:
             items = six.iteritems(value)
         super(TickLabels, self).update(dict(items))
@@ -1070,14 +1131,14 @@ class TickLabels(TickLabelsBase, TicksManager):
         ----------
         which: {None, 'minor', 'major'}
             Specify which locator shall be set"""
-        if which is None or which == 'minor':
-            self.default_formatters['minor'] = self.axis.get_minor_formatter()
-        if which is None or which == 'major':
-            self.default_formatters['major'] = self.axis.get_major_formatter()
+        if which is None or which == "minor":
+            self.default_formatters["minor"] = self.axis.get_minor_formatter()
+        if which is None or which == "major":
+            self.default_formatters["major"] = self.axis.get_major_formatter()
 
     def set_formatter(self, formatter, which=None):
         which = which or self.which
-        getattr(self.axis, 'set_%s_formatter' % which)(formatter)
+        getattr(self.axis, "set_%s_formatter" % which)(formatter)
 
 
 class XTickLabels(TickLabels):
@@ -1093,9 +1154,9 @@ class XTickLabels(TickLabels):
     --------
     xticks, ticksize, tickweight, xtickprops, yticklabels"""
 
-    dependencies = TickLabelsBase.dependencies + ['xticks', 'yticklabels']
+    dependencies = TickLabelsBase.dependencies + ["xticks", "yticklabels"]
 
-    name = 'x-xxis Ticklabels'
+    name = "x-xxis Ticklabels"
 
     @property
     def axis(self):
@@ -1103,7 +1164,7 @@ class XTickLabels(TickLabels):
 
     def initialize_plot(self, *args, **kwargs):
         super(XTickLabels, self).initialize_plot(*args, **kwargs)
-        self.transpose.swap_funcs['ticklabels'] = self._swap_ticklabels
+        self.transpose.swap_funcs["ticklabels"] = self._swap_ticklabels
 
     def _swap_ticklabels(self):
         xticklabels = self
@@ -1130,9 +1191,9 @@ class YTickLabels(TickLabels):
     --------
     yticks, ticksize, tickweight, ytickprops, xticklabels"""
 
-    dependencies = TickLabelsBase.dependencies + ['yticks']
+    dependencies = TickLabelsBase.dependencies + ["yticks"]
 
-    name = 'y-xxis ticklabels'
+    name = "y-xxis ticklabels"
 
     @property
     def axis(self):
@@ -1140,19 +1201,20 @@ class YTickLabels(TickLabels):
 
 
 class BarXTicks(XTicks):
-
     __doc__ = XTicks.__doc__
 
-    connections = XTicks.connections + ['xlim']
+    connections = XTicks.connections + ["xlim"]
 
-    dependencies = XTicks.dependencies + ['categorical']
+    dependencies = XTicks.dependencies + ["categorical"]
 
     def update(self, value):
         import matplotlib.ticker as mtick
+
         if self.categorical.is_categorical and not self.transpose.value:
-            self.default_locators['major'] = mtick.FixedLocator(
-                np.unique(self.array))
-            self.default_locators['minor'] = mtick.NullLocator()
+            self.default_locators["major"] = mtick.FixedLocator(
+                np.unique(self.array)
+            )
+            self.default_locators["minor"] = mtick.NullLocator()
         else:
             self.default_locators = self._orig_default_locators.copy()
         return super(BarXTicks, self).update(value)
@@ -1163,32 +1225,36 @@ class BarXTicks(XTicks):
 
     @property
     def array(self):
-        if self.transpose.value and 'stacked' in slist(self.plot.value):
+        if self.transpose.value and "stacked" in slist(self.plot.value):
             df = self.data.to_dataframe()
             return np.concatenate(
-                [[min([0, df.values.min()])], df.sum(axis=1).values])
+                [[min([0, df.values.min()])], df.sum(axis=1).values]
+            )
         elif self.transpose.value:
             return np.concatenate(
-                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
+                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data]
+            )
         else:
             return np.concatenate(
-                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data])
+                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data]
+            )
 
 
 class BarYTicks(YTicks):
-
     __doc__ = YTicks.__doc__
 
-    connections = YTicks.connections + ['ylim']
+    connections = YTicks.connections + ["ylim"]
 
-    dependencies = YTicks.dependencies + ['categorical']
+    dependencies = YTicks.dependencies + ["categorical"]
 
     def update(self, value):
         import matplotlib.ticker as mtick
+
         if self.categorical.is_categorical and self.transpose.value:
-            self.default_locators['major'] = mtick.FixedLocator(
-                np.unique(self.array))
-            self.default_locators['minor'] = mtick.NullLocator()
+            self.default_locators["major"] = mtick.FixedLocator(
+                np.unique(self.array)
+            )
+            self.default_locators["minor"] = mtick.NullLocator()
         else:
             self.default_locators = self._orig_default_locators.copy()
         return super(BarYTicks, self).update(value)
@@ -1199,32 +1265,38 @@ class BarYTicks(YTicks):
 
     @property
     def array(self):
-        if not self.transpose.value and 'stacked' in slist(self.plot.value):
+        if not self.transpose.value and "stacked" in slist(self.plot.value):
             df = self.data.to_dataframe()
             return np.concatenate(
-                [[min([0, df.values.min()])], df.sum(axis=1).values])
+                [[min([0, df.values.min()])], df.sum(axis=1).values]
+            )
         elif self.transpose.value:
             return np.concatenate(
-                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data])
+                [self.plot.get_xys(arr)[0] for arr in self.plot.iter_data]
+            )
         else:
             return np.concatenate(
-                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data])
+                [self.plot.get_xys(arr)[1] for arr in self.plot.iter_data]
+            )
 
 
 class BarXTickLabels(XTickLabels):
-
     __doc__ = XTickLabels.__doc__
 
-    dependencies = XTickLabels.dependencies + ['plot', 'categorical']
+    dependencies = XTickLabels.dependencies + ["plot", "categorical"]
 
     def set_stringformatter(self, s):
         if not self.transpose.value and self.plot.value is not None:
             index = self.data.to_dataframe().index
-            if index.is_all_dates:
+            if isinstance(index, DatetimeIndex):
                 if self.categorical.is_categorical:
-                    xticks = self.ax.get_xticks(minor=self.which == 'minor')
-                    arr = list(map(lambda t: t.toordinal(),
-                                   to_datetime(index[xticks.astype(int)])))
+                    xticks = self.ax.get_xticks(minor=self.which == "minor")
+                    arr = list(
+                        map(
+                            lambda t: t.toordinal(),
+                            to_datetime(index[xticks.astype(int)]),
+                        )
+                    )
                     self.ax.set_xticklabels(list(map(DateFormatter(s), arr)))
                 else:
                     self.set_formatter(DateFormatter(s))
@@ -1233,19 +1305,22 @@ class BarXTickLabels(XTickLabels):
 
 
 class BarYTickLabels(YTickLabels):
-
     __doc__ = YTickLabels.__doc__
 
-    dependencies = YTickLabels.dependencies + ['plot', 'categorical']
+    dependencies = YTickLabels.dependencies + ["plot", "categorical"]
 
     def set_stringformatter(self, s):
         if self.transpose.value and self.plot.value is not None:
             index = self.data.to_dataframe().index
-            if index.is_all_dates:
+            if isinstance(index, DatetimeIndex):
                 if self.categorical.is_categorical:
-                    yticks = self.ax.get_yticks(self.which == 'minor')
-                    arr = list(map(lambda t: t.toordinal(),
-                                   to_datetime(index[yticks.astype(int)])))
+                    yticks = self.ax.get_yticks(self.which == "minor")
+                    arr = list(
+                        map(
+                            lambda t: t.toordinal(),
+                            to_datetime(index[yticks.astype(int)]),
+                        )
+                    )
                     self.ax.set_yticklabels(list(map(DateFormatter(s), arr)))
                 else:
                     self.set_formatter(DateFormatter(s))
@@ -1258,7 +1333,7 @@ class TicksOptions(TicksManagerBase):
 
     def update(self, value):
         for which, val in six.iteritems(value):
-            for axis, axisname in zip([self.ax.xaxis, self.ax.yaxis], 'xy'):
+            for axis, axisname in zip([self.ax.xaxis, self.ax.yaxis], "xy"):
                 self.which = which
                 self.axis = axis
                 self.axisname = axisname
@@ -1286,9 +1361,9 @@ class TickSize(TickSizeBase, TicksOptions, DictFormatoption):
     --------
     tickweight, xtickprops, ytickprops"""
 
-    dependencies = TicksOptions.dependencies + ['xtickprops', 'ytickprops']
+    dependencies = TicksOptions.dependencies + ["xtickprops", "ytickprops"]
 
-    name = 'Font size of the ticklabels'
+    name = "Font size of the ticklabels"
 
 
 class TickWeightBase(TicksOptions):
@@ -1312,12 +1387,12 @@ class TickWeight(TickWeightBase, TicksOptions, DictFormatoption):
     --------
     ticksize, xtickprops, ytickprops"""
 
-    dependencies = TicksOptions.dependencies + ['xtickprops', 'ytickprops']
+    dependencies = TicksOptions.dependencies + ["xtickprops", "ytickprops"]
 
-    name = 'Font weight of the ticklabels'
+    name = "Font weight of the ticklabels"
 
 
-@docstrings.get_sections(base='TickPropsBase')
+@docstrings.get_sections(base="TickPropsBase")
 class TickPropsBase(TicksManagerBase):
     """
     Abstract base class for tick parameters
@@ -1335,13 +1410,14 @@ class TickPropsBase(TicksManagerBase):
 
     def update_axis(self, value):
         value = value.copy()
-        if float('.'.join(mpl.__version__.split('.')[:2])) >= 1.5:
-            value.pop('visible', None)
+        if float(".".join(mpl.__version__.split(".")[:2])) >= 1.5:
+            value.pop("visible", None)
         self.ax.tick_params(
-            self.axisname, which=self.which, reset=True, **value)
+            self.axisname, which=self.which, reset=True, **value
+        )
 
 
-@docstrings.get_sections(base='XTickProps')
+@docstrings.get_sections(base="XTickProps")
 class XTickProps(TickPropsBase, TicksManager, DictFormatoption):
     """
     Specify the x-axis tick parameters
@@ -1358,9 +1434,9 @@ class XTickProps(TickPropsBase, TicksManager, DictFormatoption):
     --------
     xticks, yticks, ticksize, tickweight, ytickprops"""
 
-    axisname = 'x'
+    axisname = "x"
 
-    name = 'Font properties of the x-ticklabels'
+    name = "Font properties of the x-ticklabels"
 
     @property
     def axis(self):
@@ -1382,16 +1458,16 @@ class YTickProps(XTickProps):
     --------
     xticks, yticks, ticksize, tickweight, xtickprops"""
 
-    axisname = 'y'
+    axisname = "y"
 
-    name = 'Font properties of the y-ticklabels'
+    name = "Font properties of the y-ticklabels"
 
     @property
     def axis(self):
         return self.ax.xaxis
 
 
-@docstrings.get_sections(base='Xlabel')
+@docstrings.get_sections(base="Xlabel")
 class Xlabel(TextBase, Formatoption):
     """
     Set the x-axis label
@@ -1408,14 +1484,14 @@ class Xlabel(TextBase, Formatoption):
     --------
     xlabelsize, xlabelweight, xlabelprops"""
 
-    children = ['transpose', 'ylabel']
+    children = ["transpose", "ylabel"]
 
-    name = 'x-axis label'
+    name = "x-axis label"
 
     @property
     def enhanced_attrs(self):
         arr = self.transpose.get_x(self.data)
-        replot = self.plotter.replot or not hasattr(self, '_enhanced_attrs')
+        replot = self.plotter.replot or not hasattr(self, "_enhanced_attrs")
         attrs = self.get_enhanced_attrs(arr, replot=replot)
         arr_attrs = self.get_enhanced_attrs(self.data, replot=replot)
         for attr, val in arr_attrs.items():
@@ -1424,13 +1500,17 @@ class Xlabel(TextBase, Formatoption):
         return attrs
 
     def initialize_plot(self, value):
-        self.transpose.swap_funcs['labels'] = self._swap_labels
-        self._texts = [self.ax.set_xlabel(self.replace(
-            value, self.data, self.enhanced_attrs))]
+        self.transpose.swap_funcs["labels"] = self._swap_labels
+        self._texts = [
+            self.ax.set_xlabel(
+                self.replace(value, self.data, self.enhanced_attrs)
+            )
+        ]
 
     def update(self, value):
-        self._texts[0].set_text(self.replace(value, self.data,
-                                             self.enhanced_attrs))
+        self._texts[0].set_text(
+            self.replace(value, self.data, self.enhanced_attrs)
+        )
 
     def _swap_labels(self):
         plotter = self.plotter
@@ -1461,7 +1541,7 @@ class BarXlabel(Xlabel):
     update_after_plot = True
 
 
-@docstrings.get_sections(base='Ylabel')
+@docstrings.get_sections(base="Ylabel")
 class Ylabel(TextBase, Formatoption):
     """
     Set the y-axis label
@@ -1478,14 +1558,14 @@ class Ylabel(TextBase, Formatoption):
     --------
     ylabelsize, ylabelweight, ylabelprops"""
 
-    children = ['transpose']
+    children = ["transpose"]
 
-    name = 'y-axis label'
+    name = "y-axis label"
 
     @property
     def enhanced_attrs(self):
         arr = self.transpose.get_y(self.data)
-        replot = self.plotter.replot or not hasattr(self, '_enhanced_attrs')
+        replot = self.plotter.replot or not hasattr(self, "_enhanced_attrs")
         attrs = self.get_enhanced_attrs(arr, replot=replot)
         arr_attrs = self.get_enhanced_attrs(self.data, replot=replot)
         for attr, val in arr_attrs.items():
@@ -1494,12 +1574,16 @@ class Ylabel(TextBase, Formatoption):
         return attrs
 
     def initialize_plot(self, value):
-        self._texts = [self.ax.set_ylabel(self.replace(
-            value, self.data, self.enhanced_attrs))]
+        self._texts = [
+            self.ax.set_ylabel(
+                self.replace(value, self.data, self.enhanced_attrs)
+            )
+        ]
 
     def update(self, value):
-        self._texts[0].set_text(self.replace(
-            value, self.data, self.enhanced_attrs))
+        self._texts[0].set_text(
+            self.replace(value, self.data, self.enhanced_attrs)
+        )
 
 
 class BarYlabel(Ylabel):
@@ -1522,7 +1606,7 @@ class BarYlabel(Ylabel):
     update_after_plot = True
 
 
-@docstrings.get_sections(base='LabelOptions')
+@docstrings.get_sections(base="LabelOptions")
 class LabelOptions(DictFormatoption):
     """
     Base formatoption class for label sizes
@@ -1536,11 +1620,11 @@ class LabelOptions(DictFormatoption):
         The values in the dictionary can be one types below.
     """
 
-    children = ['xlabel', 'ylabel']
+    children = ["xlabel", "ylabel"]
 
     def update(self, value):
         for axis, val in value.items():
-            self._text = getattr(self, axis + 'label')._texts[0]
+            self._text = getattr(self, axis + "label")._texts[0]
             self.axis_str = axis
             self.update_axis(val)
 
@@ -1562,11 +1646,11 @@ class LabelSize(LabelOptions):
     --------
     xlabel, ylabel, labelweight, labelprops"""
 
-    group = 'labels'
+    group = "labels"
 
-    parents = ['labelprops']
+    parents = ["labelprops"]
 
-    name = 'font size of x- and y-axis label'
+    name = "font size of x- and y-axis label"
 
     def update_axis(self, value):
         self._text.set_size(value)
@@ -1585,11 +1669,11 @@ class LabelWeight(LabelOptions):
     --------
     xlabel, ylabel, labelsize, labelprops"""
 
-    group = 'labels'
+    group = "labels"
 
-    parents = ['labelprops']
+    parents = ["labelprops"]
 
-    name = 'font weight of x- and y-axis label'
+    name = "font weight of x- and y-axis label"
 
     def update_axis(self, value):
         self._text.set_weight(value)
@@ -1609,18 +1693,18 @@ class LabelProps(LabelOptions):
     --------
     xlabel, ylabel, labelsize, labelweight"""
 
-    group = 'labels'
+    group = "labels"
 
-    children = ['xlabel', 'ylabel', 'labelsize', 'labelweight']
+    children = ["xlabel", "ylabel", "labelsize", "labelweight"]
 
-    name = 'font properties of x- and y-axis label'
+    name = "font properties of x- and y-axis label"
 
     def update_axis(self, fontprops):
         fontprops = fontprops.copy()
-        if 'size' not in fontprops and 'fontsize' not in fontprops:
-            fontprops['size'] = self.labelsize.value[self.axis_str]
-        if 'weight' not in fontprops and 'fontweight' not in fontprops:
-            fontprops['weight'] = self.labelweight.value[self.axis_str]
+        if "size" not in fontprops and "fontsize" not in fontprops:
+            fontprops["size"] = self.labelsize.value[self.axis_str]
+        if "weight" not in fontprops and "fontweight" not in fontprops:
+            fontprops["weight"] = self.labelweight.value[self.axis_str]
         self._text.update(fontprops)
 
 
@@ -1637,20 +1721,20 @@ class Transpose(Formatoption):
     bool
         If True, axes are switched"""
 
-    group = 'axes'
+    group = "axes"
 
-    name = 'Switch x- and y-axes'
+    name = "Switch x- and y-axes"
 
     priority = START
 
     def __init__(self, *args, **kwargs):
         super(Transpose, self).__init__(*args, **kwargs)
         self.swap_funcs = {
-            'ticks': self._swap_ticks,
-            'ticklabels': self._swap_ticklabels,
-            'limits': self._swap_limits,
-            'labels': self._swap_labels,
-            }
+            "ticks": self._swap_ticks,
+            "ticklabels": self._swap_ticklabels,
+            "limits": self._swap_limits,
+            "labels": self._swap_labels,
+        }
 
     def initialize_plot(self, value):
         pass
@@ -1694,10 +1778,10 @@ class Transpose(Formatoption):
         self.ax.set_ylabel(old_xlabel)
 
     def get_x(self, arr):
-        if not hasattr(arr, 'ndim'):  # if the data object is an array list
+        if not hasattr(arr, "ndim"):  # if the data object is an array list
             arr = arr[0]
-        if arr.dims[0] == 'variable' and arr.ndim > 1:
-                arr = arr.psy[0]
+        if arr.dims[0] == "variable" and arr.ndim > 1:
+            arr = arr.psy[0]
         is_unstructured = arr.psy.decoder.is_unstructured(arr)
         if not is_unstructured and arr.ndim == 1:
             if self.value:
@@ -1706,27 +1790,27 @@ class Transpose(Formatoption):
                 #: The x-coordinate name of the variable as stored in the
                 #: dataset (might differ from the one in this array because
                 #: this could also be time, z, y, etc.)
-                ds_coord = arr.psy.get_dim('x', True)
+                ds_coord = arr.psy.get_dim("x", True)
                 xname = arr.dims[0]
         else:
             if self.value:
-                ds_coord = arr.psy.get_dim('y', True)
+                ds_coord = arr.psy.get_dim("y", True)
                 xname = arr.dims[-2 if not is_unstructured else -1]
             else:
-                ds_coord = arr.psy.get_dim('x', True)
+                ds_coord = arr.psy.get_dim("x", True)
                 xname = arr.dims[-1]
         if xname == ds_coord:
             if self.value:
-                return arr.psy.get_coord('y', True)
-            return arr.psy.get_coord('x', True)
+                return arr.psy.get_coord("y", True)
+            return arr.psy.get_coord("x", True)
         else:
             return arr.coords[xname]
 
     def get_y(self, arr):
-        if not hasattr(arr, 'ndim'):  # if the data object is an array list
+        if not hasattr(arr, "ndim"):  # if the data object is an array list
             arr = arr[0]
-        elif arr.dims[0] == 'variable' and arr.ndim > 1:
-                arr = arr.psy[0]
+        elif arr.dims[0] == "variable" and arr.ndim > 1:
+            arr = arr.psy[0]
         is_unstructured = arr.psy.decoder.is_unstructured(arr)
         if not is_unstructured and arr.ndim == 1:
             if not self.value:
@@ -1735,24 +1819,24 @@ class Transpose(Formatoption):
                 #: The x-coordinate name of the variable as stored in the
                 #: dataset (might differ from the one in this array because
                 #: this could also be time, z, y, etc.)
-                ds_coord = arr.psy.get_dim('x', True)
+                ds_coord = arr.psy.get_dim("x", True)
                 yname = arr.dims[0]
         else:
             if not self.value:
-                ds_coord = arr.psy.get_dim('y', True)
+                ds_coord = arr.psy.get_dim("y", True)
                 yname = arr.dims[-2 if not is_unstructured else -1]
             else:
-                ds_coord = arr.psy.get_dim('x', True)
+                ds_coord = arr.psy.get_dim("x", True)
                 yname = arr.dims[-1]
         if yname == ds_coord:
             if self.value:
-                return arr.psy.get_coord('x', True)
-            return arr.psy.get_coord('y', True)
+                return arr.psy.get_coord("x", True)
+            return arr.psy.get_coord("y", True)
         else:
             return arr.coords[yname]
 
 
-@docstrings.get_sections(base='LineColors')
+@docstrings.get_sections(base="LineColors")
 class LineColors(Formatoption):
     """
     Set the color coding
@@ -1771,11 +1855,11 @@ class LineColors(Formatoption):
         to automatically choose the colors according to the number of lines,
         etc. from the given colormap"""
 
-    group = 'colors'
+    group = "colors"
 
     priority = BEFOREPLOTTING
 
-    name = 'Color cycle'
+    name = "Color cycle"
 
     @property
     def value2pickle(self):
@@ -1801,14 +1885,18 @@ class LineColors(Formatoption):
     def update(self, value):
         changed = self.plotter.has_changed(self.key)
         if value is None:
-            prop_cycler = mpl.rcParams['axes.prop_cycle']
-            self.color_cycle = cycle((props['color'] for props in prop_cycler))
+            prop_cycler = mpl.rcParams["axes.prop_cycle"]
+            self.color_cycle = cycle((props["color"] for props in prop_cycler))
             prop_cycler._keys  # this should make a copy
         else:
             try:
-                self.color_cycle = cycle(get_cmap(value)(
-                    np.linspace(0., 1., len(list(self.iter_data)),
-                                endpoint=True)))
+                self.color_cycle = cycle(
+                    get_cmap(value)(
+                        np.linspace(
+                            0.0, 1.0, len(list(self.iter_data)), endpoint=True
+                        )
+                    )
+                )
             except (ValueError, TypeError, KeyError):
                 try:
                     # do not use safe_list, because it might be a generator
@@ -1839,7 +1927,7 @@ class Marker(Formatoption):
 
     def update(self, value):
         if value is None:
-            self.markers = repeat(mpl.rcParams['lines.marker'])
+            self.markers = repeat(mpl.rcParams["lines.marker"])
         else:
             self.markers = cycle(value)
 
@@ -1856,15 +1944,15 @@ class MarkerSize(Formatoption):
         The size of the marker
     """
 
-    connections = ['plot']
+    connections = ["plot"]
 
     priority = BEFOREPLOTTING
 
     def update(self, value):
         if value is None:
-            self.plot._kwargs.pop('markersize', None)
+            self.plot._kwargs.pop("markersize", None)
         else:
-            self.plot._kwargs['markersize'] = value
+            self.plot._kwargs["markersize"] = value
 
 
 class LineWidth(Formatoption):
@@ -1879,15 +1967,15 @@ class LineWidth(Formatoption):
         The width of the lines
     """
 
-    connections = ['plot']
+    connections = ["plot"]
 
     priority = BEFOREPLOTTING
 
     def update(self, value):
         if value is None:
-            self.plot._kwargs.pop('linewidth', None)
+            self.plot._kwargs.pop("linewidth", None)
         else:
-            self.plot._kwargs['linewidth'] = value
+            self.plot._kwargs["linewidth"] = value
 
 
 class LinePlot(Formatoption):
@@ -1914,21 +2002,24 @@ class LinePlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
     priority = BEFOREPLOTTING + 0.1
 
-    children = ['color', 'transpose', 'marker']
+    children = ["color", "transpose", "marker"]
 
-    name = 'Line plot type'
+    name = "Line plot type"
 
     @property
     def plotted_data(self):
         """The data that is shown to the user"""
         return InteractiveList(
-            [arr for arr, val in zip(self.iter_data,
-                                     cycle(slist(self.value)))
-             if val is not None])
+            [
+                arr
+                for arr, val in zip(self.iter_data, cycle(slist(self.value)))
+                if val is not None
+            ]
+        )
 
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
@@ -1939,28 +2030,41 @@ class LinePlot(Formatoption):
         pass
 
     def make_plot(self):
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             self.remove()
         value = self.value
         if value is not None:
-            if 'stacked' in value:
+            if "stacked" in value:
                 self._stacked_plot()
             else:
                 try:
                     markers = self.marker.markers
                 except AttributeError:
                     markers = repeat(None)
-                self._plot = list(filter(None, chain.from_iterable(starmap(
-                    self.plot_arr, zip(
-                        self.iter_data, self.color.extended_colors,
-                        cycle(slist(self.value)), markers)))))
+                self._plot = list(
+                    filter(
+                        None,
+                        chain.from_iterable(
+                            starmap(
+                                self.plot_arr,
+                                zip(
+                                    self.iter_data,
+                                    self.color.extended_colors,
+                                    cycle(slist(self.value)),
+                                    markers,
+                                ),
+                            )
+                        ),
+                    )
+                )
 
     def _stacked_plot(self):
         transpose = self.transpose.value
         data = self.data
         if isinstance(data, InteractiveList):
-            data = InteractiveList([arr[0] if arr.ndim == 2 else arr
-                                    for arr in data])
+            data = InteractiveList(
+                [arr[0] if arr.ndim == 2 else arr for arr in data]
+            )
             df = data.to_dataframe()
         else:
             df = data.to_series().to_frame()
@@ -1974,12 +2078,12 @@ class LinePlot(Formatoption):
             x = index.to_pydatetime()
         base = np.zeros_like(df.iloc[:, 0])
         self._plot = []
-        for (col, s), c, val in zip(df.items(), self.color.extended_colors,
-                                    cycle(slist(self.value))):
+        for (col, s), c, val in zip(
+            df.items(), self.color.extended_colors, cycle(slist(self.value))
+        ):
             if val is None:
                 continue
-            pm = self.ax.fill_betweenx if transpose else \
-                self.ax.fill_between
+            pm = self.ax.fill_betweenx if transpose else self.ax.fill_between
             y = np.where(s.isnull(), 0, s.values)
             self._plot.append(pm(x, base, base + y, facecolor=c))
             base += y
@@ -2014,18 +2118,18 @@ class LinePlot(Formatoption):
 
         if self.transpose.value:
             x, y = y, x
-        if ls in ['area', 'areay']:
+        if ls in ["area", "areay"]:
             ymin = np.vstack([y, np.zeros_like(y)]).min(axis=0)
             ymax = np.vstack([y, np.zeros_like(y)]).max(axis=0)
             return [self.ax.fill_between(x, ymin, ymax, color=c)]
-        elif ls == 'areax':
+        elif ls == "areax":
             xmin = np.vstack([x, np.zeros_like(x)]).min(axis=0)
             xmax = np.vstack([x, np.zeros_like(x)]).max(axis=0)
             return [self.ax.fill_betweenx(y, xmin, xmax, color=c)]
         else:
-            return self.ax.plot(x, y,
-                                color=c, linestyle=ls, marker=m,
-                                **self._kwargs)
+            return self.ax.plot(
+                x, y, color=c, linestyle=ls, marker=m, **self._kwargs
+            )
 
     def remove(self):
         for artist in self._plot:
@@ -2073,13 +2177,13 @@ class ErrorPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
     priority = BEFOREPLOTTING
 
-    children = ['color', 'transpose', 'plot']
+    children = ["color", "transpose", "plot"]
 
-    name = 'Error plot type'
+    name = "Error plot type"
 
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
@@ -2089,7 +2193,7 @@ class ErrorPlot(Formatoption):
         pass  # the work is done in make_plot
 
     def make_plot(self):
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             self.remove()
         if self.value is not None:
             self._plot = []
@@ -2104,10 +2208,15 @@ class ErrorPlot(Formatoption):
                     else:
                         min_range = error[0]
                         max_range = error[1]
-                    if self.value == 'fill':
+                    if self.value == "fill":
                         vals = self._get_x_values(data)
-                        self.plot_fill(vals, min_range, max_range,
-                                       next(colors), zorder=line.zorder)
+                        self.plot_fill(
+                            vals,
+                            min_range,
+                            max_range,
+                            next(colors),
+                            zorder=line.zorder,
+                        )
                 else:
                     next(colors)
 
@@ -2131,9 +2240,14 @@ class ErrorPlot(Formatoption):
         else:
             plot_method = self.ax.fill_between
         self._plot.append(
-            plot_method(index, min_range, max_range, facecolor=c,
-                        **dict(chain(*map(
-                            six.iteritems, [self._kwargs, kwargs])))))
+            plot_method(
+                index,
+                min_range,
+                max_range,
+                facecolor=c,
+                **dict(chain(*map(six.iteritems, [self._kwargs, kwargs]))),
+            )
+        )
 
     def remove(self):
         for artist in self._plot:
@@ -2159,14 +2273,14 @@ class ErrorAlpha(Formatoption):
 
     priority = BEFOREPLOTTING
 
-    name = 'Alpha value of the error range'
+    name = "Alpha value of the error range"
 
-    group = 'colors'
+    group = "colors"
 
-    connections = ['error']
+    connections = ["error"]
 
     def update(self, value):
-        self.error._kwargs['alpha'] = value
+        self.error._kwargs["alpha"] = value
 
 
 class BarWidths(Formatoption):
@@ -2189,7 +2303,7 @@ class BarWidths(Formatoption):
 
     priority = BEFOREPLOTTING
 
-    name = 'Width of the bars'
+    name = "Width of the bars"
 
     def update(self, value):
         # Does nothing, the work is done in the :class:`BarPlot` formatoption
@@ -2215,13 +2329,13 @@ class CategoricalBars(Formatoption):
 
     priority = BEFOREPLOTTING
 
-    name = 'Categorical or non-categorical plotting'
+    name = "Categorical or non-categorical plotting"
 
-    dependencies = ['widths']
+    dependencies = ["widths"]
 
     def update(self, value):
         widths = self.widths.value
-        self.is_categorical = (value is None and widths == 'equal') or value
+        self.is_categorical = (value is None and widths == "equal") or value
 
 
 class BarAlpha(Formatoption):
@@ -2235,7 +2349,7 @@ class BarAlpha(Formatoption):
 
     priority = BEFOREPLOTTING
 
-    name = 'Transparency of the bars'
+    name = "Transparency of the bars"
 
     def update(self, value):
         pass
@@ -2257,15 +2371,15 @@ class BarPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
     priority = BEFOREPLOTTING
 
-    children = ['color', 'transpose', 'alpha']
+    children = ["color", "transpose", "alpha"]
 
-    dependencies = ['widths', 'categorical']
+    dependencies = ["widths", "categorical"]
 
-    name = 'Bar plot type'
+    name = "Bar plot type"
 
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
@@ -2284,24 +2398,33 @@ class BarPlot(Formatoption):
     def plotted_data(self):
         """The data that is shown to the user"""
         return InteractiveList(
-            [arr for arr, val in zip(self.iter_data,
-                                     cycle(slist(self.value)))
-             if val is not None])
+            [
+                arr
+                for arr, val in zip(self.iter_data, cycle(slist(self.value)))
+                if val is not None
+            ]
+        )
 
     def make_plot(self):
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             self.remove()
         if self.value is not None:
             ax = self.ax
             # for a transposed plot, we use the barh plot method of the axes
             pm = ax.barh if self.transpose.value else ax.bar
             alpha = self.alpha.value
-            if 'stacked' not in slist(self.value):
+            if "stacked" not in slist(self.value):
                 self._plot = [
-                    pm(*self.get_xys(arr), facecolor=c, alpha=alpha,
-                       align='edge')
-                    for arr, c in zip(self.iter_data,
-                                      self.color.extended_colors)]
+                    pm(
+                        *self.get_xys(arr),
+                        facecolor=c,
+                        alpha=alpha,
+                        align="edge",
+                    )
+                    for arr, c in zip(
+                        self.iter_data, self.color.extended_colors
+                    )
+                ]
                 if self._set_date:
                     if self.transpose.value:
                         ax.yaxis_date()
@@ -2320,21 +2443,28 @@ class BarPlot(Formatoption):
                 self._plot = containers = []
                 base = np.zeros_like(y)
                 for i, (col, c, plot) in enumerate(
-                        zip(df.columns, self.color.extended_colors,
-                            cycle(slist(self.value)))):
+                    zip(
+                        df.columns,
+                        self.color.extended_colors,
+                        cycle(slist(self.value)),
+                    )
+                ):
                     if not plot:
                         continue
                     y = df.iloc[:, i].values
                     y = np.where(np.isnan(y), 0, y)
                     if not i:
                         containers.append(
-                            pm(x, y, s, facecolor=c, alpha=alpha))
+                            pm(x, y, s, facecolor=c, alpha=alpha)
+                        )
                     elif self.transpose.value:
                         containers.append(
-                            pm(x, y, s, facecolor=c, alpha=alpha, left=base))
+                            pm(x, y, s, facecolor=c, alpha=alpha, left=base)
+                        )
                     else:
                         containers.append(
-                            pm(x, y, s, facecolor=c, alpha=alpha, bottom=base))
+                            pm(x, y, s, facecolor=c, alpha=alpha, bottom=base)
+                        )
                     base += y
 
     def get_xys(self, arr):
@@ -2343,26 +2473,27 @@ class BarPlot(Formatoption):
         self._set_date = False
         if self.categorical.is_categorical:
             x = np.arange(len(y))
-            if width == 'data':
+            if width == "data":
                 self.logger.warn(
-                    "Cannot use 'data'-based bar width for categorical plots!")
+                    "Cannot use 'data'-based bar width for categorical plots!"
+                )
                 width = 0.5
-            elif width == 'equal':
+            elif width == "equal":
                 width = 0.5  # pandas default value
-        elif width == 'data':
+        elif width == "data":
             x = _infer_interval_breaks(arr.coords[arr.dims[0]].values)
-            is_datelike = arr.indexes[arr.dims[0]].is_all_dates
+            is_datelike = isinstance(arr.indexes[arr.dims[0]], DatetimeIndex)
             s = x[1:] - x[:-1]
             if is_datelike:
                 # convert to datetime
                 x = to_datetime(x)
                 # calculate widths in days
-                s = to_timedelta(s).total_seconds() / 86400.
+                s = to_timedelta(s).total_seconds() / 86400.0
                 self._set_date = True
             x = x[:-1]
             width = s
         else:
-            if width == 'equal':
+            if width == "equal":
                 # Use half of the smalles step
                 x = _infer_interval_breaks(arr.coords[arr.dims[0]].values)
                 width = np.abs(np.diff(x)).min() / 2
@@ -2371,7 +2502,6 @@ class BarPlot(Formatoption):
 
 
 class ViolinXTicks(XTicks):
-
     __doc__ = XTicks.__doc__
 
     @property
@@ -2382,7 +2512,6 @@ class ViolinXTicks(XTicks):
 
 
 class ViolinYTicks(YTicks):
-
     __doc__ = YTicks.__doc__
 
     @property
@@ -2401,13 +2530,23 @@ class ViolinXTickLabels(XTickLabels, TextBase):
         if self.transpose.value or value is None:
             return super(ViolinXTickLabels, self).update_axis(value)
         if isinstance(value, six.string_types):
-            self.set_ticklabels([
-                self.replace(value, arr, self.get_enhanced_attrs(
-                    arr, replot=True)) for arr in self.data])
+            self.set_ticklabels(
+                [
+                    self.replace(
+                        value, arr, self.get_enhanced_attrs(arr, replot=True)
+                    )
+                    for arr in self.data
+                ]
+            )
         else:
-            self.set_ticklabels([
-                self.replace(val, arr, self.get_enhanced_attrs(
-                    arr, replot=True)) for val, arr in zip(value, self.data)])
+            self.set_ticklabels(
+                [
+                    self.replace(
+                        val, arr, self.get_enhanced_attrs(arr, replot=True)
+                    )
+                    for val, arr in zip(value, self.data)
+                ]
+            )
 
 
 class ViolinYTickLabels(YTickLabels, TextBase):
@@ -2419,13 +2558,23 @@ class ViolinYTickLabels(YTickLabels, TextBase):
         if self.transpose.value or value is None:
             return super(ViolinYTickLabels, self).update_axis(value)
         if isinstance(value, six.string_types):
-            self.set_ticklabels([
-                self.replace(value, arr, self.get_enhanced_attrs(
-                    arr, replot=True)) for arr in self.data])
+            self.set_ticklabels(
+                [
+                    self.replace(
+                        value, arr, self.get_enhanced_attrs(arr, replot=True)
+                    )
+                    for arr in self.data
+                ]
+            )
         else:
-            self.set_ticklabels([
-                self.replace(val, arr, self.get_enhanced_attrs(
-                    arr, replot=True)) for val, arr in zip(value, self.data)])
+            self.set_ticklabels(
+                [
+                    self.replace(
+                        val, arr, self.get_enhanced_attrs(arr, replot=True)
+                    )
+                    for val, arr in zip(value, self.data)
+                ]
+            )
 
 
 class ViolinPlot(Formatoption):
@@ -2442,13 +2591,13 @@ class ViolinPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
     priority = BEFOREPLOTTING
 
-    children = ['color', 'transpose']
+    children = ["color", "transpose"]
 
-    name = 'Violin plot type'
+    name = "Violin plot type"
 
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
@@ -2464,27 +2613,35 @@ class ViolinPlot(Formatoption):
         del self._plot
 
     def make_plot(self):
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             self.remove()
         if self.value:
             from seaborn import violinplot
+
             if isinstance(self.data, InteractiveList):
                 df = self.data.to_dataframe()
             else:
                 df = self.data.to_series().to_frame()
-            old_artists = self.ax.containers[:] + self.ax.lines[:] \
+            old_artists = (
+                self.ax.containers[:]
+                + self.ax.lines[:]
                 + self.ax.collections[:]
+            )
             palette = list(islice(self.color.extended_colors, df.shape[1]))
-            violinplot(data=df, palette=palette, ax=self.ax,
-                       orient='h' if self.transpose.value else 'v',
-                       **self._kwargs)
+            violinplot(
+                data=df,
+                palette=palette,
+                ax=self.ax,
+                orient="h" if self.transpose.value else "v",
+                **self._kwargs,
+            )
             artists = self.ax.containers + self.ax.lines + self.ax.collections
             self._plot = [
-                artist for artist in artists
-                if artist not in old_artists]
+                artist for artist in artists if artist not in old_artists
+            ]
 
 
-@docstrings.get_sections(base='LimitBase')
+@docstrings.get_sections(base="LimitBase")
 @dedent
 class LimitBase(DataTicksCalculator):
     """
@@ -2519,11 +2676,11 @@ class LimitBase(DataTicksCalculator):
         value here
     """
 
-    group = 'axes'
+    group = "axes"
 
-    children = ['transpose']
+    children = ["transpose"]
 
-    connections = ['plot']
+    connections = ["plot"]
 
     @property
     def value2share(self):
@@ -2544,19 +2701,21 @@ class LimitBase(DataTicksCalculator):
     def __init__(self, *args, **kwargs):
         super(LimitBase, self).__init__(*args, **kwargs)
         self._calc_funcs = {
-            'rounded': self._round_min_max,
-            'roundedsym': self._roundedsym_min_max,
-            'minmax': self._min_max,
-            'sym': self._sym_min_max}
+            "rounded": self._round_min_max,
+            "roundedsym": self._roundedsym_min_max,
+            "minmax": self._min_max,
+            "sym": self._sym_min_max,
+        }
 
     def _round_min_max(self, vmin, vmax):
         try:
             exp = np.floor(np.log10(abs(vmax - vmin)))
-            larger = round_to_05([vmin, vmax], exp, mode='l')
-            smaller = round_to_05([vmin, vmax], exp, mode='s')
+            larger = round_to_05([vmin, vmax], exp, mode="l")
+            smaller = round_to_05([vmin, vmax], exp, mode="s")
         except TypeError:
-            self.logger.debug("Failed to calculate rounded limits!",
-                              exc_info=True)
+            self.logger.debug(
+                "Failed to calculate rounded limits!", exc_info=True
+            )
             return vmin, vmax
         return min([larger[0], smaller[0]]), max([larger[1], smaller[1]])
 
@@ -2575,7 +2734,7 @@ class LimitBase(DataTicksCalculator):
         value = list(value)
         value_lists = list(map(slist, value))
         kwargs = {}
-        for kw, l in zip(['percmin', 'percmax'], value_lists):
+        for kw, l in zip(["percmin", "percmax"], value_lists):
             if len(l) == 2:
                 kwargs[kw] = l[1]
         vmin, vmax = self._calc_vmin_vmax(**kwargs)
@@ -2589,7 +2748,7 @@ class LimitBase(DataTicksCalculator):
                     if key in val:
                         value[i] = minmax[i]
         self.range = value
-        self.logger.debug('Setting %s with %s', self.key, value)
+        self.logger.debug("Setting %s with %s", self.key, value)
         self.set_limit(*value)
 
 
@@ -2606,15 +2765,15 @@ class Xlim(LimitBase):
     ylim
     """
 
-    children = LimitBase.children + ['ylim']
+    children = LimitBase.children + ["ylim"]
 
-    dependencies = ['xticks']
+    dependencies = ["xticks"]
 
-    connections = LimitBase.connections + ['sym_lims']
+    connections = LimitBase.connections + ["sym_lims"]
 
-    axisname = 'x'
+    axisname = "x"
 
-    name = 'x-axis limits'
+    name = "x-axis limits"
 
     @property
     def array(self):
@@ -2622,20 +2781,24 @@ class Xlim(LimitBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = list(getattr(self.plot, 'plotted_data', self.iter_data)) or \
-            self.iter_data
+
+        data = (
+            list(getattr(self.plot, "plotted_data", self.iter_data))
+            or self.iter_data
+        )
         df = InteractiveList(map(select_array, data)).to_dataframe()
-        if (self.transpose.value and 'stacked' in slist(self.plot.value)):
+        if self.transpose.value and "stacked" in slist(self.plot.value):
             summed = df.sum(axis=1).values
             arr = np.concatenate(
-                [[min(summed.min(), 0)], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values]
+            )
         elif self.transpose.value:
             arr = df.values[df.notnull().values]
         else:
             arr = _get_index_vals(df.index)
         try:
             arr.astype(float)
-        except (ValueError,  TypeError):
+        except (ValueError, TypeError):
             arr = np.arange(len(arr))
         return arr
 
@@ -2649,7 +2812,7 @@ class Xlim(LimitBase):
 
     def initialize_plot(self, value):
         super(Xlim, self).initialize_plot(value)
-        self.transpose.swap_funcs['limits'] = self._swap_limits
+        self.transpose.swap_funcs["limits"] = self._swap_limits
 
     def _swap_limits(self):
         self.transpose._swap_limits()
@@ -2671,15 +2834,16 @@ class Ylim(LimitBase):
     --------
     xlim
     """
-    children = LimitBase.children + ['xlim']
 
-    dependencies = ['yticks']
+    children = LimitBase.children + ["xlim"]
 
-    connections = LimitBase.connections + ['sym_lims']
+    dependencies = ["yticks"]
 
-    axisname = 'y'
+    connections = LimitBase.connections + ["sym_lims"]
 
-    name = 'y-axis limits'
+    axisname = "y"
+
+    name = "y-axis limits"
 
     @property
     def array(self):
@@ -2687,13 +2851,17 @@ class Ylim(LimitBase):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
-        data = list(getattr(self.plot, 'plotted_data', self.iter_data)) or \
-            self.iter_data
+
+        data = (
+            list(getattr(self.plot, "plotted_data", self.iter_data))
+            or self.iter_data
+        )
         df = InteractiveList(map(select_array, data)).to_dataframe()
-        if (not self.transpose.value and 'stacked' in slist(self.plot.value)):
+        if not self.transpose.value and "stacked" in slist(self.plot.value):
             summed = df.sum(axis=1).values
             arr = np.concatenate(
-                [[min(summed.min(), 0)], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values]
+            )
         elif self.transpose.value:
             arr = _get_index_vals(df.index)
         else:
@@ -2730,9 +2898,9 @@ class SymmetricLimits(Formatoption):
         and maximum limit
     """
 
-    dependencies = ['xlim', 'ylim']
+    dependencies = ["xlim", "ylim"]
 
-    name = 'Symmetric x- and y-axis limits'
+    name = "Symmetric x- and y-axis limits"
 
     def update(self, value):
         if all(v is None for v in value):
@@ -2740,9 +2908,9 @@ class SymmetricLimits(Formatoption):
         xlim = self.xlim.range[:]
         ylim = self.ylim.range[:]
         for i, v in enumerate(value):
-            if v == 'min':
+            if v == "min":
                 xlim[i] = ylim[i] = min(xlim[i], ylim[i])
-            elif v == 'max':
+            elif v == "max":
                 xlim[i] = ylim[i] = max(xlim[i], ylim[i])
         self.xlim.set_limit(*xlim)
         self.ylim.set_limit(*ylim)
@@ -2755,8 +2923,7 @@ class ViolinXlim(Xlim):
     @property
     def array(self):
         if not self.transpose.value:
-            return np.array(
-                [-0.5, len(list(self.iter_data)) - 0.5])
+            return np.array([-0.5, len(list(self.iter_data)) - 0.5])
         return super(ViolinXlim, self).array
 
     def _round_min_max(self, *args, **kwargs):
@@ -2769,7 +2936,7 @@ class BarXlim(ViolinXlim):
     # xlim class for bar plotter
     __doc__ = Xlim.__doc__
 
-    dependencies = ViolinXlim.dependencies + ['categorical']
+    dependencies = ViolinXlim.dependencies + ["categorical"]
 
     @property
     def array(self):
@@ -2777,17 +2944,20 @@ class BarXlim(ViolinXlim):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
+
         categorical = self.categorical.is_categorical
-        if self.transpose.value and 'stacked' in slist(self.plot.value):
-            data = list(getattr(self.plot, 'plotted_data',
-                                self.iter_data)) or self.iter_data
+        if self.transpose.value and "stacked" in slist(self.plot.value):
+            data = (
+                list(getattr(self.plot, "plotted_data", self.iter_data))
+                or self.iter_data
+            )
             df = InteractiveList(map(select_array, data)).to_dataframe()
             summed = df.sum(axis=1).values
             return np.concatenate(
-                [[min(summed.min(), 0)], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values]
+            )
         elif categorical and not self.transpose.value:
-            return np.array(
-                [-0.5, len(self.data.to_dataframe().index) - 0.5])
+            return np.array([-0.5, len(self.data.to_dataframe().index) - 0.5])
         elif not categorical:
             return _infer_interval_breaks(Xlim.array.fget(self))
         return super(BarXlim, self).array
@@ -2805,11 +2975,12 @@ class Xlim2D(Xlim):
     @property
     def array(self):
         xcoord = self.transpose.get_x(self.data)
-        func = 'get_x' if not self.transpose.value else 'get_y'
+        func = "get_x" if not self.transpose.value else "get_y"
         data = next(self.iter_data)
         if xcoord.name == getattr(self.decoder, func)(data).name:
             bounds = self.decoder.get_cell_node_coord(
-                data, axis='x', coords=data.coords)
+                data, axis="x", coords=data.coords
+            )
             if bounds is None:
                 bounds = xcoord
             bounds = self.convert_coordinate(bounds, xcoord)
@@ -2823,11 +2994,12 @@ class Ylim2D(Ylim):
     @property
     def array(self):
         ycoord = self.transpose.get_y(self.data)
-        func = 'get_x' if self.transpose.value else 'get_y'
+        func = "get_x" if self.transpose.value else "get_y"
         data = next(self.iter_data)
         if ycoord.name == getattr(self.decoder, func)(data).name:
             bounds = self.decoder.get_cell_node_coord(
-                data, axis='y', coords=data.coords)
+                data, axis="y", coords=data.coords
+            )
             if bounds is None:
                 bounds = ycoord
             bounds = self.convert_coordinate(bounds, ycoord)
@@ -2842,8 +3014,7 @@ class ViolinYlim(Ylim):
     @property
     def array(self):
         if self.transpose.value:
-            return np.array(
-                [-0.5, len(list(self.iter_data)) - 0.5])
+            return np.array([-0.5, len(list(self.iter_data)) - 0.5])
         return super(ViolinYlim, self).array
 
     def _round_min_max(self, *args, **kwargs):
@@ -2856,7 +3027,7 @@ class BarYlim(ViolinYlim):
     # ylim class for bar plotter
     __doc__ = Ylim.__doc__
 
-    dependencies = ViolinYlim.dependencies + ['categorical']
+    dependencies = ViolinYlim.dependencies + ["categorical"]
 
     @property
     def array(self):
@@ -2864,17 +3035,20 @@ class BarYlim(ViolinYlim):
             if arr.ndim > 1:
                 return arr.psy[0]
             return arr
+
         categorical = self.categorical.is_categorical
-        if not self.transpose.value and 'stacked' in slist(self.plot.value):
-            data = list(getattr(self.plot, 'plotted_data',
-                                self.iter_data)) or self.iter_data
+        if not self.transpose.value and "stacked" in slist(self.plot.value):
+            data = (
+                list(getattr(self.plot, "plotted_data", self.iter_data))
+                or self.iter_data
+            )
             df = InteractiveList(map(select_array, data)).to_dataframe()
             summed = df.sum(axis=1).values
             return np.concatenate(
-                [[min(summed.min(), 0)], df.sum(axis=1).values])
+                [[min(summed.min(), 0)], df.sum(axis=1).values]
+            )
         elif categorical and self.transpose.value:
-            return np.array(
-                [-0.5, len(self.data.to_dataframe().index) - 0.5])
+            return np.array([-0.5, len(self.data.to_dataframe().index) - 0.5])
         elif not categorical and self.transpose.value:
             return _infer_interval_breaks(Ylim.array.fget(self))
         elif not categorical:
@@ -2901,14 +3075,14 @@ class XRotation(Formatoption):
     --------
     yrotation"""
 
-    group = 'ticks'
+    group = "ticks"
 
-    children = ['yticklabels']
+    children = ["yticklabels"]
 
-    name = 'Rotate x-ticklabels'
+    name = "Rotate x-ticklabels"
 
     def update(self, value):
-        for text in self.ax.get_xticklabels(which='both'):
+        for text in self.ax.get_xticklabels(which="both"):
             text.set_rotation(value)
 
 
@@ -2925,14 +3099,14 @@ class YRotation(Formatoption):
     --------
     xrotation"""
 
-    group = 'ticks'
+    group = "ticks"
 
-    children = ['yticklabels']
+    children = ["yticklabels"]
 
-    name = 'Rotate y-ticklabels'
+    name = "Rotate y-ticklabels"
 
     def update(self, value):
-        for text in self.ax.get_yticklabels(which='both'):
+        for text in self.ax.get_yticklabels(which="both"):
             text.set_rotation(value)
 
 
@@ -2954,13 +3128,13 @@ class CMap(Formatoption):
     --------
     bounds: specifies the boundaries of the colormap"""
 
-    group = 'colors'
+    group = "colors"
 
     priority = BEFOREPLOTTING
 
-    name = 'Colormap'
+    name = "Colormap"
 
-    connections = ['bounds', 'cbar']  # necessary for get_fmt_widget
+    connections = ["bounds", "cbar"]  # necessary for get_fmt_widget
 
     def get_cmap(self, arr=None, cmap=None, N=None):
         """Get the :class:`matplotlib.colors.Colormap` for plotting
@@ -3000,6 +3174,7 @@ class CMap(Formatoption):
     def get_fmt_widget(self, parent, project):
         """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
         from psy_simple.widgets.colors import CMapFmtWidget
+
         return CMapFmtWidget(parent, self, project)
 
 
@@ -3014,15 +3189,15 @@ class MissColor(Formatoption):
     string, tuple.
         Defines the color of the grid."""
 
-    group = 'colors'
+    group = "colors"
 
     priority = END
 
-    dependencies = ['plot']
+    dependencies = ["plot"]
 
-    connections = ['transform']
+    connections = ["transform"]
 
-    name = 'Color of missing values'
+    name = "Color of missing values"
 
     update_after_plot = True
 
@@ -3031,9 +3206,11 @@ class MissColor(Formatoption):
             self.remove()
         if self.plot.value is None:
             return
-        elif value is not None and self.plot.value == 'contourf':
-            warn('[%s] - The miss_color formatoption is not supported for '
-                 'filled contour plots!' % self.logger.name)
+        elif value is not None and self.plot.value == "contourf":
+            warn(
+                "[%s] - The miss_color formatoption is not supported for "
+                "filled contour plots!" % self.logger.name
+            )
         mappable = self.plot.mappable
         if value is not None:
             mappable.get_cmap().set_bad(value)
@@ -3042,7 +3219,7 @@ class MissColor(Formatoption):
         mappable.changed()
 
     def remove(self):
-        if hasattr(self, '_miss_color_plot'):
+        if hasattr(self, "_miss_color_plot"):
             try:
                 self._miss_color_plot.remove()
                 del self._miss_color_plot
@@ -3050,8 +3227,9 @@ class MissColor(Formatoption):
                 pass
 
 
-@docstrings.get_sections(base='Bounds', sections=['Possible types', 'Examples',
-                                              'See Also'])
+@docstrings.get_sections(
+    base="Bounds", sections=["Possible types", "Examples", "See Also"]
+)
 class Bounds(DataTicksCalculator):
     """
     Specify the boundaries of the colorbar
@@ -3109,13 +3287,13 @@ class Bounds(DataTicksCalculator):
     --------
     cmap: Specifies the colormap"""
 
-    group = 'colors'
+    group = "colors"
 
     priority = BEFOREPLOTTING
 
-    name = 'Boundaries of the color map'
+    name = "Boundaries of the color map"
 
-    connections = ['cmap', 'cbar']  # necessary for get_fmt_widget
+    connections = ["cmap", "cbar"]  # necessary for get_fmt_widget
 
     @property
     def value2share(self):
@@ -3135,12 +3313,12 @@ class Bounds(DataTicksCalculator):
                 # make sure we have a small difference between the values
                 value[-1] += value[-1] * 0.5
             self.bounds = value
-            self.norm = mpl.colors.BoundaryNorm(
-                value, len(value) - 1)
+            self.norm = mpl.colors.BoundaryNorm(value, len(value) - 1)
 
     def get_fmt_widget(self, parent, project):
         """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
         from psy_simple.widgets.colors import BoundsFmtWidget
+
         return BoundsFmtWidget(parent, self, project)
 
 
@@ -3171,7 +3349,8 @@ def format_coord_func(ax, ref):
             orig_s += fmto.add2format_coord(x, y)
         except Exception:
             fmto.logger.debug(
-                'Failed to get plot informations for status bar!', exc_info=1)
+                "Failed to get plot informations for status bar!", exc_info=1
+            )
         return orig_s
 
     return func
@@ -3204,7 +3383,7 @@ class InterpolateBounds(Formatoption):
         pass
 
 
-@docstrings.get_sections(base='Plot2D')
+@docstrings.get_sections(base="Plot2D")
 class Plot2D(Formatoption):
     """
     Choose how to visualize a 2-dimensional scalar data field
@@ -3231,15 +3410,15 @@ class Plot2D(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
     priority = BEFOREPLOTTING
 
-    name = '2D plot type'
+    name = "2D plot type"
 
-    children = ['cmap', 'bounds']
+    children = ["cmap", "bounds"]
 
-    dependencies = ['levels', 'interp_bounds']
+    dependencies = ["levels", "interp_bounds"]
 
     @property
     def array(self):
@@ -3290,10 +3469,10 @@ class Plot2D(Formatoption):
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
         self._plot_funcs = {
-            'mesh': self._pcolormesh,
-            'contourf': self._contourf,
-            'contour': self._contourf,
-            'poly': self._polycolor,
+            "mesh": self._pcolormesh,
+            "contourf": self._contourf,
+            "contour": self._contourf,
+            "poly": self._polycolor,
         }
         self._orig_format_coord = None
         self._kwargs = {}
@@ -3306,14 +3485,17 @@ class Plot2D(Formatoption):
         # remove the plot if it shall be replotted or any of the dependencies
         # changed
         if self.plotter.replot or any(
-                self.plotter.has_changed(key) for key in chain(
-                    self.connections, self.dependencies, [self.key])):
+            self.plotter.has_changed(key)
+            for key in chain(self.connections, self.dependencies, [self.key])
+        ):
             self.remove()
         if self.value is not None:
-            if self.value == 'tri':
-                warn("The 'tri' value is depreceated and will be removed "
-                     "in the future. Use 'poly' instead!",
-                     DeprecationWarning)
+            if self.value == "tri":
+                warn(
+                    "The 'tri' value is depreceated and will be removed "
+                    "in the future. Use 'poly' instead!",
+                    DeprecationWarning,
+                )
             self._plot_funcs[self.value]()
             if self._orig_format_coord is None:
                 self._orig_format_coord = self.ax.format_coord
@@ -3324,7 +3506,7 @@ class Plot2D(Formatoption):
             return self._polycolor()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
             # for cartopy, we have to consider the wrapped collection if the
             # data has to be transformed
@@ -3337,13 +3519,20 @@ class Plot2D(Formatoption):
         else:
             x, y = self._get_xy_pcolormesh()
             self._plot = self.ax.pcolormesh(
-                x, y, arr, norm=self.bounds.norm,
-                cmap=cmap, rasterized=True, **self._kwargs)
+                x,
+                y,
+                arr,
+                norm=self.bounds.norm,
+                cmap=cmap,
+                rasterized=True,
+                **self._kwargs,
+            )
 
     def _get_xy_pcolormesh(self):
         interp_bounds = self.interp_bounds.value
         if interp_bounds is None and not self.decoder.is_circumpolar(
-                self.raw_data):
+            self.raw_data
+        ):
             interp_bounds = True
         if interp_bounds:
             return self.xbounds, self.ybounds
@@ -3351,13 +3540,14 @@ class Plot2D(Formatoption):
             return self.xcoord.values, self.ycoord.values
 
     def _contourf(self):
-        if hasattr(self, '_plot') and self.plotter.has_changed(
-                self.levels.key):
+        if hasattr(self, "_plot") and self.plotter.has_changed(
+            self.levels.key
+        ):
             self.remove()
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
-        filled = self.value != 'contour'
-        if hasattr(self, '_plot'):
+        filled = self.value != "contour"
+        if hasattr(self, "_plot"):
             self._plot.set_cmap(cmap)
             self._plot.set_norm(self.bounds.norm)
         else:
@@ -3375,8 +3565,14 @@ class Plot2D(Formatoption):
                 x = xcoord.values
                 y = ycoord.values
             self._plot = pm(
-                x, y, arr, levels, norm=self.bounds.norm,
-                cmap=cmap, **self._kwargs)
+                x,
+                y,
+                arr,
+                levels,
+                norm=self.bounds.norm,
+                cmap=cmap,
+                **self._kwargs,
+            )
 
     @property
     def cell_nodes_x(self):
@@ -3385,7 +3581,8 @@ class Plot2D(Formatoption):
         xcoord = self.xcoord
         data = self.data
         xbounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='x')
+            data, coords=data.coords, axis="x"
+        )
         xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
@@ -3396,36 +3593,44 @@ class Plot2D(Formatoption):
         ycoord = self.ycoord
         data = self.data
         ybounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='y')
+            data, coords=data.coords, axis="y"
+        )
         ybounds = self.convert_coordinate(ybounds, ycoord)
         return ybounds.values
 
     def _polycolor(self):
         from matplotlib.collections import PolyCollection
-        self.logger.debug('Retrieving bounds')
+
+        self.logger.debug("Retrieving bounds")
         xbounds = self.cell_nodes_x
         ybounds = self.cell_nodes_y
-        self.logger.debug('Retrieving data')
+        self.logger.debug("Retrieving data")
         arr = self.array
         cmap = self.cmap.get_cmap(arr)
-        if hasattr(self, '_plot'):
-            self.logger.debug('Updating plot')
+        if hasattr(self, "_plot"):
+            self.logger.debug("Updating plot")
             self._plot.update(dict(cmap=cmap, norm=self.bounds.norm))
         else:
-            self.logger.debug('Making plot with %i cells', arr.size)
+            self.logger.debug("Making plot with %i cells", arr.size)
             if xbounds.ndim > 2:
                 xbounds = xbounds.reshape((-1, xbounds.shape[-1]))
                 ybounds = ybounds.reshape((-1, ybounds.shape[-1]))
             self._plot = PolyCollection(
-                np.dstack([xbounds, ybounds]), array=arr.ravel(),
-                norm=self.bounds.norm, rasterized=True, cmap=cmap,
-                edgecolors='none', antialiaseds=False, **self._kwargs)
-            self.logger.debug('Adding collection to axes')
+                np.dstack([xbounds, ybounds]),
+                array=arr.ravel(),
+                norm=self.bounds.norm,
+                rasterized=True,
+                cmap=cmap,
+                edgecolors="none",
+                antialiaseds=False,
+                **self._kwargs,
+            )
+            self.logger.debug("Adding collection to axes")
             self.ax.add_collection(self._plot, autolim=False)
-        self.logger.debug('Done.')
+        self.logger.debug("Done.")
 
     def remove(self):
-        if hasattr(self, '_plot'):
+        if hasattr(self, "_plot"):
             try:
                 self._plot.remove()
             except AttributeError:  # contour plot
@@ -3439,7 +3644,7 @@ class Plot2D(Formatoption):
     def add2format_coord(self, x, y):
         """Additional information for the :meth:`format_coord`"""
         if self.value is None:
-            return ''
+            return ""
         data = self.data
         xcoord = self.xcoord
         ycoord = self.ycoord
@@ -3450,19 +3655,27 @@ class Plot2D(Formatoption):
         elif xcoord.ndim == 2:
             x, y, z = self.get_xyz_2d(xcoord, x, ycoord, y, data)
         if z is None:
-            return ''
-        xunit = xcoord.attrs.get('units', '')
+            return ""
+        xunit = xcoord.attrs.get("units", "")
         if xunit:
-            xunit = ' ' + xunit
-        yunit = ycoord.attrs.get('units', '')
+            xunit = " " + xunit
+        yunit = ycoord.attrs.get("units", "")
         if yunit:
-            yunit = ' ' + yunit
-        zunit = data.attrs.get('units', '')
+            yunit = " " + yunit
+        zunit = data.attrs.get("units", "")
         if zunit:
-            zunit = ' ' + zunit
-        return ', data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s' % (
-            xcoord.name, x, xunit, ycoord.name, y, yunit,
-            data.name, z, zunit)
+            zunit = " " + zunit
+        return ", data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s" % (
+            xcoord.name,
+            x,
+            xunit,
+            ycoord.name,
+            y,
+            yunit,
+            data.name,
+            z,
+            zunit,
+        )
 
     def get_xyz_tri(self, xcoord, x, ycoord, y, data):
         """Get closest x, y and z for the given `x` and `y` in `data` for
@@ -3474,8 +3687,8 @@ class Plot2D(Formatoption):
         1d coords"""
         x_idx = xcoord.indexes[xcoord.name]
         y_idx = ycoord.indexes[ycoord.name]
-        xclose = x_idx.get_loc(x, method='nearest')
-        yclose = y_idx.get_loc(y, method='nearest')
+        xclose = x_idx.get_loc(x, method="nearest")
+        yclose = y_idx.get_loc(y, method="nearest")
         dx_max = np.diff(x_idx.sort_values()).max()
         dy_max = np.diff(y_idx.sort_values()).max()
 
@@ -3496,11 +3709,11 @@ class Plot2D(Formatoption):
         xy_min = xy[imin]
 
         xb = self.decoder.get_cell_node_coord(
-            data, {xcoord.name: xcoord, ycoord.name: ycoord},
-            axis='x')
+            data, {xcoord.name: xcoord, ycoord.name: ycoord}, axis="x"
+        )
         yb = self.decoder.get_cell_node_coord(
-            data, {xcoord.name: xcoord, ycoord.name: ycoord},
-            axis='y')
+            data, {xcoord.name: xcoord, ycoord.name: ycoord}, axis="y"
+        )
 
         dx_max = np.diff(xb).max()
         dy_max = np.diff(yb).max()
@@ -3516,8 +3729,12 @@ class Plot2D(Formatoption):
         return x_data, y_data, val
 
 
-docstrings.delete_types('Bounds.possible_types', 'no_norm|None',
-                        'None', 'matplotlib.colors.Normalize')
+docstrings.delete_types(
+    "Bounds.possible_types",
+    "no_norm|None",
+    "None",
+    "matplotlib.colors.Normalize",
+)
 
 
 class ContourLevels(Bounds):
@@ -3535,18 +3752,18 @@ class ContourLevels(Bounds):
     %(Bounds.possible_types.no_norm|None)s
     """
 
-    dependencies = ['cbounds']
+    dependencies = ["cbounds"]
 
     priority = BEFOREPLOTTING
 
-    name = 'Levels for the filled contour plot'
+    name = "Levels for the filled contour plot"
 
     def update(self, value):
         if value is None:
             try:
                 value = self.cbounds.norm.boundaries
             except AttributeError:
-                value = ['rounded', 11]
+                value = ["rounded", 11]
         super(ContourLevels, self).update(value)
 
 
@@ -3568,7 +3785,6 @@ class MaskDataGrid(Formatoption):
     def update(self, value):
         """dummy, since this fmt is considered in the :class:`DataGrid ` fmt"""
         pass
-
 
 
 class DataGrid(Formatoption):
@@ -3593,13 +3809,13 @@ class DataGrid(Formatoption):
     --------
     mask_datagrid: To display cells with NaN"""
 
-    children = ['transform']
+    children = ["transform"]
 
-    dependencies = ['mask_datagrid']
+    dependencies = ["mask_datagrid"]
 
-    connections = ['plot']
+    connections = ["plot"]
 
-    name = 'Grid of the data'
+    name = "Grid of the data"
 
     @property
     def xcoord(self):
@@ -3628,8 +3844,11 @@ class DataGrid(Formatoption):
         xcoord = self.xcoord
         data = self.data
         xbounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='x',
-            nans='skip' if self.mask_datagrid.value else None)
+            data,
+            coords=data.coords,
+            axis="x",
+            nans="skip" if self.mask_datagrid.value else None,
+        )
         xbounds = self.convert_coordinate(xbounds, xcoord)
         return xbounds.values
 
@@ -3640,8 +3859,11 @@ class DataGrid(Formatoption):
         ycoord = self.ycoord
         data = self.data
         ybounds = decoder.get_cell_node_coord(
-            data, coords=data.coords, axis='y',
-            nans='skip' if self.mask_datagrid.value else None)
+            data,
+            coords=data.coords,
+            axis="y",
+            nans="skip" if self.mask_datagrid.value else None,
+        )
         ybounds = self.convert_coordinate(ybounds, ycoord, ybounds)
         return ybounds.values
 
@@ -3670,7 +3892,7 @@ class DataGrid(Formatoption):
                 self._artists = self.ax.plot(xb, yb, value)
 
     def remove(self):
-        if not hasattr(self, '_artists'):
+        if not hasattr(self, "_artists"):
             return
         for artist in self._artists:
             artist.remove()
@@ -3678,7 +3900,6 @@ class DataGrid(Formatoption):
 
 
 class VectorDataGrid(DataGrid):
-
     @property
     def data(self):
         return super().data[0]
@@ -3696,7 +3917,7 @@ class SimplePlot2D(Plot2D):
         Use the :func:`matplotlib.pyplot.pcolormesh` function to make the plot
     """
 
-    dependencies = Plot2D.dependencies + ['transpose']
+    dependencies = Plot2D.dependencies + ["transpose"]
 
     @property
     def array(self):
@@ -3707,13 +3928,11 @@ class SimplePlot2D(Plot2D):
 
     @property
     def xbounds(self):
-        return self.decoder.get_plotbounds(self.transpose.get_x(
-            self.data))
+        return self.decoder.get_plotbounds(self.transpose.get_x(self.data))
 
     @property
     def ybounds(self):
-        return self.decoder.get_plotbounds(self.transpose.get_y(
-            self.data))
+        return self.decoder.get_plotbounds(self.transpose.get_y(self.data))
 
     @property
     def xcoord(self):
@@ -3741,7 +3960,6 @@ class SimplePlot2D(Plot2D):
 
 
 class XTicks2D(XTicks):
-
     __doc__ = XTicks.__doc__
 
     @property
@@ -3758,13 +3976,13 @@ class XTicks2D(XTicks):
             return xr.concat(data)
         except Exception:
             self.logger.debug(
-                'Failed to concatenate the data, returning first object!',
-                exc_info=True)
+                "Failed to concatenate the data, returning first object!",
+                exc_info=True,
+            )
             return data[0]
 
 
 class YTicks2D(YTicks):
-
     __doc__ = YTicks.__doc__
 
     @property
@@ -3782,8 +4000,9 @@ class YTicks2D(YTicks):
             return xr.concat(data)
         except Exception:
             self.logger.debug(
-                'Failed to concatenate the data, returning first object!',
-                exc_info=True)
+                "Failed to concatenate the data, returning first object!",
+                exc_info=True,
+            )
             return data[0]
 
 
@@ -3797,17 +4016,19 @@ class Extend(Formatoption):
         If not 'neither', make pointed end(s) for out-of-range values
     """
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Ends of the colorbar'
+    name = "Ends of the colorbar"
 
-    connections = ['plot']
+    connections = ["plot"]
 
     def update(self, value):
         # nothing to do here because the extend is set by the Cbar formatoption
-        if self.plot.value == 'contourf' and value != 'neither':
-            warn('[%s] - Extend keyword is not implemented for contour '
-                 'plots' % self.logger.name)
+        if self.plot.value == "contourf" and value != "neither":
+            warn(
+                "[%s] - Extend keyword is not implemented for contour "
+                "plots" % self.logger.name
+            )
         else:
             if self.plot.value is not None:
                 self.plot.mappable.norm.extend = value
@@ -3824,17 +4045,17 @@ class CbarSpacing(Formatoption):
         colorbar, if ``'proportional'``, the size is chosen according to the
         data"""
 
-    group = 'colors'
+    group = "colors"
 
-    connections = ['cbar']
+    connections = ["cbar"]
 
-    name = 'Spacing of the colorbar'
+    name = "Spacing of the colorbar"
 
     def update(self, value):
-        self.cbar._kwargs['spacing'] = value
+        self.cbar._kwargs["spacing"] = value
 
 
-@docstrings.get_sections(base='Cbar')
+@docstrings.get_sections(base="Cbar")
 class Cbar(Formatoption):
     """
     Specify the position of the colorbars
@@ -3862,23 +4083,33 @@ class Cbar(Formatoption):
 
     >>> plotter.update(cbar='bl')"""
 
-    dependencies = ['plot', 'cmap', 'bounds', 'extend', 'cbarspacing',
-                    'levels']
+    dependencies = [
+        "plot",
+        "cmap",
+        "bounds",
+        "extend",
+        "cbarspacing",
+        "levels",
+    ]
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Position of the colorbar'
+    name = "Position of the colorbar"
 
     priority = END + 0.1
 
-    figure_positions = {'fr', 'fb', 'fl', 'ft', 'b', 'r', 'l', 't'}
+    figure_positions = {"fr", "fb", "fl", "ft", "b", "r", "l", "t"}
 
     original_position = None
 
     @property
     def init_kwargs(self):
-        return dict(chain(six.iteritems(super(Cbar, self).init_kwargs),
-                          [('other_cbars', self.other_cbars)]))
+        return dict(
+            chain(
+                six.iteritems(super(Cbar, self).init_kwargs),
+                [("other_cbars", self.other_cbars)],
+            )
+        )
 
     @docstrings.dedent
     def __init__(self, *args, **kwargs):
@@ -3889,7 +4120,7 @@ class Cbar(Formatoption):
         other_cbars: list of str
             List of other colorbar formatoption keys (necessary for a
             sufficient resizing of the axes)"""
-        self.other_cbars = kwargs.pop('other_cbars', [])
+        self.other_cbars = kwargs.pop("other_cbars", [])
         super(Cbar, self).__init__(*args, **kwargs)
         self._kwargs = {}
         self._just_drawn = set()
@@ -3909,7 +4140,7 @@ class Cbar(Formatoption):
                 self.original_position = fmto.original_position
                 return
         ax = self.ax
-        if ax._adjustable in ['box', 'box-forced']:
+        if ax._adjustable in ["box", "box-forced"]:
             figW, figH = ax.get_figure().get_size_inches()
             fig_aspect = figH / figW
             position = ax.get_position(True)
@@ -3923,7 +4154,7 @@ class Cbar(Formatoption):
     @property
     def value2share(self):
         """Those colorbar positions that are directly at the axes"""
-        return self.value.intersection(['r', 'b', 'l', 't'])
+        return self.value.intersection(["r", "b", "l", "t"])
 
     def update(self, value):
         """
@@ -3938,15 +4169,19 @@ class Cbar(Formatoption):
             plot"""
         plotter = self.plotter
         if plotter.replot or any(
-                plotter.has_changed(key, False) for key in self.dependencies
-                if getattr(self, key, None) is not None and key not in [
-                        self._child_mapping['cmap'], self._child_mapping[
-                            'bounds']]):
+            plotter.has_changed(key, False)
+            for key in self.dependencies
+            if getattr(self, key, None) is not None
+            and key
+            not in [self._child_mapping["cmap"], self._child_mapping["bounds"]]
+        ):
             cbars2delete = set(self.cbars)
         else:
             changed_bounds = plotter.has_changed(self.bounds.key)
-            if changed_bounds and (type(changed_bounds[0]) is not
-                                   type(changed_bounds[1])):
+            if changed_bounds and (
+                type(changed_bounds[0])
+                is not type(changed_bounds[1])  # noqa: E721
+            ):
                 cbars2delete = set(self.cbars)
             else:
                 cbars2delete = set(self.cbars).difference(value)
@@ -3973,41 +4208,42 @@ class Cbar(Formatoption):
         for pos in sorted(value.difference(self.cbars)):
             if self.plot.value is not None:
                 self.draw_colorbar(pos)
-        plotter._figs2draw.update(map(lambda cbar: cbar.ax.get_figure(),
-                                      six.itervalues(self.cbars)))
+        plotter._figs2draw.update(
+            map(lambda cbar: cbar.ax.get_figure(), six.itervalues(self.cbars))
+        )
 
     def update_colorbar(self, pos):
         cbar = self.cbars[pos]
         mappable = self.plot.mappable
-        if mpl.__version__ < '3.1':
+        if mpl.__version__ < "3.1":
             cbar.set_norm(self.plot.mappable.norm)
             cbar.set_cmap(self.plot.mappable.cmap)
         else:  # change the colorbar and reconnect signals
             old = cbar.mappable
             cbar.update_normal(mappable)
-            if not getattr(mappable, 'colorbar_cid', False):
-                if getattr(old, 'colorbar_cid', False):
+            if not getattr(mappable, "colorbar_cid", False):
+                if getattr(old, "colorbar_cid", False):
                     old.callbacksSM.disconnect(old.colorbar_cid)
                     old.colorbar = None
                     old.colorbar_cid = None
                 if mpl.__version__ < "3.3":
                     cid = mappable.callbacksSM.connect(
-                        'changed', cbar.on_mappable_changed
+                        "changed", cbar.on_mappable_changed
                     )
                 elif mpl.__version__ < "3.5":
                     cid = mappable.callbacksSM.connect(
-                        'changed', cbar.update_normal
+                        "changed", cbar.update_normal
                     )
                 else:
                     cid = mappable.callbacks.connect(
-                        'changed', cbar.update_normal
+                        "changed", cbar.update_normal
                     )
                 mappable.colorbar = cbar
                 mappable.colorbar_cid = cid
             cbar.update_normal(cbar.mappable)
         cbar.draw_all()
 
-    def remove(self, positions='all'):
+    def remove(self, positions="all"):
         import matplotlib.pyplot as plt
 
         def try2remove(cbar):
@@ -4017,22 +4253,23 @@ class Cbar(Formatoption):
                 # the colorbar has been removed already from some other
                 # Cbar instance
                 pass
-        if positions == 'all':
+
+        if positions == "all":
             positions = self.cbars.keys()
         positions = set(positions).intersection(self.cbars.keys())
         if not positions:
             return
         adjustment = {}
-        to_adjust = {'fr': 'right', 'fl': 'left', 'ft': 'top', 'fb': 'bottom'}
+        to_adjust = {"fr": "right", "fl": "left", "ft": "top", "fb": "bottom"}
         for pos in positions:
             cbar = self.cbars.pop(pos)
-            if pos in ['sh', 'sv']:
+            if pos in ["sh", "sv"]:
                 plt.close(cbar.ax.get_figure())
             else:
                 # set the axes for the mappable if this has been removed
                 mappable = cbar.mappable
-                delaxes = not hasattr(mappable, 'axes')
-                if getattr(mappable, 'axes', None) is None:
+                delaxes = not hasattr(mappable, "axes")
+                if getattr(mappable, "axes", None) is None:
                     mappable.axes = self.plotter.ax
                     try2remove(cbar)
                     if delaxes:
@@ -4043,7 +4280,8 @@ class Cbar(Formatoption):
                     try2remove(cbar)
                 if pos in to_adjust:
                     adjustment[to_adjust[pos]] = mpl.rcParams[
-                        'figure.subplot.' + to_adjust[pos]]
+                        "figure.subplot." + to_adjust[pos]
+                    ]
         if adjustment:
             self.ax.get_figure().subplots_adjust(**adjustment)
         if self.figure_positions.intersection(positions):
@@ -4052,58 +4290,69 @@ class Cbar(Formatoption):
 
     def draw_colorbar(self, pos):
         import matplotlib.pyplot as plt
+
         # TODO: Manage to draw colorbars left and top (gridspec does not work)
         orientations = {
             # 'b': 'bottom', 'r': 'right', 'l': 'left', 't': 'top',
-            'b': 'horizontal', 'r': 'vertical',
-            'fr': 'vertical', 'fl': 'vertical', 'sv': 'vertical',
-            'ft': 'horizontal', 'fb': 'horizontal', 'sh': 'horizontal'}
+            "b": "horizontal",
+            "r": "vertical",
+            "fr": "vertical",
+            "fl": "vertical",
+            "sv": "vertical",
+            "ft": "horizontal",
+            "fb": "horizontal",
+            "sh": "horizontal",
+        }
 
         orientation = orientations[pos]
         kwargs = self._kwargs.copy()
-        if pos in ['b', 'r', 'l', 't']:
+        if pos in ["b", "r", "l", "t"]:
             fig = self.ax.get_figure()
             # kwargs = {'ax': self.ax, 'location': orientation}
-            kwargs.update({'ax': self.ax, 'orientation': orientation})
-        elif pos == 'sh':
+            kwargs.update({"ax": self.ax, "orientation": orientation})
+        elif pos == "sh":
             fig = plt.figure(figsize=(8, 1))
-            kwargs.update({'cax': fig.add_axes([0.05, 0.5, 0.9, 0.3])})
+            kwargs.update({"cax": fig.add_axes([0.05, 0.5, 0.9, 0.3])})
             self.plotter._figs2draw.add(fig)  # add figure for drawing
-        elif pos == 'sv':
+        elif pos == "sv":
             fig = plt.figure(figsize=(1, 8))
-            kwargs.update({'cax': fig.add_axes([0.3, 0.05, 0.3, 0.9])})
+            kwargs.update({"cax": fig.add_axes([0.3, 0.05, 0.3, 0.9])})
             self.plotter._figs2draw.add(fig)  # add figure for drawing
         else:
             fig = self.ax.get_figure()
-            if pos == 'fb':
+            if pos == "fb":
                 fig.subplots_adjust(bottom=0.2)
-                kwargs['cax'] = fig.add_axes(
+                kwargs["cax"] = fig.add_axes(
                     [0.125, 0.135, 0.775, 0.05],
-                    label=self.raw_data.psy.arr_name + '_fb')
-            elif pos == 'fr':
+                    label=self.raw_data.psy.arr_name + "_fb",
+                )
+            elif pos == "fr":
                 fig.subplots_adjust(right=0.8)
-                kwargs['cax'] = fig.add_axes(
+                kwargs["cax"] = fig.add_axes(
                     [0.825, 0.25, 0.035, 0.6],
-                    label=self.raw_data.psy.arr_name + '_fr')
-            elif pos == 'fl':
+                    label=self.raw_data.psy.arr_name + "_fr",
+                )
+            elif pos == "fl":
                 fig.subplots_adjust(left=0.225)
-                kwargs['cax'] = fig.add_axes(
+                kwargs["cax"] = fig.add_axes(
                     [0.075, 0.25, 0.035, 0.6],
-                    label=self.raw_data.psy.arr_name + '_fl')
-            elif pos == 'ft':
+                    label=self.raw_data.psy.arr_name + "_fl",
+                )
+            elif pos == "ft":
                 fig.subplots_adjust(top=0.75)
-                kwargs['cax'] = fig.add_axes(
+                kwargs["cax"] = fig.add_axes(
                     [0.125, 0.825, 0.775, 0.05],
-                    label=self.raw_data.psy.arr_name + '_ft')
-        if float('.'.join(mpl.__version__.split('.')[:2])) <= 3.2:
-            kwargs['extend'] = self.extend.value
-        if 'location' not in kwargs:
-            kwargs['orientation'] = orientation
+                    label=self.raw_data.psy.arr_name + "_ft",
+                )
+        if float(".".join(mpl.__version__.split(".")[:2])) <= 3.2:
+            kwargs["extend"] = self.extend.value
+        if "location" not in kwargs:
+            kwargs["orientation"] = orientation
         if mpl.__version__.startswith("3.5.0"):
             from matplotlib.contour import ContourSet
-            if (
-                kwargs.get("orientation") == "horizontal" and
-                isinstance(self.plot.mappable, ContourSet)
+
+            if kwargs.get("orientation") == "horizontal" and isinstance(
+                self.plot.mappable, ContourSet
             ):
                 warn(
                     "Horizontal colorbars are not possible for contour plots "
@@ -4117,20 +4366,20 @@ class Cbar(Formatoption):
 
     def set_label_pos(self, pos):
         ax = self.cbars[pos].ax
-        if pos == 'fl':
+        if pos == "fl":
             # draw tick labels left
-            ax.tick_params('y', labelleft=True, labelright=False)
-            ax.yaxis.set_label_position('left')
+            ax.tick_params("y", labelleft=True, labelright=False)
+            ax.yaxis.set_label_position("left")
             ax.yaxis.tick_left()
-        elif pos == 'ft':
+        elif pos == "ft":
             # draw ticklabels at the top
-            ax.tick_params('x', labeltop=True, labelbottom=False)
-            ax.xaxis.set_label_position('top')
+            ax.tick_params("x", labeltop=True, labelbottom=False)
+            ax.xaxis.set_label_position("top")
             ax.xaxis.tick_top()
-        elif pos == 'r':
+        elif pos == "r":
             # draw ticklabels on the right
-            ax.tick_params('y', labelleft=False, labelright=True)
-            ax.yaxis.set_label_position('right')
+            ax.tick_params("y", labelleft=False, labelright=True)
+            ax.yaxis.set_label_position("right")
             ax.yaxis.tick_right()
 
     def finish_update(self):
@@ -4157,29 +4406,39 @@ class CLabel(TextBase, Formatoption):
     --------
     clabelsize, clabelweight, clabelprops"""
 
-    children = ['plot']
+    children = ["plot"]
 
-    dependencies = ['cbar']
+    dependencies = ["cbar"]
 
-    name = 'Colorbar label'
+    name = "Colorbar label"
 
     data_dependent = True
 
-    group = 'labels'
+    group = "labels"
 
     axis_locations = {
-            'b': 'x', 'r': 'y', 'l': 'y', 't': 'x',  # axes locations
-            'fr': 'y', 'fl': 'y', 'sv': 'y',         # vertical figure cbars
-            'ft': 'x', 'fb': 'x', 'sh': 'x'}         # horizontal figure cbars
+        "b": "x",
+        "r": "y",
+        "l": "y",
+        "t": "x",  # axes locations
+        "fr": "y",
+        "fl": "y",
+        "sv": "y",  # vertical figure cbars
+        "ft": "x",
+        "fb": "x",
+        "sh": "x",
+    }  # horizontal figure cbars
 
     def update(self, value):
         arr = self.plot.data
         self.texts = []
         for pos, cbar in six.iteritems(self.cbar.cbars):
-            cbar.set_label(self.replace(
-                    value, arr, attrs=self.get_enhanced_attrs(arr)))
-            self.texts.append(getattr(
-                cbar.ax, self.axis_locations[pos] + 'axis').get_label())
+            cbar.set_label(
+                self.replace(value, arr, attrs=self.get_enhanced_attrs(arr))
+            )
+            self.texts.append(
+                getattr(cbar.ax, self.axis_locations[pos] + "axis").get_label()
+            )
 
 
 class VCLabel(CLabel):
@@ -4198,17 +4457,18 @@ class VCLabel(CLabel):
     See Also
     --------
     vclabelsize, vclabelweight, vclabelprops"""
+
     pass
 
 
 class CbarOptions(Formatoption):
     """Base class for colorbar formatoptions"""
 
-    which = 'major'
+    which = "major"
 
-    children = ['plot']
+    children = ["plot"]
 
-    dependencies = ['cbar']
+    dependencies = ["cbar"]
 
     @property
     def colorbar(self):
@@ -4232,7 +4492,8 @@ class CbarOptions(Formatoption):
         """axis of the colorbar with the ticks. Will be overwritten during
         update process."""
         return getattr(
-            self.colorbar.ax, self.axis_locations[self.position] + 'axis')
+            self.colorbar.ax, self.axis_locations[self.position] + "axis"
+        )
 
     @property
     def axisname(self):
@@ -4254,7 +4515,7 @@ class CbarOptions(Formatoption):
             self.update_axis(value)
 
 
-@docstrings.get_sections(base='CTicks')
+@docstrings.get_sections(base="CTicks")
 class CTicks(CbarOptions, TicksBase):
     """
     Specify the tick locations of the colorbar
@@ -4279,11 +4540,11 @@ class CTicks(CbarOptions, TicksBase):
     cticklabels
     """
 
-    dependencies = CbarOptions.dependencies + ['bounds']
+    dependencies = CbarOptions.dependencies + ["bounds"]
 
-    connections = CbarOptions.connections + ['cmap']
+    connections = CbarOptions.connections + ["cmap"]
 
-    name = 'Colorbar ticks'
+    name = "Colorbar ticks"
 
     _default_locator = None
 
@@ -4300,8 +4561,8 @@ class CTicks(CbarOptions, TicksBase):
 
     def __init__(self, *args, **kwargs):
         super(CTicks, self).__init__(*args, **kwargs)
-        self.calc_funcs['bounds'] = self._bounds_ticks
-        self.calc_funcs['midbounds'] = self._mid_bounds_ticks
+        self.calc_funcs["bounds"] = self._bounds_ticks
+        self.calc_funcs["midbounds"] = self._mid_bounds_ticks
 
     def set_ticks(self, value):
         self.ticks = value
@@ -4319,7 +4580,8 @@ class CTicks(CbarOptions, TicksBase):
     def update(self, value):
         # reset the locators if the colorbar has been drawn from scratch
         if self.cbar._just_drawn or (
-                not self.plotter.has_changed(self.key) and self.value is None):
+            not self.plotter.has_changed(self.key) and self.value is None
+        ):
             if self.cbar.cbars:
                 try:
                     del self._colorbar
@@ -4349,6 +4611,7 @@ class CTicks(CbarOptions, TicksBase):
     def get_fmt_widget(self, parent, project):
         """Open a :class:`psy_simple.widget.CMapFmtWidget`"""
         from psy_simple.widgets.colors import CTicksFmtWidget
+
         return CTicksFmtWidget(parent, self, project)
 
 
@@ -4365,7 +4628,7 @@ class VectorCTicks(CTicks):
     cticklabels, vcticklabels
     """
 
-    dependencies = CTicks.dependencies + ['color']
+    dependencies = CTicks.dependencies + ["color"]
 
     @property
     def array(self):
@@ -4387,7 +4650,7 @@ class CTickLabels(CbarOptions, TickLabelsBase):
     vcticks, vcticksize, vctickweight, vctickprops
     """
 
-    name = 'Colorbar ticklabels'
+    name = "Colorbar ticklabels"
 
     @property
     def default_formatters(self):
@@ -4425,11 +4688,11 @@ class CTickSize(CbarOptions, TickSizeBase):
     ctickweight, ctickprops, cticklabels, cticks
     vctickweight, vctickprops, vcticklabels, vcticks"""
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Font size of the colorbar ticklabels'
+    name = "Font size of the colorbar ticklabels"
 
-    dependencies = CbarOptions.dependencies + ['ctickprops']
+    dependencies = CbarOptions.dependencies + ["ctickprops"]
 
 
 class CTickWeight(CbarOptions, TickWeightBase):
@@ -4445,11 +4708,11 @@ class CTickWeight(CbarOptions, TickWeightBase):
     cticksize, ctickprops, cticklabels, cticks
     vcticksize, vctickprops, vcticklabels, vcticks"""
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Font weight of the colorbar ticklabels'
+    name = "Font weight of the colorbar ticklabels"
 
-    dependencies = CbarOptions.dependencies + ['ctickprops']
+    dependencies = CbarOptions.dependencies + ["ctickprops"]
 
 
 class CTickProps(CbarOptions, TickPropsBase):
@@ -4467,31 +4730,40 @@ class CTickProps(CbarOptions, TickPropsBase):
 
     children = CbarOptions.children + TickPropsBase.children
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Font properties of the colorbar ticklabels'
+    name = "Font properties of the colorbar ticklabels"
 
     def update_axis(self, value):
         value = value.copy()
         default = self.default
-        if 'major' in default or 'minor' in default:
+        if "major" in default or "minor" in default:
             default = default.get(self.which, {})
         for key, val in chain(
-                default.items(), mpl.rcParams.find_all(
-                    self.axisname + 'tick\.%s\.\w' % self.which).items()):
-            value.setdefault(key.split('.')[-1], val)
+            default.items(),
+            mpl.rcParams.find_all(
+                self.axisname + r"tick\.%s\.\w" % self.which
+            ).items(),
+        ):
+            value.setdefault(key.split(".")[-1], val)
 
-        if float('.'.join(mpl.__version__.split('.')[:2])) >= 1.5:
-            value.pop('visible', None)
-        posnames = ['top', 'bottom'] if self.axisname == 'x' else [
-            'left', 'right']
-        label_positions = dict(zip(
-            map('label{}'.format, posnames),
-            [True, False] if self.position in ['t', 'ft', 'l', 'fl'] else
-            [False, True]))
+        if float(".".join(mpl.__version__.split(".")[:2])) >= 1.5:
+            value.pop("visible", None)
+        posnames = (
+            ["top", "bottom"] if self.axisname == "x" else ["left", "right"]
+        )
+        label_positions = dict(
+            zip(
+                map("label{}".format, posnames),
+                [True, False]
+                if self.position in ["t", "ft", "l", "fl"]
+                else [False, True],
+            )
+        )
         label_positions.update(**value)
         self.colorbar.ax.tick_params(
-            self.axisname, which=self.which, reset=True, **label_positions)
+            self.axisname, which=self.which, reset=True, **label_positions
+        )
 
 
 class ArrowSize(Formatoption):
@@ -4509,22 +4781,22 @@ class ArrowSize(Formatoption):
     --------
     arrowstyle, linewidth, density, color"""
 
-    group = 'vector'
+    group = "vector"
 
     priority = BEFOREPLOTTING
 
-    dependencies = ['plot']
+    dependencies = ["plot"]
 
-    name = 'Size of the arrows'
+    name = "Size of the arrows"
 
     def update(self, value):
         kwargs = self.plot._kwargs
-        if self.plot.value == 'stream':
-            kwargs.pop('scale', None)
-            kwargs['arrowsize'] = value or 1.0
+        if self.plot.value == "stream":
+            kwargs.pop("scale", None)
+            kwargs["arrowsize"] = value or 1.0
         else:
-            kwargs.pop('arrowsize', None)
-            kwargs['scale'] = value
+            kwargs.pop("arrowsize", None)
+            kwargs["scale"] = value
 
 
 class ArrowStyle(Formatoption):
@@ -4544,22 +4816,22 @@ class ArrowStyle(Formatoption):
     --------
     arrowsize, linewidth, density, color"""
 
-    group = 'vector'
+    group = "vector"
 
     priority = BEFOREPLOTTING
 
-    dependencies = ['plot']
+    dependencies = ["plot"]
 
-    name = 'Style of the arrows'
+    name = "Style of the arrows"
 
     def update(self, value):
-        if self.plot.value == 'stream':
-            self.plot._kwargs['arrowstyle'] = value
+        if self.plot.value == "stream":
+            self.plot._kwargs["arrowstyle"] = value
         else:
-            self.plot._kwargs.pop('arrowstyle', None)
+            self.plot._kwargs.pop("arrowstyle", None)
 
 
-@docstrings.get_sections(base='WindCalculator')
+@docstrings.get_sections(base="WindCalculator")
 class VectorCalculator(Formatoption):
     """
     Abstract formatoption that provides calculation functions for speed, etc.
@@ -4575,7 +4847,7 @@ class VectorCalculator(Formatoption):
         - **v**: for the v component
     """
 
-    dependencies = ['plot', 'transpose']
+    dependencies = ["plot", "transpose"]
 
     priority = BEFOREPLOTTING
 
@@ -4584,22 +4856,29 @@ class VectorCalculator(Formatoption):
     def __init__(self, *args, **kwargs):
         super(VectorCalculator, self).__init__(*args, **kwargs)
         self._calc_funcs = {
-            'absolute': self._calc_speed,
-            'u': self._get_u,
-            'v': self._get_v}
+            "absolute": self._calc_speed,
+            "u": self._get_u,
+            "v": self._get_v,
+        }
 
     def _maybe_ravel(self, arr):
-        if (getattr(self, 'transpose', None) is not None and
-                self.transpose.value):
+        if (
+            getattr(self, "transpose", None) is not None
+            and self.transpose.value
+        ):
             arr = arr.T
-        if self.plot.value == 'quiver':
+        if self.plot.value == "quiver":
             return np.ravel(arr)
         return np.asarray(arr)
 
     def _calc_speed(self, scale=1.0):
         data = self.plot.data
-        return self._maybe_ravel(
-            np.sqrt(data[0].values**2 + data[1].values**2)) * scale
+        return (
+            self._maybe_ravel(
+                np.sqrt(data[0].values ** 2 + data[1].values ** 2)
+            )
+            * scale
+        )
 
     def _get_u(self, scale=1.0):
         return self._maybe_ravel(self.plot.data[0].values) * scale
@@ -4628,17 +4907,19 @@ class VectorLineWidth(VectorCalculator):
     --------
     arrowsize, arrowstyle, density, color"""
 
-    name = 'Linewidth of the arrows'
+    name = "Linewidth of the arrows"
 
     def update(self, value):
         if value is None:
-            self.plot._kwargs['linewidth'] = 0 if self.plot.value == 'quiver' \
-                else None
+            self.plot._kwargs["linewidth"] = (
+                0 if self.plot.value == "quiver" else None
+            )
         elif np.asarray(value).ndim and isinstance(value[0], six.string_types):
-            self.plot._kwargs['linewidth'] = self._calc_funcs[value[0]](
-                *value[1:])
+            self.plot._kwargs["linewidth"] = self._calc_funcs[value[0]](
+                *value[1:]
+            )
         else:
-            self.plot._kwargs['linewidth'] = self._maybe_ravel(value)
+            self.plot._kwargs["linewidth"] = self._maybe_ravel(value)
 
 
 class VectorColor(VectorCalculator):
@@ -4666,19 +4947,21 @@ class VectorColor(VectorCalculator):
     --------
     arrowsize, arrowstyle, density, linewidth"""
 
-    dependencies = VectorCalculator.dependencies + ['cmap', 'bounds']
+    dependencies = VectorCalculator.dependencies + ["cmap", "bounds"]
 
-    group = 'colors'
+    group = "colors"
 
-    name = 'Color of the arrows'
+    name = "Color of the arrows"
 
     def update(self, value):
         try:
             value = validate_color(value)
             self.colored = False
         except ValueError:
-            if (isinstance(value, six.string_types) and
-                    value in self._calc_funcs):
+            if (
+                isinstance(value, six.string_types)
+                and value in self._calc_funcs
+            ):
                 value = self._calc_funcs[value]()
                 self.colored = True
                 self._color_array = value
@@ -4690,12 +4973,12 @@ class VectorColor(VectorCalculator):
                     value = self._maybe_ravel(value)
                     self.colored = True
                     self._color_array = value
-        if self.plot.value == 'quiver' and self.colored:
+        if self.plot.value == "quiver" and self.colored:
             self.plot._args = [value]
-            self.plot._kwargs.pop('color', None)
+            self.plot._kwargs.pop("color", None)
         else:
             self.plot._args = []
-            self.plot._kwargs['color'] = value
+            self.plot._kwargs["color"] = value
         if self.colored:
             self._set_cmap()
         else:
@@ -4704,16 +4987,17 @@ class VectorColor(VectorCalculator):
     def _set_cmap(self):
         if self.plotter.has_changed(self.key) or self.plotter._initializing:
             self.bounds.update(self.bounds.value)
-        self.plot._kwargs['cmap'] = get_cmap(
-            self.cmap.value, len(self.bounds.bounds) - 1 or None)
-        self.plot._kwargs['norm'] = self.bounds.norm
+        self.plot._kwargs["cmap"] = get_cmap(
+            self.cmap.value, len(self.bounds.bounds) - 1 or None
+        )
+        self.plot._kwargs["norm"] = self.bounds.norm
 
     def _delete_cmap(self):
-        self.plot._kwargs.pop('cmap', None)
-        self.plot._kwargs.pop('norm', None)
+        self.plot._kwargs.pop("cmap", None)
+        self.plot._kwargs.pop("norm", None)
 
 
-@docstrings.get_sections(base='Density')
+@docstrings.get_sections(base="Density")
 class Density(Formatoption):
     """
     Change the density of the arrows
@@ -4731,11 +5015,11 @@ class Density(Formatoption):
     quiver plots do not support density scaling
     """
 
-    dependencies = ['plot']
+    dependencies = ["plot"]
 
-    group = 'vector'
+    group = "vector"
 
-    name = 'Density of the arrows'
+    name = "Density of the arrows"
 
     priority = BEFOREPLOTTING
 
@@ -4744,11 +5028,13 @@ class Density(Formatoption):
     def __init__(self, *args, **kwargs):
         super(Density, self).__init__(*args, **kwargs)
         self._density_funcs = {
-            'stream': self._set_stream_density,
-            'quiver': self._set_quiver_density}
+            "stream": self._set_stream_density,
+            "quiver": self._set_quiver_density,
+        }
         self._remove_funcs = {
-            'stream': self._unset_stream_density,
-            'quiver': self._unset_quiver_density}
+            "stream": self._unset_stream_density,
+            "quiver": self._unset_quiver_density,
+        }
 
     def update(self, value):
         has_changed = self.plotter.has_changed(self.plot.key)
@@ -4763,16 +5049,18 @@ class Density(Formatoption):
 
     def _set_stream_density(self, value):
         return
-        self.plot._kwargs['density'] = value
+        self.plot._kwargs["density"] = value
 
     def _set_quiver_density(self, value):
         if any(val != 1.0 for val in value):
-            warn("[%s] - Quiver plot does not support the density "
-                 "keyword!" % self.logger.name,
-                 RuntimeWarning)
+            warn(
+                "[%s] - Quiver plot does not support the density "
+                "keyword!" % self.logger.name,
+                RuntimeWarning,
+            )
 
     def _unset_stream_density(self):
-        self.plot._kwargs.pop('density', None)
+        self.plot._kwargs.pop("density", None)
 
     def _unset_quiver_density(self):
         pass
@@ -4798,16 +5086,23 @@ class VectorPlot(Formatoption):
 
     plot_fmt = True
 
-    group = 'plotting'
+    group = "plotting"
 
-    name = 'Plot type of the arrows'
+    name = "Plot type of the arrows"
 
     priority = BEFOREPLOTTING
 
-    children = ['cmap', 'bounds']
+    children = ["cmap", "bounds"]
 
-    connections = ['transpose', 'transform', 'arrowsize', 'arrowstyle',
-                   'density', 'linewidth', 'color']
+    connections = [
+        "transpose",
+        "transform",
+        "arrowsize",
+        "arrowstyle",
+        "density",
+        "linewidth",
+        "color",
+    ]
 
     @property
     def format_coord(self):
@@ -4817,7 +5112,7 @@ class VectorPlot(Formatoption):
     @property
     def mappable(self):
         """The mappable, i.e. the container of the plot"""
-        if self.value == 'stream':
+        if self.value == "stream":
             return self._plot.lines
         else:
             return self._plot
@@ -4837,8 +5132,9 @@ class VectorPlot(Formatoption):
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
         self._plot_funcs = {
-            'quiver': self._quiver_plot,
-            'stream': self._stream_plot}
+            "quiver": self._quiver_plot,
+            "stream": self._stream_plot,
+        }
         self._orig_format_coord = None
         self._args = []
         self._kwargs = {}
@@ -4855,9 +5151,15 @@ class VectorPlot(Formatoption):
     def make_plot(self):
         # remove the plot if it shall be replotted or any of the dependencies
         # changed. Otherwise there is nothing to change
-        if hasattr(self, '_plot') and (self.plotter.replot or any(
-                self.plotter.has_changed(key) for key in chain(
-                    self.connections, self.dependencies, [self.key]))):
+        if hasattr(self, "_plot") and (
+            self.plotter.replot
+            or any(
+                self.plotter.has_changed(key)
+                for key in chain(
+                    self.connections, self.dependencies, [self.key]
+                )
+            )
+        ):
             self.remove()
         if not hasattr(self, "_plot") and self.value is not None:
             self._plot_funcs[self.value]()
@@ -4867,8 +5169,9 @@ class VectorPlot(Formatoption):
 
     def _quiver_plot(self):
         x, y, u, v = self._get_data()
-        self._plot = self.ax.quiver(x, y, u, v, *self._args, rasterized=True,
-                                    **self._kwargs)
+        self._plot = self.ax.quiver(
+            x, y, u, v, *self._args, rasterized=True, **self._kwargs
+        )
 
     def _stream_plot(self):
         x, y, u, v = self._get_data()
@@ -4904,11 +5207,10 @@ class VectorPlot(Formatoption):
         return np.asarray(x), np.asarray(y), u, v
 
     def remove(self):
-
         def keep(x):
             return not isinstance(x, mpl.patches.FancyArrowPatch)
 
-        if not hasattr(self, '_plot'):
+        if not hasattr(self, "_plot"):
             return
         if isinstance(self._plot, mpl.streamplot.StreamplotSet):
             try:
@@ -4929,7 +5231,7 @@ class VectorPlot(Formatoption):
     def add2format_coord(self, x, y):
         """Additional information for the :meth:`format_coord`"""
         u, v = self.data
-        uname, vname = self.data.coords['variable'].values
+        uname, vname = self.data.coords["variable"].values
         xcoord = self.xcoord
         ycoord = self.ycoord
         if self.decoder.is_unstructured(self.raw_data[0]):
@@ -4938,21 +5240,35 @@ class VectorPlot(Formatoption):
             x, y, z1, z2 = self.get_xyz_1d(xcoord, x, ycoord, y, u, v)
         elif xcoord.ndim == 2:
             x, y, z1, z2 = self.get_xyz_2d(xcoord, x, ycoord, y, u, v)
-        speed = (z1**2 + z2**2)**0.5
-        xunit = xcoord.attrs.get('units', '')
+        speed = (z1**2 + z2**2) ** 0.5
+        xunit = xcoord.attrs.get("units", "")
         if xunit:
-            xunit = ' ' + xunit
-        yunit = ycoord.attrs.get('units', '')
+            xunit = " " + xunit
+        yunit = ycoord.attrs.get("units", "")
         if yunit:
-            yunit = ' ' + yunit
-        zunit = u.attrs.get('units', '')
+            yunit = " " + yunit
+        zunit = u.attrs.get("units", "")
         if zunit:
-            zunit = ' ' + zunit
-        return (', vector data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s, '
-                '%s: %.4g%s, absolute: %.4g%s') % (
-                    xcoord.name, x, xunit, ycoord.name, y, yunit,
-                    uname, z1, zunit, vname, z2, zunit,
-                    speed, zunit)
+            zunit = " " + zunit
+        return (
+            ", vector data: %s: %.4g%s, %s: %.4g%s, %s: %.4g%s, "
+            "%s: %.4g%s, absolute: %.4g%s"
+        ) % (
+            xcoord.name,
+            x,
+            xunit,
+            ycoord.name,
+            y,
+            yunit,
+            uname,
+            z1,
+            zunit,
+            vname,
+            z2,
+            zunit,
+            speed,
+            zunit,
+        )
 
     def get_xyz_tri(self, xcoord, x, ycoord, y, u, v):
         """Get closest x, y and z for the given `x` and `y` in `data` for
@@ -4962,8 +5278,8 @@ class VectorPlot(Formatoption):
     def get_xyz_1d(self, xcoord, x, ycoord, y, u, v):
         """Get closest x, y and z for the given `x` and `y` in `data` for
         1d coords"""
-        xclose = xcoord.indexes[xcoord.name].get_loc(x, method='nearest')
-        yclose = ycoord.indexes[ycoord.name].get_loc(y, method='nearest')
+        xclose = xcoord.indexes[xcoord.name].get_loc(x, method="nearest")
+        yclose = ycoord.indexes[ycoord.name].get_loc(y, method="nearest")
         uval = u[yclose, xclose].values
         vval = v[yclose, xclose].values
         return xcoord[xclose].values, ycoord[yclose].values, uval, vval
@@ -4975,8 +5291,12 @@ class VectorPlot(Formatoption):
         dist = np.abs(xy - (x + 1j * y))
         imin = np.nanargmin(dist)
         xy_min = xy[imin]
-        return (xy_min.real, xy_min.imag, u.values.ravel()[imin],
-                v.values.ravel()[imin])
+        return (
+            xy_min.real,
+            xy_min.imag,
+            u.values.ravel()[imin],
+            v.values.ravel()[imin],
+        )
 
 
 class SimpleVectorPlot(VectorPlot):
@@ -4987,25 +5307,28 @@ class SimpleVectorPlot(VectorPlot):
     __doc__ = VectorPlot.__doc__
 
     def set_value(self, value, *args, **kwargs):
-        if value == 'stream' and self.raw_data is not None:
+        if value == "stream" and self.raw_data is not None:
             u = self.raw_data[0]
             if u.psy.decoder.is_unstructured(u):
-                warn('[%s] - Streamplot is not supported for unstructured '
-                     'grids!' % self.logger.name)
-                value = 'quiver'
+                warn(
+                    "[%s] - Streamplot is not supported for unstructured "
+                    "grids!" % self.logger.name
+                )
+                value = "quiver"
             elif u.psy.decoder.is_circumpolar(u):
-                warn('[%s] - Streamplot is not supported for circumpolar '
-                     'grids!' % self.logger.name)
-                value = 'quiver'
+                warn(
+                    "[%s] - Streamplot is not supported for circumpolar "
+                    "grids!" % self.logger.name
+                )
+                value = "quiver"
         super(SimpleVectorPlot, self).set_value(value, *args, **kwargs)
 
 
 class CombinedVectorPlot(VectorPlot):
-
     __doc__ = VectorPlot.__doc__
 
     def update(self, *args, **kwargs):
-        self._kwargs['zorder'] = 2
+        self._kwargs["zorder"] = 2
         super(CombinedVectorPlot, self).update(*args, **kwargs)
 
 
@@ -5018,7 +5341,7 @@ class VectorCbar(Cbar):
     %(Cbar.possible_types)s
     """
 
-    dependencies = Cbar.dependencies + ['color']
+    dependencies = Cbar.dependencies + ["color"]
 
     priority = END
 
@@ -5045,7 +5368,7 @@ class VectorBounds(Bounds):
     --------
     %(Bounds.see_also)s"""
 
-    parents = ['color']
+    parents = ["color"]
 
     @property
     def array(self):
@@ -5078,23 +5401,30 @@ class LegendLabels(Formatoption, TextBase):
 
     data_dependent = True
 
-    name = 'Labels in the legend'
+    name = "Labels in the legend"
 
     def update(self, value):
         def get1d(arr):
             if arr.ndim > 1:
                 return arr[0]
             return arr
+
         if isinstance(value, six.string_types):
             self.labels = [
-                self.replace(value, arr, self.get_enhanced_attrs(
-                    get1d(arr), replot=True))
-                for arr in self.iter_data]
+                self.replace(
+                    value,
+                    arr,
+                    self.get_enhanced_attrs(get1d(arr), replot=True),
+                )
+                for arr in self.iter_data
+            ]
         else:
             self.labels = [
-                self.replace(val, arr, self.get_enhanced_attrs(
-                    get1d(arr), replot=True)) for val, arr in zip(
-                        value, self.iter_data)]
+                self.replace(
+                    val, arr, self.get_enhanced_attrs(get1d(arr), replot=True)
+                )
+                for val, arr in zip(value, self.iter_data)
+            ]
 
 
 class Legend(DictFormatoption):
@@ -5117,9 +5447,9 @@ class Legend(DictFormatoption):
     --------
     labels"""
 
-    dependencies = ['legendlabels', 'plot', 'color', 'marker']
+    dependencies = ["legendlabels", "plot", "color", "marker"]
 
-    name = 'Properties of the legend'
+    name = "Properties of the legend"
 
     def update(self, value):
         self.remove()
@@ -5129,12 +5459,12 @@ class Legend(DictFormatoption):
             if not shared_by.plotter._updating:
                 shared_by.update(shared_by.value)
             return
-        if not value.get('loc'):
+        if not value.get("loc"):
             return
         artists = []
         labels = []
         for fmto in self.shared.union([self]):
-            if hasattr(fmto.plot, '_plot'):
+            if hasattr(fmto.plot, "_plot"):
                 this_artists, this_labels = fmto.get_artists_and_labels()
                 artists.extend(this_artists)
                 labels.extend(this_labels)
@@ -5142,12 +5472,15 @@ class Legend(DictFormatoption):
 
     def get_artists_and_labels(self):
         return self.plot._plot, [
-            l for l, ls in zip(self.legendlabels.labels,
-                               cycle(slist(self.plot.value)))
-            if ls is not None]
+            label
+            for label, ls in zip(
+                self.legendlabels.labels, cycle(slist(self.plot.value))
+            )
+            if ls is not None
+        ]
 
     def remove(self):
-        if hasattr(self, 'legend'):
+        if hasattr(self, "legend"):
             self.legend.remove()
 
 
@@ -5171,9 +5504,9 @@ class MeanCalculator(Formatoption):
 
     priority = START
 
-    name = 'Mean calculation'
+    name = "Mean calculation"
 
-    group = 'data'
+    group = "data"
 
     data_dependent = True
 
@@ -5181,9 +5514,9 @@ class MeanCalculator(Formatoption):
 
     def update(self, value):
         for i, arr in enumerate(self.iter_data):
-            if value == 'mean':
+            if value == "mean":
                 data = arr.psy.fldmean()
-            elif value == 'median':
+            elif value == "median":
                 data = arr.psy.fldpctl(50)
             else:
                 data = arr.psy.fldpctl(value)
@@ -5220,11 +5553,11 @@ class ErrorCalculator(Formatoption):
 
     priority = START
 
-    name = 'Mean calculation'
+    name = "Mean calculation"
 
-    group = 'data'
+    group = "data"
 
-    children = ['mean']
+    children = ["mean"]
 
     data_dependent = True
 
@@ -5235,15 +5568,16 @@ class ErrorCalculator(Formatoption):
             return
         if isstring(value):
             use_std = True
-            m = re.search(r'\d+\.?\d*', value)
+            m = re.search(r"\d+\.?\d*", value)
             if m:
                 multiplier = float(m.group())
             else:
                 multiplier = 1
         else:
             use_std = False
-        for i, (arr, mean) in enumerate(zip(self.iter_raw_data,
-                                            self.iter_data)):
+        for i, (arr, mean) in enumerate(
+            zip(self.iter_raw_data, self.iter_data)
+        ):
             mean = mean.to_dataset()
             if use_std:
                 err = multiplier * arr.psy.fldstd()
@@ -5251,7 +5585,7 @@ class ErrorCalculator(Formatoption):
                 data = mean[[arr.name, value]].psy.to_array()
             else:
                 err = arr.psy.fldpctl(value)
-                names = list(map('pctl{:1.3g}'.format, value))
+                names = list(map("pctl{:1.3g}".format, value))
                 mean[names[0]] = err.variable[0]
                 mean[names[1]] = err.variable[1]
                 data = mean[[arr.name] + names].psy.to_array()
@@ -5261,7 +5595,7 @@ class ErrorCalculator(Formatoption):
             self.set_data(data, i)
 
 
-docstrings.delete_types('LimitBase.possible_types', 'no_None', 'None')
+docstrings.delete_types("LimitBase.possible_types", "no_None", "None")
 
 
 class Hist2DXRange(LimitBase):
@@ -5286,13 +5620,13 @@ class Hist2DXRange(LimitBase):
 
     priority = START
 
-    group = 'data'
+    group = "data"
 
-    name = 'Range of the histogram in x-direction'
+    name = "Range of the histogram in x-direction"
 
     data_dependent = True
 
-    dependencies = ['coord']
+    dependencies = ["coord"]
 
     @property
     def array(self):
@@ -5300,7 +5634,8 @@ class Hist2DXRange(LimitBase):
         # formatoption is shared and the ``coord`` formatoption is not None
         if self.coord.value is not None:
             coord = self.coord.get_alternative_coord(
-                self.raw_data, self.index_in_list or 0)[1].values
+                self.raw_data, self.index_in_list or 0
+            )[1].values
         else:
             da = self.raw_data
             coord = da.coords[da.dims[0]].values
@@ -5331,7 +5666,7 @@ class Hist2DYRange(Hist2DXRange):
     --------
     xrange"""
 
-    name = 'Range of the histogram in y-direction'
+    name = "Range of the histogram in y-direction"
 
     data_dependent = True
 
@@ -5360,25 +5695,27 @@ class DataPrecision(Formatoption):
 
     priority = START
 
-    dependencies = ['xrange', 'yrange']
+    dependencies = ["xrange", "yrange"]
 
-    connections = ['density']
+    connections = ["density"]
 
-    group = 'data'
+    group = "data"
 
-    name = 'Precision of the visualized data'
+    name = "Precision of the visualized data"
 
     data_dependent = True
 
     def estimate_bw(self, method, values, data_range=None):
         import statsmodels.nonparametric.api as smnp
+
         bw_func = getattr(smnp.bandwidths, "bw_" + method)
         if data_range is not None:
             vmin, vmax = sorted(data_range)
             values = values[(values >= vmin) & (values <= vmax)]
         if not len(values):
-            raise ValueError("No values found within the given range of "
-                             f"{data_range}!")
+            raise ValueError(
+                "No values found within the given range of " f"{data_range}!"
+            )
         return bw_func(values)
 
     def update(self, value):
@@ -5429,11 +5766,11 @@ class HistBins(Formatoption):
 
     priority = START
 
-    dependencies = ['precision']
+    dependencies = ["precision"]
 
-    group = 'data'
+    group = "data"
 
-    name = 'Number of bins of the histogram'
+    name = "Number of bins of the histogram"
 
     data_dependent = True
 
@@ -5445,7 +5782,7 @@ class HistBins(Formatoption):
             value = [value, value]
         for i, (bins, bins_prec) in enumerate(zip(value, self.precision.bins)):
             if bins == 0 and bins_prec == 0:
-                raise ValueError('precision and bins must not both be 0!')
+                raise ValueError("precision and bins must not both be 0!")
             elif bins == 0:
                 self.bins[i] = bins_prec
             elif bins_prec == 0:
@@ -5485,11 +5822,11 @@ class NormedHist2D(Formatoption):
 
     priority = START
 
-    name = 'Specify how to normalize the histogram'
+    name = "Specify how to normalize the histogram"
 
-    group = 'data'
+    group = "data"
 
-    name = 'Normalize the histogram'
+    name = "Normalize the histogram"
 
     data_dependent = True
 
@@ -5503,7 +5840,7 @@ class NormedHist2D(Formatoption):
         ----------
         da: xarray.DataArray
             The data source"""
-        if self.value is None or self.value == 'counts':
+        if self.value is None or self.value == "counts":
             normed = False
         else:
             normed = True
@@ -5514,12 +5851,12 @@ class NormedHist2D(Formatoption):
         else:
             kwargs["density"] = normed
         counts, xedges, yedges = np.histogram2d(x, y, **kwargs)
-        if self.value == 'counts':  # normalize such that all values sum to one
+        if self.value == "counts":  # normalize such that all values sum to one
             counts = counts / counts.sum().astype(float)
-        elif self.value in ['x', 'col', 'column', 'columns']:
+        elif self.value in ["x", "col", "column", "columns"]:
             # normalize such that every column sums to one
             counts = counts / counts.sum(axis=1, keepdims=True).astype(float)
-        elif self.value in ['y', 'row', 'rows']:
+        elif self.value in ["y", "row", "rows"]:
             # normalize such that every row sums to one
             counts = counts / counts.sum(axis=1, keepdims=True).astype(float)
         return counts, xedges, yedges
@@ -5549,18 +5886,18 @@ class PointDensity(Formatoption):
 
     priority = START
 
-    name = 'Type of the density plot'
+    name = "Type of the density plot"
 
-    dependencies = ['normed', 'bins', 'xrange', 'yrange', 'precision', 'coord']
+    dependencies = ["normed", "bins", "xrange", "yrange", "precision", "coord"]
 
-    group = 'data'
+    group = "data"
 
-    name = 'Calculation of the point density'
+    name = "Calculation of the point density"
 
     data_dependent = True
 
     def update(self, value):
-        if value == 'hist':
+        if value == "hist":
             self._hist()
         else:
             self._kde()
@@ -5575,18 +5912,24 @@ class PointDensity(Formatoption):
         grid = self.bins.bins
         for i, bw in enumerate(bws):
             if bw == 0:
-                bws[i] = 'scott'
+                bws[i] = "scott"
         coord = raw_da.coords[raw_da.dims[0]]
         xname = coord.name
         yname = raw_da.name
         x, y, z = self._statsmodels_bivariate_kde(
-            raw_da.coords[raw_da.dims[0]].values, raw_da.values, bws,
-            grid[0], grid[1], xyranges)
-        xcent = xr.Variable((xname, ), x, attrs=coord.attrs.copy())
-        ycent = xr.Variable((yname, ), y, attrs=raw_da.attrs.copy())
-        var = xr.Variable((yname, xname), z,
-                          attrs=raw_da.psy.base.attrs.copy())
-        ds = xr.Dataset({'counts': var}, {xname: xcent, yname: ycent})
+            raw_da.coords[raw_da.dims[0]].values,
+            raw_da.values,
+            bws,
+            grid[0],
+            grid[1],
+            xyranges,
+        )
+        xcent = xr.Variable((xname,), x, attrs=coord.attrs.copy())
+        ycent = xr.Variable((yname,), y, attrs=raw_da.attrs.copy())
+        var = xr.Variable(
+            (yname, xname), z, attrs=raw_da.psy.base.attrs.copy()
+        )
+        ds = xr.Dataset({"counts": var}, {xname: xcent, yname: ycent})
         ds = ds.assign_coords(**self._get_other_coords(raw_da))
         self.decoder = CFDecoder(ds)
         arr = ds.counts
@@ -5598,6 +5941,7 @@ class PointDensity(Formatoption):
         This function is mainly motivated through
         seaborn.distributions._statsmodels_bivariate_kde"""
         import statsmodels.nonparametric.api as smnp
+
         for i, (coord, bw) in enumerate(zip([x, y], bws)):
             if isinstance(bw, six.string_types):
                 bw_func = getattr(smnp.bandwidths, "bw_" + bw)
@@ -5621,19 +5965,30 @@ class PointDensity(Formatoption):
         xname = coord.name
         yname = raw_da.name
         # calculate the centers
-        xcent = xr.Variable((xname, ), np.c_[[x[:-1], x[1:]]].mean(axis=0),
-                            attrs=coord.attrs.copy())
-        ycent = xr.Variable((yname, ), np.c_[[y[:-1], y[1:]]].mean(axis=0),
-                            attrs=raw_da.attrs.copy())
-        xbounds = xr.Variable((xname, 'bnds'), np.c_[[x[:-1], x[1:]]].T)
-        ybounds = xr.Variable((yname, 'bnds'), np.c_[[y[:-1], y[1:]]].T)
-        xcent.attrs['bounds'] = xname + '_bnds'
-        ycent.attrs['bounds'] = yname + '_bnds'
-        var = xr.Variable((yname, xname), z.T,
-                          attrs=raw_da.psy.base.attrs.copy())
-        variables = {'counts': var}
-        coords = {xname: xcent, yname: ycent,
-                  xname + '_bnds': xbounds, yname + '_bnds': ybounds}
+        xcent = xr.Variable(
+            (xname,),
+            np.c_[[x[:-1], x[1:]]].mean(axis=0),
+            attrs=coord.attrs.copy(),
+        )
+        ycent = xr.Variable(
+            (yname,),
+            np.c_[[y[:-1], y[1:]]].mean(axis=0),
+            attrs=raw_da.attrs.copy(),
+        )
+        xbounds = xr.Variable((xname, "bnds"), np.c_[[x[:-1], x[1:]]].T)
+        ybounds = xr.Variable((yname, "bnds"), np.c_[[y[:-1], y[1:]]].T)
+        xcent.attrs["bounds"] = xname + "_bnds"
+        ycent.attrs["bounds"] = yname + "_bnds"
+        var = xr.Variable(
+            (yname, xname), z.T, attrs=raw_da.psy.base.attrs.copy()
+        )
+        variables = {"counts": var}
+        coords = {
+            xname: xcent,
+            yname: ycent,
+            xname + "_bnds": xbounds,
+            yname + "_bnds": ybounds,
+        }
         ds = xr.Dataset(variables, coords)
         ds = ds.assign_coords(**self._get_other_coords(raw_da))
         self.decoder = CFDecoder(ds)
@@ -5642,58 +5997,61 @@ class PointDensity(Formatoption):
         self.data = arr
 
     def _get_other_coords(self, raw_da):
-        return {key: raw_da.coords[key]
-                for key in set(raw_da.coords).difference(raw_da.dims)}
+        return {
+            key: raw_da.coords[key]
+            for key in set(raw_da.coords).difference(raw_da.dims)
+        }
 
 
 class XYTickPlotter(Plotter):
-    """Plotter class for x- and y-ticks and x- and y- ticklabels
-    """
-    _rcparams_string = ['plotter.simple.']
+    """Plotter class for x- and y-ticks and x- and y- ticklabels"""
 
-    transpose = Transpose('transpose')
-    xticks = XTicks('xticks')
-    xticklabels = XTickLabels('xticklabels')
-    yticks = YTicks('yticks')
-    yticklabels = YTickLabels('yticklabels')
-    ticksize = TickSize('ticksize')
-    tickweight = TickWeight('tickweight')
-    xtickprops = XTickProps('xtickprops')
-    ytickprops = YTickProps('ytickprops')
-    xlabel = Xlabel('xlabel')
-    ylabel = Ylabel('ylabel')
-    labelsize = LabelSize('labelsize')
-    labelweight = LabelWeight('labelweight')
-    labelprops = LabelProps('labelprops')
-    xrotation = XRotation('xrotation')
-    yrotation = YRotation('yrotation')
+    _rcparams_string = ["plotter.simple."]
+
+    transpose = Transpose("transpose")
+    xticks = XTicks("xticks")
+    xticklabels = XTickLabels("xticklabels")
+    yticks = YTicks("yticks")
+    yticklabels = YTickLabels("yticklabels")
+    ticksize = TickSize("ticksize")
+    tickweight = TickWeight("tickweight")
+    xtickprops = XTickProps("xtickprops")
+    ytickprops = YTickProps("ytickprops")
+    xlabel = Xlabel("xlabel")
+    ylabel = Ylabel("ylabel")
+    labelsize = LabelSize("labelsize")
+    labelweight = LabelWeight("labelweight")
+    labelprops = LabelProps("labelprops")
+    xrotation = XRotation("xrotation")
+    yrotation = YRotation("yrotation")
 
 
 class Base2D(Plotter):
-    """Base plotter for 2-dimensional plots
-    """
+    """Base plotter for 2-dimensional plots"""
 
-    _rcparams_string = ['plotter.plot2d.']
+    _rcparams_string = ["plotter.plot2d."]
 
-    cmap = CMap('cmap')
-    bounds = Bounds('bounds')
-    extend = Extend('extend')
-    cbar = Cbar('cbar')
+    cmap = CMap("cmap")
+    bounds = Bounds("bounds")
+    extend = Extend("extend")
+    cbar = Cbar("cbar")
     plot = None
-    clabel = CLabel('clabel')
-    clabelsize = label_size(clabel, 'Colorbar label', dependencies=['clabel'])
-    clabelweight = label_weight(clabel, 'Colorbar label',
-                                dependencies=['clabel'])
-    cbarspacing = CbarSpacing('cbarspacing')
-    clabelprops = label_props(clabel, 'Colorbar label',
-                              dependencies=['clabel'])
-    cticks = CTicks('cticks')
-    cticklabels = CTickLabels('cticklabels')
-    cticksize = CTickSize('cticksize')
-    ctickweight = CTickWeight('ctickweight')
-    ctickprops = CTickProps('ctickprops')
-    mask_datagrid = MaskDataGrid('mask_datagrid')
-    datagrid = DataGrid('datagrid', index_in_list=0)
+    clabel = CLabel("clabel")
+    clabelsize = label_size(clabel, "Colorbar label", dependencies=["clabel"])
+    clabelweight = label_weight(
+        clabel, "Colorbar label", dependencies=["clabel"]
+    )
+    cbarspacing = CbarSpacing("cbarspacing")
+    clabelprops = label_props(
+        clabel, "Colorbar label", dependencies=["clabel"]
+    )
+    cticks = CTicks("cticks")
+    cticklabels = CTickLabels("cticklabels")
+    cticksize = CTickSize("cticksize")
+    ctickweight = CTickWeight("ctickweight")
+    ctickprops = CTickProps("ctickprops")
+    mask_datagrid = MaskDataGrid("mask_datagrid")
+    datagrid = DataGrid("datagrid", index_in_list=0)
 
 
 class SimplePlotterBase(BasePlotter, XYTickPlotter):
@@ -5707,15 +6065,15 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
     #: the array is unstructured, one dimension will be subtracted
     allowed_dims = 1
 
-    transpose = Transpose('transpose')
-    axiscolor = AxisColor('axiscolor')
-    grid = Grid('grid')
-    color = LineColors('color')
-    xlim = Xlim('xlim')
-    ylim = Ylim('ylim')
-    sym_lims = SymmetricLimits('sym_lims')
-    legendlabels = LegendLabels('legendlabels')
-    legend = Legend('legend')
+    transpose = Transpose("transpose")
+    axiscolor = AxisColor("axiscolor")
+    grid = Grid("grid")
+    color = LineColors("color")
+    xlim = Xlim("xlim")
+    ylim = Ylim("ylim")
+    sym_lims = SymmetricLimits("sym_lims")
+    legendlabels = LegendLabels("legendlabels")
+    legend = Legend("legend")
 
     @classmethod
     @docstrings.dedent
@@ -5744,79 +6102,83 @@ class SimplePlotterBase(BasePlotter, XYTickPlotter):
         N = len(name)
         if len(dims) != N:
             return [False] * N, [
-                'Number of provided names (%i) and dimensions '
-                '%(i) are not the same' % (N, len(dims))] * N
+                "Number of provided names (%i) and dimensions "
+                "(%i) are not the same" % (N, len(dims))
+            ] * N
         checks = [True] * N
-        messages = [''] * N
+        messages = [""] * N
         for i, (n, d) in enumerate(zip(name, dims)):
             if n != 0 and not n:
                 checks[i] = False
-                messages[i] = 'At least one variable name is required!'
-            elif ((not isstring(n) and is_iterable(n) and
-                   len(n) > cls.allowed_vars) and
-                  len(d) != (cls.allowed_dims - len(slist(n)))):
+                messages[i] = "At least one variable name is required!"
+            elif (
+                not isstring(n)
+                and is_iterable(n)
+                and len(n) > cls.allowed_vars
+            ) and len(d) != (cls.allowed_dims - len(slist(n))):
                 checks[i] = False
-                messages[i] = 'Only %i names are allowed per array!' % (
-                    cls.allowed_vars)
+                messages[i] = "Only %i names are allowed per array!" % (
+                    cls.allowed_vars
+                )
             elif len(d) != cls.allowed_dims:
                 checks[i] = False
-                messages[i] = 'Only %i-dimensional arrays are allowed!' % (
-                    cls.allowed_dims)
+                messages[i] = "Only %i-dimensional arrays are allowed!" % (
+                    cls.allowed_dims
+                )
         return checks, messages
 
 
 class LinePlotter(SimplePlotterBase):
-    """Plotter for simple one-dimensional line plots
-    """
+    """Plotter for simple one-dimensional line plots"""
 
-    _rcparams_string = ['plotter.line.']
+    _rcparams_string = ["plotter.line."]
 
     #: The number variables that one data array visualized by this plotter
     #: might have. We allow up to 3 variableswhere the second and third
     #: variable might be the errors (see the :attr:`error` formatoption)
     allowed_vars = 3
 
-    coord = AlternativeXCoord('coord')
-    marker = Marker('marker')
-    markersize = MarkerSize('markersize')
-    linewidth = LineWidth('linewidth')
-    plot = LinePlot('plot')
-    error = ErrorPlot('error')
-    erroralpha = ErrorAlpha('erroralpha')
+    coord = AlternativeXCoord("coord")
+    marker = Marker("marker")
+    markersize = MarkerSize("markersize")
+    linewidth = LineWidth("linewidth")
+    plot = LinePlot("plot")
+    error = ErrorPlot("error")
+    erroralpha = ErrorAlpha("erroralpha")
 
 
 class ViolinPlotter(SimplePlotterBase):
     """Plotter for making violin plots"""
 
-    _rcparams_string = ['plotter.violin.']
+    _rcparams_string = ["plotter.violin."]
 
-    plot = ViolinPlot('plot')
-    xlim = ViolinXlim('xlim')
-    ylim = ViolinYlim('ylim')
-    xticks = ViolinXTicks('xticks')
-    xticklabels = ViolinXTickLabels('xticklabels')
-    yticks = ViolinYTicks('yticks')
-    yticklabels = ViolinYTickLabels('yticklabels')
+    plot = ViolinPlot("plot")
+    xlim = ViolinXlim("xlim")
+    ylim = ViolinYlim("ylim")
+    xticks = ViolinXTicks("xticks")
+    xticklabels = ViolinXTickLabels("xticklabels")
+    yticks = ViolinYTicks("yticks")
+    yticklabels = ViolinYTickLabels("yticklabels")
 
 
 class BarPlotter(SimplePlotterBase):
     """Plotter for making bar plots"""
 
-    _rcparams_string = ['plotter.bar.']
+    _rcparams_string = ["plotter.bar."]
 
-    coord = AlternativeXCoord('coord')
-    widths = BarWidths('widths')
-    alpha = BarAlpha('alpha')
-    categorical = CategoricalBars('categorical')
-    plot = BarPlot('plot')
-    xlim = BarXlim('xlim')
-    ylim = BarYlim('ylim')
-    xticks = BarXTicks('xticks')
-    yticks = BarYTicks('yticks')
-    xticklabels = BarXTickLabels('xticklabels')
-    yticklabels = BarYTickLabels('yticklabels')
-    xlabel = BarXlabel('xlabel')
-    ylabel = BarYlabel('ylabel')
+    coord = AlternativeXCoord("coord")
+    widths = BarWidths("widths")
+    alpha = BarAlpha("alpha")
+    categorical = CategoricalBars("categorical")
+    plot = BarPlot("plot")
+    xlim = BarXlim("xlim")
+    ylim = BarYlim("ylim")
+    xticks = BarXTicks("xticks")
+    yticks = BarYTicks("yticks")
+    xticklabels = BarXTickLabels("xticklabels")
+    yticklabels = BarYTickLabels("yticklabels")
+    xlabel = BarXlabel("xlabel")
+    ylabel = BarYlabel("ylabel")
 
 
 class Simple2DBase(Base2D):
@@ -5828,7 +6190,7 @@ class Simple2DBase(Base2D):
     #: the array is unstructured, one dimension will be subtracted
     allowed_dims = 2
 
-    miss_color = MissColor('miss_color', index_in_list=0)
+    miss_color = MissColor("miss_color", index_in_list=0)
 
     @classmethod
     @docstrings.dedent
@@ -5856,17 +6218,23 @@ class Simple2DBase(Base2D):
         N = len(name)
         if N != 1:
             return [False] * N, [
-                'Number of provided names (%i) must equal 1!' % (N)] * N
+                "Number of provided names (%i) must equal 1!" % (N)
+            ] * N
         elif len(dims) != 1:
             return [False], [
-                'Number of provided dimension lists (%i) must equal 1!' % (
-                    len(dims))]
+                "Number of provided dimension lists (%i) must equal 1!"
+                % (len(dims))
+            ]
         elif len(is_unstructured) != 1:
             return [False], [
-                ('Number of provided unstructured information (%i) must '
-                 'equal 1!') % (len(is_unstructured))]
+                (
+                    "Number of provided unstructured information (%i) must "
+                    "equal 1!"
+                )
+                % (len(is_unstructured))
+            ]
         if name[0] != 0 and not name[0]:
-            return [False], ['At least one variable name must be provided!']
+            return [False], ["At least one variable name must be provided!"]
         # unstructured arrays have only 1 dimension
         dimlen = cls.allowed_dims
         if is_unstructured[0]:
@@ -5875,15 +6243,20 @@ class Simple2DBase(Base2D):
         #
         # if more than one array name is provided, the dimensions should be
         # one les than dimlen to have a 2D array
-        if (not isstring(name[0]) and not is_iterable(name[0])
-                and len(name[0]) != 1 and len(dims[0]) != dimlen - 1):
-            return [False], ['Only one name is allowed per array!']
+        if (
+            not isstring(name[0])
+            and not is_iterable(name[0])
+            and len(name[0]) != 1
+            and len(dims[0]) != dimlen - 1
+        ):
+            return [False], ["Only one name is allowed per array!"]
         # otherwise the number of dimensions must equal dimlen
         if len(dims[0]) != dimlen:
             return [False], [
-                'An array with dimension %i is required, not %i' % (
-                    dimlen, len(dims[0]))]
-        return [True], ['']
+                "An array with dimension %i is required, not %i"
+                % (dimlen, len(dims[0]))
+            ]
+        return [True], [""]
 
     def _set_data(self, *args, **kwargs):
         Plotter._set_data(self, *args, **kwargs)
@@ -5895,8 +6268,9 @@ class Simple2DBase(Base2D):
         if data.psy.decoder.is_unstructured(data):
             ndims -= 1
         if data.ndim != ndims:
-            raise ValueError(f"Can only plot {self.allowed_dims}-dimensional "
-                             "data!")
+            raise ValueError(
+                f"Can only plot {self.allowed_dims}-dimensional " "data!"
+            )
 
 
 class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
@@ -5906,14 +6280,14 @@ class Simple2DPlotter(Simple2DBase, SimplePlotterBase):
     --------
     psyplot.plotter.maps.FieldPlotter"""
 
-    transpose = Transpose('transpose')
-    interp_bounds = InterpolateBounds('interp_bounds')
-    plot = SimplePlot2D('plot')
-    xticks = XTicks2D('xticks')
-    yticks = YTicks2D('yticks')
-    xlim = Xlim2D('xlim')
-    ylim = Ylim2D('ylim')
-    levels = ContourLevels('levels', cbounds='bounds')
+    transpose = Transpose("transpose")
+    interp_bounds = InterpolateBounds("interp_bounds")
+    plot = SimplePlot2D("plot")
+    xticks = XTicks2D("xticks")
+    yticks = YTicks2D("yticks")
+    xlim = Xlim2D("xlim")
+    ylim = Ylim2D("ylim")
+    levels = ContourLevels("levels", cbounds="bounds")
     legend = None
     legendlabels = None
     color = None  # no need for this formatoption
@@ -5926,34 +6300,33 @@ class DensityPlotter(Simple2DPlotter):
 
     allowed_dims = 1
 
-    _rcparams_string = ['plotter.density.']
+    _rcparams_string = ["plotter.density."]
 
-    coord = AlternativeXCoord('coord')
-    xrange = Hist2DXRange('xrange')
-    yrange = Hist2DYRange('yrange')
-    precision = DataPrecision('precision')
-    bins = HistBins('bins')
-    normed = NormedHist2D('normed')
-    density = PointDensity('density')
+    coord = AlternativeXCoord("coord")
+    xrange = Hist2DXRange("xrange")
+    yrange = Hist2DYRange("yrange")
+    precision = DataPrecision("precision")
+    bins = HistBins("bins")
+    normed = NormedHist2D("normed")
+    density = PointDensity("density")
 
 
 class BaseVectorPlotter(Base2D):
-    """Base plotter for vector plots
-    """
+    """Base plotter for vector plots"""
 
     _rcparams_string = ["plotter.vector."]
 
     allowed_dims = 3
 
-    arrowsize = ArrowSize('arrowsize')
-    arrowstyle = ArrowStyle('arrowstyle')
-    density = Density('density')
-    color = VectorColor('color')
-    linewidth = VectorLineWidth('linewidth')
-    cbar = VectorCbar('cbar')
-    bounds = VectorBounds('bounds')
-    cticks = VectorCTicks('cticks')
-    datagrid = VectorDataGrid('datagrid')
+    arrowsize = ArrowSize("arrowsize")
+    arrowstyle = ArrowStyle("arrowstyle")
+    density = Density("density")
+    color = VectorColor("color")
+    linewidth = VectorLineWidth("linewidth")
+    cbar = VectorCbar("cbar")
+    bounds = VectorBounds("bounds")
+    cticks = VectorCTicks("cticks")
+    datagrid = VectorDataGrid("datagrid")
 
     @classmethod
     @docstrings.dedent
@@ -5983,38 +6356,53 @@ class BaseVectorPlotter(Base2D):
         N = len(name)
         if N != 1:
             return [False] * N, [
-                'Number of provided names (%i) must equal 1!' % (N)] * N
+                "Number of provided names (%i) must equal 1!" % (N)
+            ] * N
         elif len(dims) != 1:
             return [False], [
-                'Number of provided dimension lists (%i) must equal 1!' % (
-                    len(dims))]
+                "Number of provided dimension lists (%i) must equal 1!"
+                % (len(dims))
+            ]
         elif len(is_unstructured) != 1:
             return [False], [
-                ('Number of provided unstructured information (%i) must '
-                 'equal 1!') % (len(is_unstructured))]
+                (
+                    "Number of provided unstructured information (%i) must "
+                    "equal 1!"
+                )
+                % (len(is_unstructured))
+            ]
         if name[0] != 0 and not name[0]:
-            return [False], ['Two variable names must be provided!']
+            return [False], ["Two variable names must be provided!"]
         # unstructured arrays have only 1 dimension
         dimlen = 1 if is_unstructured[0] else 2
         # Check that the array is two-dimensional
         #
         # if more than one array name is provided, the dimensions should be
         # one les than dimlen to have a 2D array
-        if (((isstring(name[0] or not is_iterable(name[0])) or
-              len(name[0]) == 1) and len(dims[0]) != dimlen + 1) or
-                len(name[0]) > 2):
+        if (
+            (
+                isstring(name[0] or not is_iterable(name[0]))
+                or len(name[0]) == 1
+            )
+            and len(dims[0]) != dimlen + 1
+        ) or len(name[0]) > 2:
             return [False], [
-                ('Two variables (one for x- and one for y-direction) are '
-                 'required!')]
-        elif ((isstring(name[0]) or len(name[0]) == 1) and
-              len(dims[0]) == dimlen + 1):
+                (
+                    "Two variables (one for x- and one for y-direction) are "
+                    "required!"
+                )
+            ]
+        elif (isstring(name[0]) or len(name[0]) == 1) and len(
+            dims[0]
+        ) == dimlen + 1:
             dimlen += 1
         # otherwise the number of dimensions must equal dimlen
         if len(dims[0]) != dimlen:
             return [False], [
-                'An array with dimension %i is required, not %i' % (
-                    dimlen, len(dims[0]))]
-        return [True], ['']
+                "An array with dimension %i is required, not %i"
+                % (dimlen, len(dims[0]))
+            ]
+        return [True], [""]
 
     def _set_data(self, *args, **kwargs):
         Plotter._set_data(self, *args, **kwargs)
@@ -6026,8 +6414,9 @@ class BaseVectorPlotter(Base2D):
         if data.psy.decoder.is_unstructured(data):
             ndims -= 1
         if data.ndim != ndims:
-            raise ValueError(f"Can only plot {self.allowed_dims}-dimensional "
-                             "data!")
+            raise ValueError(
+                f"Can only plot {self.allowed_dims}-dimensional " "data!"
+            )
 
 
 class SimpleVectorPlotter(BaseVectorPlotter, SimplePlotterBase):
@@ -6037,11 +6426,11 @@ class SimpleVectorPlotter(BaseVectorPlotter, SimplePlotterBase):
     --------
     psyplot.plotter.maps.VectorPlotter"""
 
-    plot = SimpleVectorPlot('plot')
-    xticks = XTicks2D('xticks')
-    yticks = YTicks2D('yticks')
-    xlim = Xlim2D('xlim')
-    ylim = Ylim2D('ylim')
+    plot = SimpleVectorPlot("plot")
+    xticks = XTicks2D("xticks")
+    yticks = YTicks2D("yticks")
+    xlim = Xlim2D("xlim")
+    ylim = Ylim2D("ylim")
     legend = None
     legendlabels = None
 
@@ -6053,49 +6442,65 @@ class ScalarCombinedBase(Plotter):
     _rcparams_string = ["plotter.combinedsimple."]
 
     # scalar plot formatoptions
-    cbar = Cbar('cbar', other_cbars=['vcbar'])
-    cticks = CTicks('cticks')
-    bounds = Bounds('bounds', index_in_list=0)
+    cbar = Cbar("cbar", other_cbars=["vcbar"])
+    cticks = CTicks("cticks")
+    bounds = Bounds("bounds", index_in_list=0)
 
     # make sure that masking options only affect the scalar field
-    maskless = MaskLess('maskless', index_in_list=0)
-    maskleq = MaskLeq('maskleq', index_in_list=0)
-    maskgreater = MaskGreater('maskgreater', index_in_list=0)
-    maskgeq = MaskGeq('maskgeq', index_in_list=0)
-    maskbetween = MaskBetween('maskbetween', index_in_list=0)
+    maskless = MaskLess("maskless", index_in_list=0)
+    maskleq = MaskLeq("maskleq", index_in_list=0)
+    maskgreater = MaskGreater("maskgreater", index_in_list=0)
+    maskgeq = MaskGeq("maskgeq", index_in_list=0)
+    maskbetween = MaskBetween("maskbetween", index_in_list=0)
 
 
 class CombinedBase(ScalarCombinedBase):
     """Base plotter for combined 2-dimensional scalar and vector plot"""
 
     # vector plot formatoptions
-    color = VectorColor('color', plot='vplot', cmap='vcmap', bounds='vbounds',
-                        index_in_list=1)
-    linewidth = VectorLineWidth('linewidth', plot='vplot', index_in_list=1)
-    arrowsize = ArrowSize('arrowsize', plot='vplot', index_in_list=1)
-    arrowstyle = ArrowStyle('arrowstyle', plot='vplot', index_in_list=1)
-    vcbar = VectorCbar('vcbar', plot='vplot', cmap='vcmap', bounds='vbounds',
-                       cbarspacing='vcbarspacing', other_cbars=['cbar'],
-                       index_in_list=1)
-    vcbarspacing = CbarSpacing('vcbarspacing', cbar='vcbar', index_in_list=1)
-    vclabel = VCLabel('vclabel', plot='vplot', cbar='vcbar', index_in_list=1)
-    vclabelsize = label_size(vclabel, 'Vector colorbar label',
-                             dependencies=['vclabel'])
-    vclabelweight = label_weight(vclabel, 'Vector colorbar label',
-                                 dependencies=['vclabel'])
-    vclabelprops = label_props(vclabel, 'Vector colorbar label',
-                               dependencies=['vclabel'])
-    vcmap = CMap('vcmap', index_in_list=1, bounds='vbounds', cbar='vcbar')
-    vbounds = VectorBounds('vbounds', index_in_list=1, cmap='vcmap',
-                           cbar='vcbar')
-    vcticks = VectorCTicks('vcticks', cbar='vcbar', plot='vplot',
-                           bounds='vbounds', index_in_list=1)
-    vcticklabels = CTickLabels('vcticklabels', cbar='vcbar', index_in_list=1)
-    vcticksize = CTickSize('vcticksize', cbar='vcbar', index_in_list=1,
-                           ctickprops='vctickprops')
-    vctickweight = CTickWeight('vctickweight', cbar='vcbar', index_in_list=1)
-    vctickprops = CTickProps('vctickprops', cbar='vcbar',
-                             index_in_list=1)
+    color = VectorColor(
+        "color", plot="vplot", cmap="vcmap", bounds="vbounds", index_in_list=1
+    )
+    linewidth = VectorLineWidth("linewidth", plot="vplot", index_in_list=1)
+    arrowsize = ArrowSize("arrowsize", plot="vplot", index_in_list=1)
+    arrowstyle = ArrowStyle("arrowstyle", plot="vplot", index_in_list=1)
+    vcbar = VectorCbar(
+        "vcbar",
+        plot="vplot",
+        cmap="vcmap",
+        bounds="vbounds",
+        cbarspacing="vcbarspacing",
+        other_cbars=["cbar"],
+        index_in_list=1,
+    )
+    vcbarspacing = CbarSpacing("vcbarspacing", cbar="vcbar", index_in_list=1)
+    vclabel = VCLabel("vclabel", plot="vplot", cbar="vcbar", index_in_list=1)
+    vclabelsize = label_size(
+        vclabel, "Vector colorbar label", dependencies=["vclabel"]
+    )
+    vclabelweight = label_weight(
+        vclabel, "Vector colorbar label", dependencies=["vclabel"]
+    )
+    vclabelprops = label_props(
+        vclabel, "Vector colorbar label", dependencies=["vclabel"]
+    )
+    vcmap = CMap("vcmap", index_in_list=1, bounds="vbounds", cbar="vcbar")
+    vbounds = VectorBounds(
+        "vbounds", index_in_list=1, cmap="vcmap", cbar="vcbar"
+    )
+    vcticks = VectorCTicks(
+        "vcticks",
+        cbar="vcbar",
+        plot="vplot",
+        bounds="vbounds",
+        index_in_list=1,
+    )
+    vcticklabels = CTickLabels("vcticklabels", cbar="vcbar", index_in_list=1)
+    vcticksize = CTickSize(
+        "vcticksize", cbar="vcbar", index_in_list=1, ctickprops="vctickprops"
+    )
+    vctickweight = CTickWeight("vctickweight", cbar="vcbar", index_in_list=1)
+    vctickprops = CTickProps("vctickprops", cbar="vcbar", index_in_list=1)
 
     @classmethod
     @docstrings.dedent
@@ -6121,16 +6526,20 @@ class CombinedBase(ScalarCombinedBase):
             name = [name]
             dims = [dims]
             is_unstructured = [is_unstructured]
-        msg = ('Two arrays are required (one for the scalar and '
-               'one for the vector field)')
+        msg = (
+            "Two arrays are required (one for the scalar and "
+            "one for the vector field)"
+        )
         if len(name) < 2:
             return [None], [msg]
         elif len(name) > 2:
             return [False], [msg]
-        valid1, msg1 = Simple2DBase.check_data(name[:1], dims[0:1],
-                                               is_unstructured[:1])
-        valid2, msg2 = BaseVectorPlotter.check_data(name[1:], dims[1:],
-                                                    is_unstructured[1:])
+        valid1, msg1 = Simple2DBase.check_data(
+            name[:1], dims[0:1], is_unstructured[:1]
+        )
+        valid2, msg2 = BaseVectorPlotter.check_data(
+            name[1:], dims[1:], is_unstructured[1:]
+        )
         return valid1 + valid2, msg1 + msg2
 
     def _set_data(self, *args, **kwargs):
@@ -6139,43 +6548,46 @@ class CombinedBase(ScalarCombinedBase):
         if not isinstance(self.plot_data, InteractiveList):
             raise ValueError(
                 "Combined plots must be lists of one scalar field and a"
-                "vector field. Got one %s instead" % str(type(
-                    self.plot_data)))
+                "vector field. Got one %s instead" % str(type(self.plot_data))
+            )
         elif len(self.plot_data) < 2:
             raise ValueError(
                 "Combined plots must be lists of one scalar field and a"
-                "vector field. Got a list of length %i instead!" % len(
-                    self.plot_data))
+                "vector field. Got a list of length %i instead!"
+                % len(self.plot_data)
+            )
 
 
-class CombinedSimplePlotter(CombinedBase, Simple2DPlotter,
-                            SimpleVectorPlotter):
+class CombinedSimplePlotter(
+    CombinedBase, Simple2DPlotter, SimpleVectorPlotter
+):
     """Combined 2D plotter and vector plotter
 
     See Also
     --------
     psyplot.plotter.maps.CombinedPlotter: for visualizing the data on a map"""
-    plot = Plot2D('plot', index_in_list=0)
-    vplot = CombinedVectorPlot('vplot', index_in_list=1, cmap='vcmap',
-                               bounds='vbounds')
-    density = Density('density', plot='vplot', index_in_list=1)
+
+    plot = Plot2D("plot", index_in_list=0)
+    vplot = CombinedVectorPlot(
+        "vplot", index_in_list=1, cmap="vcmap", bounds="vbounds"
+    )
+    density = Density("density", plot="vplot", index_in_list=1)
 
 
 class FldmeanPlotter(LinePlotter):
-
     _rcparams_string = ["plotter.fldmean."]
 
     allowed_dims = 3
 
-    err_calc = ErrorCalculator('err_calc')
-    mean = MeanCalculator('mean')
+    err_calc = ErrorCalculator("err_calc")
+    mean = MeanCalculator("mean")
 
     # We reimplement the masking formatoption to make sure, that they are
     # called after the mean calculation
-    maskgeq = MaskGeq('maskgeq', additional_children=['err_calc'])
-    maskleq = MaskLeq('maskleq', additional_children=['err_calc'])
-    maskgreater = MaskGreater('maskgreater', additional_children=['err_calc'])
-    maskless = MaskLess('maskless', additional_children=['err_calc'])
-    maskbetween = MaskBetween('maskbetween', additional_children=['err_calc'])
-    mask = Mask('mask', additional_children=['err_calc'])
-    coord = AlternativeXCoordPost('coord', additional_children=['err_calc'])
+    maskgeq = MaskGeq("maskgeq", additional_children=["err_calc"])
+    maskleq = MaskLeq("maskleq", additional_children=["err_calc"])
+    maskgreater = MaskGreater("maskgreater", additional_children=["err_calc"])
+    maskless = MaskLess("maskless", additional_children=["err_calc"])
+    maskbetween = MaskBetween("maskbetween", additional_children=["err_calc"])
+    mask = Mask("mask", additional_children=["err_calc"])
+    coord = AlternativeXCoordPost("coord", additional_children=["err_calc"])

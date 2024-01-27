@@ -4,44 +4,29 @@ This module defines several formatoptions that are the basis for many
 matplotlib figures, such as axes title, figure title, etc.
 """
 
-# Disclaimer
-# ----------
-#
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import six
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
+#
+# SPDX-License-Identifier: LGPL-3.0-only
+
+
+import inspect
 from abc import abstractmethod
 from collections import defaultdict
 from itertools import chain
-import numpy as np
-import inspect
-import pandas as pd
-import matplotlib.pyplot as plt
-from psyplot.docstring import docstrings, safe_modulo, dedent
-from psyplot.data import InteractiveList, open_dataset
-from psyplot.compat.pycompat import filter
-from psyplot.plotter import (
-    Plotter, Formatoption, rcParams, START)
 
-docstrings.params['replace_note'] = inspect.cleandoc("""
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import six
+from psyplot.data import InteractiveList, open_dataset
+from psyplot.docstring import dedent, docstrings, safe_modulo
+from psyplot.plotter import START, Formatoption, Plotter, rcParams
+
+docstrings.params["replace_note"] = inspect.cleandoc(
+    """
     You can insert any meta key from the :attr:`xarray.DataArray.attrs` via a
     string like ``'%%(key)s'``. Furthermore there are some special cases:
 
@@ -58,11 +43,15 @@ docstrings.params['replace_note'] = inspect.cleandoc("""
     - Labels defined in the :class:`psyplot.rcParams` ``'texts.labels'`` key
       are also replaced when enclosed by '{}'. The standard labels are
 
-      - %s""" % '\n      - '.join(
-    '%s: ``%s``' % tuple(item) for item in six.iteritems(
-        rcParams['texts.labels'])))
+      - %s"""
+    % "\n      - ".join(
+        "%s: ``%s``" % tuple(item)
+        for item in six.iteritems(rcParams["texts.labels"])
+    )
+)
 
-docstrings.params['colors'] = inspect.cleandoc("""
+docstrings.params["colors"] = inspect.cleandoc(
+    """
     The following color abbreviations are supported:
 
     ==========  ========
@@ -81,14 +70,17 @@ docstrings.params['colors'] = inspect.cleandoc("""
     In addition, you can specify colors in many weird and wonderful ways,
     including full names (``'green'``), hex strings (``'#008000'``), RGB or
     RGBA tuples (``(0,1,0,1)``) or grayscale intensities as a string
-    (``'0.8'``).""")
+    (``'0.8'``)."""
+)
 
-docstrings.params['fontsizes'] = inspect.cleandoc("""
+docstrings.params["fontsizes"] = inspect.cleandoc(
+    """
     float
         The absolute font size in points (e.g., 12)
     string
         Strings might be 'xx-small', 'x-small', 'small', 'medium', 'large',
-        'x-large', 'xx-large'.""")
+        'x-large', 'xx-large'."""
+)
 
 
 class TextBase(object):
@@ -96,7 +88,7 @@ class TextBase(object):
 
     delimiter = None
 
-    group = 'labels'
+    group = "labels"
 
     @property
     def enhanced_attrs(self):
@@ -110,7 +102,7 @@ class TextBase(object):
         try:
             return self._rc
         except AttributeError:
-            return rcParams.find_and_replace(base_str=['texts.'])
+            return rcParams.find_and_replace(base_str=["texts."])
 
     data_dependent = True
 
@@ -137,18 +129,19 @@ class TextBase(object):
         str
             `s` with inserted informations"""
         # insert labels
-        s = s.format(**self.rc['labels'])
+        s = s.format(**self.rc["labels"])
         # replace attributes
         attrs = attrs or data.attrs
-        if hasattr(getattr(data, 'psy', None), 'arr_name'):
+        if hasattr(getattr(data, "psy", None), "arr_name"):
             attrs = attrs.copy()
-            attrs['arr_name'] = data.psy.arr_name
+            attrs["arr_name"] = data.psy.arr_name
         s = safe_modulo(s, attrs)
         # replace datetime.datetime like time informations
         if isinstance(data, InteractiveList):
             data = data[0]
         tname = self.any_decoder.get_tname(
-            next(self.plotter.iter_base_variables), data.coords)
+            next(self.plotter.iter_base_variables), data.coords
+        )
         if tname is not None and tname in data.coords:
             time = data.coords[tname]
             if not time.values.ndim:
@@ -157,7 +150,7 @@ class TextBase(object):
                 except ValueError:
                     pass
         if six.PY2:
-            return s.decode('utf-8')
+            return s.decode("utf-8")
         return s
 
     def get_fig_data_attrs(self, delimiter=None):
@@ -180,26 +173,33 @@ class TextBase(object):
             A dictionary with all the meta attributes joined by the specified
             `delimiter`"""
         if self.project is not None:
-            delimiter = next(filter(lambda d: d is not None, [
-                delimiter, self.delimiter, self.rc['delimiter']]))
+            delimiter = next(
+                filter(
+                    lambda d: d is not None,
+                    [delimiter, self.delimiter, self.rc["delimiter"]],
+                )
+            )
             figs = self.project.figs
             fig = self.ax.get_figure()
             if self.plotter._initialized and fig in figs:
-                ret = figs[fig].joined_attrs(delimiter=delimiter,
-                                             plot_data=True)
+                ret = figs[fig].joined_attrs(
+                    delimiter=delimiter, plot_data=True
+                )
             else:
                 ret = self.get_enhanced_attrs(self.plotter.plot_data)
                 self.logger.debug(
-                    'Can not get the figure attributes because plot has not '
-                    'yet been initialized!')
+                    "Can not get the figure attributes because plot has not "
+                    "yet been initialized!"
+                )
             return ret
         else:
             return self.get_enhanced_attrs(self.plotter.plot_data)
 
     def get_enhanced_attrs(self, *args, **kwargs):
-        replot = kwargs.pop('replot', False)
-        if hasattr(self, '_enhanced_attrs') and not (
-                self.plotter.replot or replot):
+        replot = kwargs.pop("replot", False)
+        if hasattr(self, "_enhanced_attrs") and not (
+            self.plotter.replot or replot
+        ):
             return self._enhanced_attrs
         self._enhanced_attrs = self.plotter.get_enhanced_attrs(*args, **kwargs)
         return self._enhanced_attrs
@@ -207,22 +207,26 @@ class TextBase(object):
     def get_fmt_widget(self, parent, project):
         """Create a combobox with the attributes"""
         from psy_simple.widgets.texts import LabelWidget
+
         return LabelWidget(parent, self, project)
 
 
-docstrings.params['fontweights'] = inspect.cleandoc("""
+docstrings.params["fontweights"] = inspect.cleandoc(
+    """
     float
         a float between 0 and 1000
     string
         Possible strings are one of 'ultralight', 'light', 'normal',
         'regular', 'book', 'medium', 'roman', 'semibold', 'demibold',
-        'demi', 'bold', 'heavy', 'extra bold', 'black'.""")
+        'demi', 'bold', 'heavy', 'extra bold', 'black'."""
+)
 
 
-@docstrings.get_sections(base='label_weight')
+@docstrings.get_sections(base="label_weight")
 @dedent
-def label_weight(base, label_name=None, children=[], parents=[],
-                 dependencies=[]):
+def label_weight(
+    base, label_name=None, children=[], parents=[], dependencies=[]
+):
     """
     Function that returns a Formatoption class for modifying the fontweight
 
@@ -272,16 +276,19 @@ def label_weight(base, label_name=None, children=[], parents=[],
 
         See Also
         --------
-        %s, %s, %s""" % (label_name, base.key, base.key + 'size',
-                         base.key + 'props')
-        children = [base.key] + \
-            cl_children
-        parent = [base.key + 'props'] + cl_parents
+        %s, %s, %s""" % (
+            label_name,
+            base.key,
+            base.key + "size",
+            base.key + "props",
+        )
+        children = [base.key] + cl_children
+        parent = [base.key + "props"] + cl_parents
         dependencies = cl_dependencies
 
-        group = 'labels'
+        group = "labels"
 
-        name = 'Font weight of ' + (base.name or base.key)
+        name = "Font weight of " + (base.name or base.key)
 
         def update(self, value):
             for text in getattr(self, base.key).texts:
@@ -290,16 +297,21 @@ def label_weight(base, label_name=None, children=[], parents=[],
         def get_fmt_widget(self, parent, project):
             """Get a widget with the different font weights"""
             from psy_simple.widgets.texts import FontWeightWidget
-            return FontWeightWidget(
-                parent, self, next(iter(getattr(self, base.key).texts), None),
-                base)
 
-    return LabelWeight(base.key + 'weight')
+            return FontWeightWidget(
+                parent,
+                self,
+                next(iter(getattr(self, base.key).texts), None),
+                base,
+            )
+
+    return LabelWeight(base.key + "weight")
 
 
 @docstrings.dedent
-def label_size(base, label_name=None, children=[], parents=[],
-               dependencies=[]):
+def label_size(
+    base, label_name=None, children=[], parents=[], dependencies=[]
+):
     """
     Function that returns a Formatoption class for modifying the fontsite
 
@@ -333,15 +345,19 @@ def label_size(base, label_name=None, children=[], parents=[],
 
         See Also
         --------
-        %s, %s, %s""" % (label_name, base.key, base.key + 'weight',
-                         base.key + 'props')
+        %s, %s, %s""" % (
+            label_name,
+            base.key,
+            base.key + "weight",
+            base.key + "props",
+        )
         children = [base.key] + cl_children
-        parent = [base.key + 'props'] + cl_parents
+        parent = [base.key + "props"] + cl_parents
         dependencies = cl_dependencies
 
-        group = 'labels'
+        group = "labels"
 
-        name = 'Font size of ' + (base.name or base.key)
+        name = "Font size of " + (base.name or base.key)
 
         def update(self, value):
             for text in getattr(self, base.key).texts:
@@ -350,19 +366,24 @@ def label_size(base, label_name=None, children=[], parents=[],
         def get_fmt_widget(self, parent, project):
             """Get a widget with the different font weights"""
             from psy_simple.widgets.texts import FontSizeWidget
+
             return FontSizeWidget(
-                parent, self, next(iter(getattr(self, base.key).texts), None),
-                base)
+                parent,
+                self,
+                next(iter(getattr(self, base.key).texts), None),
+                base,
+            )
 
-    return LabelSize(base.key + 'size')
+    return LabelSize(base.key + "size")
 
 
-docstrings.keep_params('label_weight.parameters', 'base', 'label_name')
+docstrings.keep_params("label_weight.parameters", "base", "label_name")
 
 
 @docstrings.dedent
-def label_props(base, label_name=None, children=[], parents=[],
-                dependencies=[]):
+def label_props(
+    base, label_name=None, children=[], parents=[], dependencies=[]
+):
     """
     Function that returns a Formatoption class for modifying the fontsite
 
@@ -406,16 +427,23 @@ def label_props(base, label_name=None, children=[], parents=[],
 
         See Also
         --------
-        %s, %s, %s""" % (label_name, base.key, base.key + 'size',
-                         base.key + 'weight')
+        %s, %s, %s""" % (
+            label_name,
+            base.key,
+            base.key + "size",
+            base.key + "weight",
+        )
         children = cl_children
         parents = cl_parents
-        dependencies = [base.key, base.key + 'size', base.key + 'weight'] + \
-            cl_dependencies
+        dependencies = [
+            base.key,
+            base.key + "size",
+            base.key + "weight",
+        ] + cl_dependencies
 
-        group = 'labels'
+        group = "labels"
 
-        name = 'Font properties of ' + (base.name or base.key)
+        name = "Font properties of " + (base.name or base.key)
 
         def __init__(self, *args, **kwargs):
             super(LabelProps, self).__init__(*args, **kwargs)
@@ -439,18 +467,18 @@ def label_props(base, label_name=None, children=[], parents=[],
             # at the same time)
             if not self._todefault:
                 for key in fontprops:
-                    if key == 'bbox':
-                        default = dict(facecolor='none', edgecolor='none')
+                    if key == "bbox":
+                        default = dict(facecolor="none", edgecolor="none")
                     else:
-                        default = getattr(text, 'get_' + key)()
+                        default = getattr(text, "get_" + key)()
                     self.default_props.setdefault(key, default)
             else:
                 fontprops = self.default_props.copy()
                 self.default_props.clear()
-            if 'size' not in fontprops and 'fontsize' not in fontprops:
-                fontprops['size'] = getattr(self, base.key + 'size').value
-            if 'weight' not in fontprops and 'fontweight' not in fontprops:
-                fontprops['weight'] = getattr(self, base.key + 'weight').value
+            if "size" not in fontprops and "fontsize" not in fontprops:
+                fontprops["size"] = getattr(self, base.key + "size").value
+            if "weight" not in fontprops and "fontweight" not in fontprops:
+                fontprops["weight"] = getattr(self, base.key + "weight").value
             for text in getattr(self, base.key).texts:
                 text.update(fontprops)
             self._todefault = False
@@ -458,11 +486,15 @@ def label_props(base, label_name=None, children=[], parents=[],
         def get_fmt_widget(self, parent, project):
             """Get a widget with the different font weights"""
             from psy_simple.widgets.texts import FontPropertiesWidget
-            return FontPropertiesWidget(
-                parent, self, next(iter(getattr(self, base.key).texts), None),
-                base)
 
-    return LabelProps(base.key + 'props')
+            return FontPropertiesWidget(
+                parent,
+                self,
+                next(iter(getattr(self, base.key).texts), None),
+                base,
+            )
+
+    return LabelProps(base.key + "props")
 
 
 class Title(TextBase, Formatoption):
@@ -486,17 +518,21 @@ class Title(TextBase, Formatoption):
     --------
     figtitle, titlesize, titleweight, titleprops"""
 
-    name = 'Axes title'
+    name = "Axes title"
 
     def initialize_plot(self, value):
         arr = self.data
-        self.texts = [self.ax.set_title(
-            self.replace(value, arr, attrs=self.enhanced_attrs))]
+        self.texts = [
+            self.ax.set_title(
+                self.replace(value, arr, attrs=self.enhanced_attrs)
+            )
+        ]
 
     def update(self, value):
         arr = self.data
-        self.texts[0].set_text(self.replace(
-            value, arr, attrs=self.enhanced_attrs))
+        self.texts[0].set_text(
+            self.replace(value, arr, attrs=self.enhanced_attrs)
+        )
 
 
 class Figtitle(TextBase, Formatoption):
@@ -526,7 +562,7 @@ class Figtitle(TextBase, Formatoption):
     --------
     title, figtitlesize, figtitleweight, figtitleprops"""
 
-    name = 'Figure title'
+    name = "Figure title"
 
     @property
     def enhanced_attrs(self):
@@ -534,19 +570,23 @@ class Figtitle(TextBase, Formatoption):
 
     def initialize_plot(self, s):
         if s:
-            self.texts = [self.ax.get_figure().suptitle(
-                self.replace(s, self.plotter.data, self.enhanced_attrs))]
+            self.texts = [
+                self.ax.get_figure().suptitle(
+                    self.replace(s, self.plotter.data, self.enhanced_attrs)
+                )
+            ]
             self.clear_other_texts()
         else:
-            self.texts = [self.ax.get_figure().suptitle('')]
+            self.texts = [self.ax.get_figure().suptitle("")]
 
     def update(self, s):
         if s:
-            self.texts[0].set_text(self.replace(s, self.plotter.data,
-                                                self.enhanced_attrs))
+            self.texts[0].set_text(
+                self.replace(s, self.plotter.data, self.enhanced_attrs)
+            )
             self.clear_other_texts()
         else:
-            self.texts[0].set_text('')
+            self.texts[0].set_text("")
 
     def clear_other_texts(self, remove=False):
         """Make sure that no other text is a the same position as this one
@@ -568,7 +608,7 @@ class Figtitle(TextBase, Formatoption):
                 continue
             if text.get_position() == self._text.get_position():
                 if not remove:
-                    text.set_text('')
+                    text.set_text("")
                 else:
                     del fig[i]
 
@@ -602,15 +642,17 @@ class Text(TextBase, Formatoption):
     --------
     title, figtitle"""
 
-    name = 'Arbitrary text on the plot'
+    name = "Arbitrary text on the plot"
 
     @property
     def transform(self):
         """Dictionary containing the relevant transformations"""
         ax = self.ax
-        return {'axes': ax.transAxes,
-                'fig': ax.get_figure().transFigure,
-                'data': ax.transData}
+        return {
+            "axes": ax.transAxes,
+            "fig": ax.get_figure().transFigure,
+            "data": ax.transData,
+        }
 
     def __init__(self, *args, **kwargs):
         Formatoption.__init__(self, *args, **kwargs)
@@ -670,7 +712,7 @@ class Text(TextBase, Formatoption):
 
     def update(self, value, texts_to_remove=None):
         # remove texts
-        for (x, y, cs) in texts_to_remove or self._texts_to_remove:
+        for x, y, cs in texts_to_remove or self._texts_to_remove:
             for t in self._texts[cs]:
                 if (x, y) == t.get_position():
                     self._texts[cs].remove(t)
@@ -680,10 +722,12 @@ class Text(TextBase, Formatoption):
             value = self.value + value
         # now update the old texts or create new ones
         for x, y, s, cs, d in value:
-            if cs == 'fig':
+            if cs == "fig":
                 s = self.replace(
-                    s, self.plotter.data, self.get_fig_data_attrs(
-                        d.pop('delimiter', None)))
+                    s,
+                    self.plotter.data,
+                    self.get_fig_data_attrs(d.pop("delimiter", None)),
+                )
             else:
                 s = self.replace(s, self.plotter.data, self.enhanced_attrs)
             found = False
@@ -694,8 +738,11 @@ class Text(TextBase, Formatoption):
                     found = True
                     break
             if not found:
-                self._texts[cs].add(self.ax.text(
-                    x, y, s, d.copy(), transform=self.transform[cs]))
+                self._texts[cs].add(
+                    self.ax.text(
+                        x, y, s, d.copy(), transform=self.transform[cs]
+                    )
+                )
 
     def share(self, fmto, **kwargs):
         """Share the settings of this formatoption with other data objects
@@ -713,13 +760,14 @@ class Text(TextBase, Formatoption):
         The Text formatoption sets the 'texts_to_remove' keyword to the
         :attr:`_texts_to_remove` attribute of this instance (if not already
         specified in ``**kwargs``"""
-        kwargs.setdefault('texts_to_remove', self._texts_to_remove)
+        kwargs.setdefault("texts_to_remove", self._texts_to_remove)
         super(Text, self).share(fmto, **kwargs)
 
     def diff(self, value):
         my_value = self.value
         return (not len(value) and len(my_value)) or any(
-            val not in my_value for val in value)
+            val not in my_value for val in value
+        )
 
     def finish_update(self):
         """Clears the :attr:`_texts_to_remove` set"""
@@ -748,9 +796,9 @@ class Tight(Formatoption):
     There is no update method to undo what happend after this formatoption is
     set to True!"""
 
-    group = 'axes'
+    group = "axes"
 
-    name = 'Tight layout'
+    name = "Tight layout"
 
     def update(self, value):
         if value:
@@ -771,31 +819,33 @@ class BackgroundColor(Formatoption):
         Any possible matplotlib color
     """
 
-    group = 'axes'
+    group = "axes"
 
-    name = 'Background color of the plot'
+    name = "Background color of the plot"
 
     def update(self, value):
-        if value == 'rc':
-            self.ax.patch.set_facecolor(plt.rcParams['axes.facecolor'])
-            self.ax.set_facecolor(plt.rcParams['axes.facecolor'])
+        if value == "rc":
+            self.ax.patch.set_facecolor(plt.rcParams["axes.facecolor"])
+            self.ax.set_facecolor(plt.rcParams["axes.facecolor"])
         elif value is None:
-            self.ax.patch.set_facecolor('none')
-            self.ax.set_facecolor('none')
+            self.ax.patch.set_facecolor("none")
+            self.ax.set_facecolor("none")
         else:
             self.ax.patch.set_facecolor(value)
             self.ax.set_facecolor(value)
 
     def get_fmt_widget(self, parent, project):
         from psy_simple.widgets.colors import BackGroundColorWidget
+
         return BackGroundColorWidget(parent, self, project)
 
 
 class ValueMaskBase(Formatoption):
     """Base class for masking formatoptions"""
+
     priority = START
 
-    group = 'masking'
+    group = "masking"
 
     data_dependent = True
 
@@ -814,7 +864,8 @@ class ValueMaskBase(Formatoption):
     def _mask_data(self, data, value):
         data = data.copy(data=np.copy(data.values))
         data.values[~np.isnan(data.values)] = self.mask_func(
-            data.values[~np.isnan(data.values)], value)
+            data.values[~np.isnan(data.values)], value
+        )
         return data
 
 
@@ -832,7 +883,7 @@ class MaskLess(ValueMaskBase):
     maskleq, maskgreater, maskgeq, maskbetween
     """
 
-    name = 'Mask less'
+    name = "Mask less"
 
     def mask_func(self, data, value):
         data[data < value] = np.nan
@@ -853,7 +904,7 @@ class MaskLeq(ValueMaskBase):
     maskless, maskgreater, maskgeq, maskbetween
     """
 
-    name = 'Mask lesser than or equal'
+    name = "Mask lesser than or equal"
 
     def mask_func(self, data, value):
         data[data <= value] = np.nan
@@ -874,7 +925,7 @@ class MaskGreater(ValueMaskBase):
     maskless, maskleq, maskgeq, maskbetween
     """
 
-    name = 'Mask greater'
+    name = "Mask greater"
 
     def mask_func(self, data, value):
         data[data > value] = np.nan
@@ -895,7 +946,7 @@ class MaskGeq(ValueMaskBase):
     maskless, maskleq, maskgreater, maskbetween
     """
 
-    name = 'Mask greater than or equal'
+    name = "Mask greater than or equal"
 
     def mask_func(self, data, value):
         data[data >= value] = np.nan
@@ -916,7 +967,7 @@ class MaskBetween(ValueMaskBase):
     maskless, maskleq, maskgreater, maskgeq
     """
 
-    name = 'Mask between two values'
+    name = "Mask between two values"
 
     def mask_func(self, data, value):
         data[np.all([data >= value[0], data <= value[1]], axis=0)] = np.nan
@@ -953,7 +1004,7 @@ class Mask(Formatoption):
 
     priority = START
 
-    group = 'masking'
+    group = "masking"
 
     name = "Apply a mask"
 
@@ -971,9 +1022,10 @@ class Mask(Formatoption):
         try:
             return bool(self.value != value)
         except ValueError:
-            if hasattr(value, 'shape') and hasattr(self.value, 'shape'):
-                return ((value.shape != self.value.shape) |
-                        (value != self.value).any())
+            if hasattr(value, "shape") and hasattr(self.value, "shape"):
+                return (value.shape != self.value.shape) | (
+                    value != self.value
+                ).any()
             else:
                 return True
 
@@ -981,9 +1033,11 @@ class Mask(Formatoption):
         if isinstance(value, str) and value in data.psy.base:
             mask = data.psy.base[value]
             if not set(mask.dims).intersection(data.dims):
-                raise ValueError("No intersection between dimensions of mask "
-                                 f"{value}: {mask.dims}, and the data: "
-                                 f"{data.dims}")
+                raise ValueError(
+                    "No intersection between dimensions of mask "
+                    f"{value}: {mask.dims}, and the data: "
+                    f"{data.dims}"
+                )
         elif isinstance(value, str):
             try:
                 mask = open_dataset(value)
@@ -991,14 +1045,19 @@ class Mask(Formatoption):
                 raise ValueError(
                     f"{value} is not in the base dataset of "
                     f"{data.psy.arr_name} and could not be loaded with "
-                    f"psy.open_dataset({repr(value)})")
+                    f"psy.open_dataset({repr(value)})"
+                )
             else:
                 available_vars = [
-                    v for v in mask
-                    if set(mask[v].dims).intersection(data.dims)]
+                    v
+                    for v in mask
+                    if set(mask[v].dims).intersection(data.dims)
+                ]
                 if not available_vars:
-                    raise ValueError(f"No variable in {value} has an overlap "
-                                     f"with the data dimensions {data.dims}")
+                    raise ValueError(
+                        f"No variable in {value} has an overlap "
+                        f"with the data dimensions {data.dims}"
+                    )
                 else:
                     mask = mask[available_vars[0]]
         else:
@@ -1011,8 +1070,11 @@ class Mask(Formatoption):
             mask = mask.any(list(dims2agg))
 
         # select idims of mask
-        idims = {d: sl for d, sl in data.psy.idims.items()
-                 if d in mask.dims and d not in data.dims}
+        idims = {
+            d: sl
+            for d, sl in data.psy.idims.items()
+            if d in mask.dims and d not in data.dims
+        }
         if idims:
             mask = mask.isel(**idims)
 
@@ -1021,27 +1083,29 @@ class Mask(Formatoption):
 
 class TitlesPlotter(Plotter):
     """Plotter class for labels"""
-    _rcparams_string = ['plotter.baseplotter.']
-    title = Title('title')
+
+    _rcparams_string = ["plotter.baseplotter."]
+    title = Title("title")
     titlesize = label_size(title)
     titleweight = label_weight(title)
     titleprops = label_props(title)
-    figtitle = Figtitle('figtitle')
-    figtitlesize = label_size(figtitle, 'figure title')
-    figtitleweight = label_weight(figtitle, 'figure title')
-    figtitleprops = label_props(figtitle, 'figure title')
-    text = Text('text')
+    figtitle = Figtitle("figtitle")
+    figtitlesize = label_size(figtitle, "figure title")
+    figtitleweight = label_weight(figtitle, "figure title")
+    figtitleprops = label_props(figtitle, "figure title")
+    text = Text("text")
 
 
 class BasePlotter(TitlesPlotter):
     """Base class with formatoptions for plotting on an matplotlib axes"""
-    _rcparams_string = ['plotter.baseplotter.']
 
-    tight = Tight('tight')
-    background = BackgroundColor('background')
-    maskless = MaskLess('maskless')
-    maskleq = MaskLeq('maskleq')
-    maskgreater = MaskGreater('maskgreater')
-    maskgeq = MaskGeq('maskgeq')
-    maskbetween = MaskBetween('maskbetween')
-    mask = Mask('mask')
+    _rcparams_string = ["plotter.baseplotter."]
+
+    tight = Tight("tight")
+    background = BackgroundColor("background")
+    maskless = MaskLess("maskless")
+    maskleq = MaskLeq("maskleq")
+    maskgreater = MaskGreater("maskgreater")
+    maskgeq = MaskGeq("maskgeq")
+    maskbetween = MaskBetween("maskbetween")
+    mask = Mask("mask")
