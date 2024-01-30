@@ -238,9 +238,9 @@ class AlternativeXCoord(Formatoption):
 
     def diff(self, value):
         try:
-            return ~(
+            return not (
                 (np.shape(value) == np.shape(self.value))
-                & np.all(value == self.value)
+                and np.all(value == self.value)
             )
         except TypeError:
             return True
@@ -3816,6 +3816,8 @@ class DataGrid(Formatoption):
     connections = ["plot"]
 
     name = "Grid of the data"
+
+    data_dependent = True
 
     @property
     def xcoord(self):
