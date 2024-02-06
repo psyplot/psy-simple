@@ -1,6 +1,5 @@
 """Base test setup for the psy-simple test suite."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -11,6 +10,7 @@
 import os
 import subprocess as spr
 import sys
+import time
 from unittest import TestCase
 
 import numpy as np
@@ -97,11 +97,21 @@ class PsyPlotTestCase(TestCase):
         from matplotlib.testing.compare import compare_images
 
         plt.savefig(os.path.join(self.odir, fname), **kwargs)
-        results = compare_images(
-            os.path.join(ref_dir, fname),
-            os.path.join(self.odir, fname),
-            tol=tol,
-        )
+        try:
+            results = compare_images(
+                os.path.join(ref_dir, fname),
+                os.path.join(self.odir, fname),
+                tol=tol,
+            )
+        except Exception:
+            # output file might be empty because not yet written, so just try
+            # again
+            time.sleep(3)
+            results = compare_images(
+                os.path.join(ref_dir, fname),
+                os.path.join(self.odir, fname),
+                tol=tol,
+            )
         self.assertIsNone(results, msg=results)
 
     def assertAlmostArrayEqual(
