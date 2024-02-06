@@ -2977,7 +2977,8 @@ class Xlim2D(Xlim):
         xcoord = self.transpose.get_x(self.data)
         func = "get_x" if not self.transpose.value else "get_y"
         data = next(self.iter_data)
-        if xcoord.name == getattr(self.decoder, func)(data).name:
+        decoder_coord = getattr(self.decoder, func)(data)
+        if decoder_coord is not None and xcoord.name == decoder_coord.name:
             bounds = self.decoder.get_cell_node_coord(
                 data, axis="x", coords=data.coords
             )
@@ -2996,7 +2997,8 @@ class Ylim2D(Ylim):
         ycoord = self.transpose.get_y(self.data)
         func = "get_x" if self.transpose.value else "get_y"
         data = next(self.iter_data)
-        if ycoord.name == getattr(self.decoder, func)(data).name:
+        decoder_coord = getattr(self.decoder, func)(data)
+        if decoder_coord is not None and ycoord.name == decoder_coord.name:
             bounds = self.decoder.get_cell_node_coord(
                 data, axis="y", coords=data.coords
             )
@@ -4757,9 +4759,11 @@ class CTickProps(CbarOptions, TickPropsBase):
         label_positions = dict(
             zip(
                 map("label{}".format, posnames),
-                [True, False]
-                if self.position in ["t", "ft", "l", "fl"]
-                else [False, True],
+                (
+                    [True, False]
+                    if self.position in ["t", "ft", "l", "fl"]
+                    else [False, True]
+                ),
             )
         )
         label_positions.update(**value)
@@ -5883,7 +5887,7 @@ class PointDensity(Formatoption):
 
     References
     ----------
-    .. [statsmodels] http://statsmodels.sourceforge.net/
+    .. [statsmodels] https://www.statsmodels.org
     """
 
     priority = START
