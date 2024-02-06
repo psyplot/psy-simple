@@ -4245,7 +4245,8 @@ class Cbar(Formatoption):
                 mappable.colorbar = cbar
                 mappable.colorbar_cid = cid
             cbar.update_normal(cbar.mappable)
-        cbar.draw_all()
+        if mpl_version <= 3.5:
+            cbar.draw_all()
 
     def remove(self, positions="all"):
         import matplotlib.pyplot as plt

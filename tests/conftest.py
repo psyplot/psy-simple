@@ -1,6 +1,5 @@
 """pytest configuration module for psy-simple."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -18,7 +17,13 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    from PIL import ImageFile
+
     if config.getoption("ref"):
         import unittest
 
         unittest.TestLoader.testMethodPrefix = "ref"
+
+    # make PIL load truncated images to avoid OSErrors in a parallelized
+    # setup
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
