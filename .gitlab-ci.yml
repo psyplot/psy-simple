@@ -69,6 +69,8 @@ test:
     name: pipfile
     paths:
       - "ci/matrix/${SCENARIO}/*"
+      - "tests/reference_figures/*.png"
+      - "tests/test_figures/*.png"
     expire_in: 30 days
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
 
