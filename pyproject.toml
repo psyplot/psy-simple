@@ -14,11 +14,8 @@ description = "Psyplot plugin for simple visualization tasks"
 readme = "README.rst"
 keywords = [
     "visualization",
-
     "psyplot",
-
     "netcdf",
-
     "matplotlib",
     ]
 

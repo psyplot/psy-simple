@@ -20,10 +20,10 @@ import os.path as osp
 from argparse import ArgumentParser
 from textwrap import dedent
 from typing import Dict, Optional, TypedDict
+from pathlib import Path
 
 import yaml
 from reuse.project import Project
-from reuse.vcs import find_root
 
 try:
     from reuse._annotate import add_arguments as _orig_add_arguments
@@ -110,7 +110,7 @@ def main(argv=None):
     args.year.append(shortcut["year"])
     args.copyright.append(shortcut["copyright"])
 
-    project = Project(find_root())
+    project = Project(Path(__file__).parent.parent)
     args.func(args, project)
 
 
