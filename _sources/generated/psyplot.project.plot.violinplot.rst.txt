@@ -1,4 +1,4 @@
-psyplot.project.plot.violinplot
+﻿psyplot.project.plot.violinplot
 ===============================
 
 .. currentmodule:: psyplot.project

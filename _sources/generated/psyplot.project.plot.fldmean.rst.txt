@@ -1,4 +1,4 @@
-psyplot.project.plot.fldmean
+﻿psyplot.project.plot.fldmean
 ============================
 
 .. currentmodule:: psyplot.project

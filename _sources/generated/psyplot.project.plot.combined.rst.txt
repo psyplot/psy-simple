@@ -1,4 +1,4 @@
-psyplot.project.plot.combined
+﻿psyplot.project.plot.combined
 =============================
 
 .. currentmodule:: psyplot.project

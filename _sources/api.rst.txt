@@ -2,9 +2,12 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
-.. _changelog:
+.. _api:
 
-Changelog
-*********
+API Reference
+=============
 
-.. include:: ../CHANGELOG.rst
+
+.. toctree::
+
+    api/psy_simple

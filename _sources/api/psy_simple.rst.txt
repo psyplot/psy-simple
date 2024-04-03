@@ -1,4 +1,4 @@
-API Reference
+psy\_simple package
 ===================
 
 .. automodule:: psy_simple

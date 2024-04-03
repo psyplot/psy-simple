@@ -1,4 +1,4 @@
-psyplot.project.plot.plot2d
+﻿psyplot.project.plot.plot2d
 ===========================
 
 .. currentmodule:: psyplot.project

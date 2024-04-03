@@ -1,4 +1,4 @@
-psyplot.project.plot.barplot
+﻿psyplot.project.plot.barplot
 ============================
 
 .. currentmodule:: psyplot.project

@@ -1,4 +1,4 @@
-psyplot.project.plot.lineplot
+﻿psyplot.project.plot.lineplot
 =============================
 
 .. currentmodule:: psyplot.project

@@ -1,4 +1,4 @@
-psyplot.project.plot.vector
+﻿psyplot.project.plot.vector
 ===========================
 
 .. currentmodule:: psyplot.project

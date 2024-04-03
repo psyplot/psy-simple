@@ -1,6 +1,3 @@
-psy\_simple.plotters module
-===========================
-
 .. automodule:: psy_simple.plotters
    :members:
    :undoc-members:

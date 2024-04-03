@@ -1,4 +1,4 @@
-psyplot.project.plot.density
+﻿psyplot.project.plot.density
 ============================
 
 .. currentmodule:: psyplot.project

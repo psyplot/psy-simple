@@ -1,6 +1,3 @@
-psy\_simple.widgets.colors module
-=================================
-
 .. automodule:: psy_simple.widgets.colors
    :members:
    :undoc-members:
