@@ -1,38 +1,22 @@
 """Test module for the contour plot for icon grids."""
 
-# Disclaimer
-# ----------
+
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
 #
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: LGPL-3.0-only
+
 
 import unittest
 
-from psyplot import rcParams
-from psy_simple.plotters import Simple2DPlotter
-
 import test_plot2d_icon as t2di
+from psyplot import rcParams
+
+from psy_simple.plotters import Simple2DPlotter
 
 
 class IconSimplePlotterContourTest(t2di.IconSimplePlotterTest):
-
     plot_type = "icon_contour"
 
     @classmethod

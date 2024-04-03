@@ -1,0 +1,151 @@
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum hereon GmbH
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[build-system]
+build-backend = 'setuptools.build_meta'
+requires = ['setuptools >= 61.0', 'versioneer[toml]']
+
+[project]
+name = "psy-simple"
+dynamic = ["version"]
+description = "Psyplot plugin for simple visualization tasks"
+
+readme = "README.rst"
+keywords = [
+    "visualization",
+    "psyplot",
+    "netcdf",
+    "matplotlib",
+    ]
+
+authors = [
+    { name = 'Philipp S. Sommer', email = 'philipp.sommer@hereon.de' },
+]
+maintainers = [
+    { name = 'Philipp S. Sommer', email = 'philipp.sommer@hereon.de' },
+]
+license = { text = 'LGPL-3.0-only' }
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Operating System :: OS Independent",
+]
+
+requires-python = '>= 3.9'
+dependencies = [
+    "psyplot>=1.5.0",
+    # add your dependencies here
+    "matplotlib>=2.0",
+]
+
+[project.urls]
+Homepage = 'https://codebase.helmholtz.cloud/psyplot/psy-simple'
+Documentation = "https://psyplot.github.io/psy-simple"
+Source = "https://codebase.helmholtz.cloud/psyplot/psy-simple"
+Tracker = "https://codebase.helmholtz.cloud/psyplot/psy-simple/issues/"
+
+
+[project.entry-points."psyplot"]
+plugin = "psy_simple.plugin"
+patches = "psy_simple.plugin:patches"
+
+[project.optional-dependencies]
+testsite = [
+    "tox",
+    "isort==5.12.0",
+    "black==23.1.0",
+    # "blackdoc==0.3.8",
+    "flake8==6.0.0",
+    "pre-commit",
+    "mypy",
+    "pytest-cov",
+    "reuse",
+    "cffconvert",
+    "pytest-xdist",
+    "dask",
+    "netCDF4",
+    "seaborn",
+    "statsmodels",
+    "psyplot_gui",
+]
+
+gui = [
+    "psyplot-gui",
+]
+
+docs = [
+    "psy-simple[gui]",
+    "autodocsumm",
+    "sphinx-rtd-theme",
+    "hereon-netcdf-sphinxext",
+    "sphinx-design",
+    "ipython",
+    "pickleshare",  # required for IPythons savefig
+    "seaborn",
+    "dask",
+    "netCDF4",
+]
+dev = [
+    "psy-simple[testsite]",
+    "psy-simple[docs]",
+    "PyYAML",
+    "types-PyYAML",
+]
+
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.setuptools]
+zip-safe = false
+license-files = ["LICENSES/*"]
+
+[tool.setuptools.package-data]
+psy_simple = [
+    "psy_simple/widgets/icons/*.png",
+    "psy_simple/widgets/icons/cmaps/*.png",
+]
+
+[tool.setuptools.packages.find]
+namespaces = false
+exclude = [
+    'docs',
+    'tests*',
+    'examples'
+]
+
+[tool.pytest.ini_options]
+addopts = '-v'
+
+[tool.versioneer]
+VCS = 'git'
+style = 'pep440'
+versionfile_source = 'psy_simple/_version.py'
+versionfile_build = 'psy_simple/_version.py'
+tag_prefix = 'v'
+parentdir_prefix = 'psy-simple-'
+
+[tool.isort]
+profile = "black"
+line_length = 79
+src_paths = ["psy_simple"]
+float_to_top = true
+known_first_party = "psy_simple"
+
+[tool.black]
+line-length = 79
+target-version = ['py39']
+
+[tool.coverage.run]
+omit = ["psy_simple/_version.py"]

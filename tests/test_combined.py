@@ -1,47 +1,30 @@
 """Test module for the CombinedSimplePlotter."""
 
-# Disclaimer
-# ----------
+
+# SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
+# SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
+# SPDX-FileCopyrightText: 2016-2024 University of Lausanne
 #
-# Copyright (C) 2021 Helmholtz-Zentrum Hereon
-# Copyright (C) 2020-2021 Helmholtz-Zentrum Geesthacht
-# Copyright (C) 2016-2021 University of Lausanne
-#
-# This file is part of psy-simple and is released under the GNU LGPL-3.O license.
-# See COPYING and COPYING.LESSER in the root of the repository for full
-# licensing details.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License version 3.0 as
-# published by the Free Software Foundation.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU LGPL-3.0 license for more details.
-#
-# You should have received a copy of the GNU LGPL-3.0 license
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# SPDX-License-Identifier: LGPL-3.0-only
+
 
 import os
 import re
-import six
-
+import unittest
 from functools import wraps
 from itertools import chain
-import unittest
-import numpy as np
 
+import _base_testing as bt
+import numpy as np
+import psyplot.project as psy
+import six
+import test_base as tb
+import test_plot2d as t2d
+import test_vector as tv
 from psyplot import ArrayList, open_dataset, rcParams
 from psyplot.utils import _TempBool
+
 from psy_simple.plotters import CombinedSimplePlotter
-import psyplot.project as psy
-
-import test_base as tb
-import test_vector as tv
-import test_plot2d as t2d
-import _base_testing as bt
-
 
 bold = tb.bold
 
@@ -175,7 +158,7 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             sp.update(
                 todefault=True,
                 replot=True,
-                **dict(item for item in kwargs.items() if item[0] != "color")
+                **dict(item for item in kwargs.items() if item[0] != "color"),
             )
         return sp
 
@@ -267,14 +250,14 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
         self.update(**kwargs)
         t_str = "1979-01-31, 18:00" if has_time else "%Y-%m-%d, %H:%M"
         self.assertEqual(
-            u"Test plot at %s o'clock of %s"
+            "Test plot at %s o'clock of %s"
             % (t_str, self.data.attrs.get("long_name", "Temperature")),
             label_func().get_text(),
         )
         self._data.psy.update(t=1)
         t_str = "1979-02-28, 18:00" if has_time else "%Y-%m-%d, %H:%M"
         self.assertEqual(
-            u"Test plot at %s o'clock of %s"
+            "Test plot at %s o'clock of %s"
             % (t_str, self.data.attrs.get("long_name", "Temperature")),
             label_func().get_text(),
         )
