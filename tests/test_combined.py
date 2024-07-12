@@ -23,7 +23,7 @@ import test_vector as tv
 from psyplot import ArrayList, open_dataset, rcParams
 from psyplot.utils import _TempBool
 
-from psy_simple.plotters import CombinedSimplePlotter
+from psy_simple.plotters import CombinedSimplePlotter, mpl_version
 
 bold = tb.bold
 
@@ -269,6 +269,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
     def test_cbar(self, *args, **kwargs):
         pass
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_cbarspacing(self, *args, **kwargs):
         """Test cbarspacing formatoption"""
         self.update(
@@ -286,6 +290,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             tv.SimpleVectorPlotterTest.test_cbarspacing(self, *args, **kwargs)
 
     @_do_from_both
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_cmap(self, *args, **kwargs):
         pass
 
@@ -296,6 +304,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
     def test_arrowsize(self):
         pass
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_bounds(self):
         """Test bounds formatoption"""
         # test bounds of scalar field
@@ -358,6 +370,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             atol=1e-3,
         )
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_clabel(self):
         def get_clabel():
             return self.plotter.vcbar.cbars["b"].ax.xaxis.get_label()

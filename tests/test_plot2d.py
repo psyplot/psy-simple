@@ -20,7 +20,7 @@ import test_lineplot as tl
 import xarray as xr
 from psyplot import ArrayList, open_dataset
 
-from psy_simple.plotters import Simple2DPlotter
+from psy_simple.plotters import Simple2DPlotter, mpl_version
 
 bold = tb.bold
 
@@ -253,6 +253,10 @@ class Simple2DPlotterTest(tl.LinePlotterTest, References2D):
             decimals=2,
         ).tolist()
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_clabel(self):
         """Test clabel, clabelsize, clabelweight, clabelprops formatoptions"""
 
@@ -281,6 +285,10 @@ class Simple2DPlotterTest(tl.LinePlotterTest, References2D):
         self.update(cmap=plt.get_cmap("RdBu"))
         self.compare_figures(fname)
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_cbar(self, *args):
         """Test colorbar (cbar) formatoption"""
         self.update(cbar=["fb", "fr", "fl", "ft", "b", "r"])

@@ -17,7 +17,7 @@ import test_combined as tc
 from psyplot import ArrayList, open_dataset, rcParams
 from test_plot2d_icon import IconTestMixin
 
-from psy_simple.plotters import CombinedSimplePlotter
+from psy_simple.plotters import CombinedSimplePlotter, mpl_version
 
 
 class IconCombinedSimplePlotterTest(
@@ -85,6 +85,10 @@ class IconCombinedSimplePlotterTest(
     def test_density(self):
         pass
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_bounds(self):
         """Test bounds formatoption"""
         # test bounds of scalar field
