@@ -14,6 +14,7 @@ psyplot-gui = {ref = "develop", git = "git+https://codebase.helmholtz.cloud/psyp
 PyQt5 = {version="*"}
 PyQtWebEngine = {version="*"}
 matplotlib = "3.5.*"
+numpy = "<2.0.0"
 
 [dev-packages]
 
