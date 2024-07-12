@@ -1,6 +1,5 @@
 """Test module for the CombinedSimplePlotter."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -318,20 +317,22 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             286.03,
             289.84,
         ]
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(bounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(250, 290, 5, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(250, 290, 5, endpoint=True),
+            atol=1e-2,
         )
 
         # test vector bounds
         self.update(color="absolute")
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
-            np.linspace(0, 15, 11, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries,
+            np.linspace(0, 15, 11, endpoint=True),
+            atol=1e-2,
         )
         self.update(vbounds="minmax")
         bounds = [
@@ -347,13 +348,14 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             9.77,
             10.81,
         ]
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(vbounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 3).tolist(),
-            np.linspace(1.0, 8.5, 5, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries,
+            np.linspace(1.0, 8.5, 5, endpoint=True),
+            atol=1e-3,
         )
 
     def test_clabel(self):

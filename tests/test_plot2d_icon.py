@@ -1,6 +1,5 @@
 """Test module for the 2D plot of icon files."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -112,9 +111,10 @@ class IconSimplePlotterTest(IconTestMixin, t2d.Simple2DPlotterTest):
 
     def test_bounds(self):
         """Test bounds formatoption"""
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(240, 310, 11, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(240, 310, 11, endpoint=True),
+            atol=1e-2,
         )
         self.update(bounds="minmax")
         bounds = [
@@ -130,11 +130,12 @@ class IconSimplePlotterTest(IconTestMixin, t2d.Simple2DPlotterTest):
             300.21,
             306.48,
         ]
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(bounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
             np.linspace(255, 305, 5, endpoint=True).tolist(),
+            atol=1e-2,
         )
