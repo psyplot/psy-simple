@@ -2,6 +2,18 @@
 ..
 .. SPDX-License-Identifier: CC-BY-4.0
 
+v1.5.1
+======
+regular update for matplotlib 3.9
+
+Added
+-----
+- add tests for mpl 3.9, see `!43 <https://codebase.helmholtz.cloud/psyplot/psy-simple/-/merge_requests/43>`__
+
+Known issues
+------------
+- the colorbar tests as updating the colorbar is currently broken with matplotlib 3.9, see `#35 <https://codebase.helmholtz.cloud/psyplot/psy-simple/-/issues/35>`__
+
 v1.5.0
 ======
 Compatibility fixes and code formatting
