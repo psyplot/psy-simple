@@ -284,6 +284,22 @@
              
   <section id="changelog">
 <span id="id1"></span><h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<section id="v1-5-1">
+<h2>v1.5.1<a class="headerlink" href="#v1-5-1" title="Link to this heading"></a></h2>
+<p>regular update for matplotlib 3.9</p>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>add tests for mpl 3.9, see <a class="reference external" href="https://codebase.helmholtz.cloud/psyplot/psy-simple/-/merge_requests/43">!43</a></p></li>
+</ul>
+</section>
+<section id="known-issues">
+<h3>Known issues<a class="headerlink" href="#known-issues" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>the colorbar tests as updating the colorbar is currently broken with matplotlib 3.9, see <a class="reference external" href="https://codebase.helmholtz.cloud/psyplot/psy-simple/-/issues/35">#35</a></p></li>
+</ul>
+</section>
+</section>
 <section id="v1-5-0">
 <h2>v1.5.0<a class="headerlink" href="#v1-5-0" title="Link to this heading"></a></h2>
 <p>Compatibility fixes and code formatting</p>
@@ -333,14 +349,14 @@ CircleCI.</p>
 <li><p>Compatibility fixes for matplotlib&gt;=3.3</p></li>
 </ul>
 </section>
-<section id="added">
-<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<section id="id5">
+<h3>Added<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>psyplot does now have a CITATION.cff file, see <a class="reference external" href="https://citation-file-format.github.io">https://citation-file-format.github.io</a></p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Changed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>Changed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>psy-simple is now officially licensed under LGPL-3.0-only,
 see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/28">#28</a></p></li>
@@ -352,8 +368,8 @@ the code and docs all at one place, see <a class="reference external" href="http
 <section id="v1-3-1">
 <h2>v1.3.1<a class="headerlink" href="#v1-3-1" title="Link to this heading"></a></h2>
 <p>Patch for plotting the polygons with 3D bounds</p>
-<section id="id6">
-<h3>Changed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<section id="id7">
+<h3>Changed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>the values <code class="docutils literal notranslate"><span class="pre">'tri'</span></code>, <code class="docutils literal notranslate"><span class="pre">'tricontour'</span></code> and <code class="docutils literal notranslate"><span class="pre">'tricontourf'</span></code> for the <code class="docutils literal notranslate"><span class="pre">plot</span></code>
 formatoptions have been depreceated and should be replaced by <code class="docutils literal notranslate"><span class="pre">'poly'</span></code>,
@@ -361,8 +377,8 @@ formatoptions have been depreceated and should be replaced by <code class="docut
 <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/23">#23</a></p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Fixed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>A bug was fixed with the <code class="docutils literal notranslate"><span class="pre">extend</span></code> formatoption if <code class="docutils literal notranslate"><span class="pre">plot=None</span></code>, see
 <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/20">#20</a></p></li>
@@ -374,8 +390,8 @@ formatoptions have been depreceated and should be replaced by <code class="docut
 <section id="v1-3-0">
 <h2>v1.3.0<a class="headerlink" href="#v1-3-0" title="Link to this heading"></a></h2>
 <p>New background and mask formatoptions and more options for colorbar bounds</p>
-<section id="id8">
-<h3>Added<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id9">
+<h3>Added<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <ul>
 <li><p>a new <code class="docutils literal notranslate"><span class="pre">background</span></code> formatoption has been implemented that allows to set the
 facecolor of the axes (i.e. the background color for the plot)</p></li>
@@ -406,8 +422,8 @@ prevents their automatic estimation, e.g. via:</p>
 </li>
 </ul>
 </section>
-<section id="id9">
-<h3>Changed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id10">
+<h3>Changed<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>values in the statusbar are only shown, if the drawn artist contains the
 cursor position, see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/18">#18</a></p></li>
@@ -420,8 +436,8 @@ appending of new data. The <cite>colors</cite> attribute can be extended by the
 <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/10">#10</a>)</p></li>
 </ul>
 </section>
-<section id="id10">
-<h3>Fixed<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<section id="id11">
+<h3>Fixed<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Fixed a bug to calculate color bounds for uniform data,
 see <a class="reference external" href="https://github.com/psyplot/psy-simple/pull/9">#9</a></p></li>
@@ -432,8 +448,8 @@ the colorbar bounds (see <a class="reference external" href="https://github.com/
 </section>
 <section id="v1-2-0">
 <h2>v1.2.0<a class="headerlink" href="#v1-2-0" title="Link to this heading"></a></h2>
-<section id="id11">
-<h3>Added<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Added<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">plot2d</span></code> plotmethod now also supports unstructured data of any shape
 (see <a class="reference external" href="https://github.com/psyplot/psyplot/issues/6">issue#6</a>)</p></li>
@@ -445,8 +461,8 @@ a switch between categorical and non-categorical plots</p></li>
 </section>
 <section id="v1-1-0">
 <h2>v1.1.0<a class="headerlink" href="#v1-1-0" title="Link to this heading"></a></h2>
-<section id="id12">
-<h3>Added<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3>Added<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Changelog</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">interp_bounds</span></code> formatoption for the <code class="docutils literal notranslate"><span class="pre">plot2d</span></code> plot method (see the
@@ -455,8 +471,8 @@ a switch between categorical and non-categorical plots</p></li>
 plot the mean over the x- and y-dimensions</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Changed<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<section id="id14">
+<h3>Changed<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>The xlim and ylim formatoptions now consider inverted x- and y-axes</p></li>
 </ul>
