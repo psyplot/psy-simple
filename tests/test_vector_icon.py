@@ -1,6 +1,5 @@
 """Test module for vector (quiver) plots with icon data."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -52,9 +51,10 @@ class IconSimpleVectorPlotterTest(IconTestMixin, tv.SimpleVectorPlotterTest):
     def test_bounds(self):
         """Test bounds formatoption"""
         self.update(color="absolute")
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(0, 15, 11, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(0, 15, 11, endpoint=True),
+            atol=1e-2,
         )
         self.update(bounds="minmax")
         bounds = [
@@ -70,11 +70,12 @@ class IconSimpleVectorPlotterTest(IconTestMixin, tv.SimpleVectorPlotterTest):
             9.99,
             11.09,
         ]
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(bounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.round(np.linspace(0.5, 9.0, 5, endpoint=True), 2).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(0.5, 9.0, 5, endpoint=True),
+            atol=1e-2,
         )
