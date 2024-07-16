@@ -8,7 +8,7 @@
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/nc-table-styles.css?v=d585f46f" />
-      <link rel="stylesheet" type="text/css" href="../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+      <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=87e54e7c" />
 
   
   <!--[if lt IE 9]>
@@ -18,9 +18,9 @@
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
         <script src="../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script src="../_static/design-tabs.js?v=36754332"></script>
+        <script src="../_static/design-tabs.js?v=f930bc37"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -417,13 +417,13 @@ ValueError: setting an array element with a sequence.
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The name of the colormap.</p></li>
-<li><p><strong>colors</strong> (<em>array-like</em><em> of </em><em>colors</em><em> or </em><em>array-like</em><em> of </em><em>(</em><em>value</em><em>, </em><em>color</em><em>)</em>) – If only colors are given, they are equidistantly mapped from the
+<li><p><strong>colors</strong> (list of <a href="#id1"><span class="problematic" id="id2">:mpltype:`color`</span></a> or list of (value, color)) – If only colors are given, they are equidistantly mapped from the
 range <span class="math notranslate nohighlight">\([0, 1]\)</span>; i.e. 0 maps to <code class="docutils literal notranslate"><span class="pre">colors[0]</span></code> and 1 maps to
 <code class="docutils literal notranslate"><span class="pre">colors[-1]</span></code>.
 If (value, color) pairs are given, the mapping is from <em>value</em>
 to <em>color</em>. This can be used to divide the range unevenly.</p></li>
 <li><p><strong>N</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – The number of RGB quantization levels.</p></li>
-<li><p><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – </p></li>
+<li><p><strong>gamma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -491,7 +491,7 @@ extension).</p>
 pyplot.show(block=False)</p></li>
 <li><p><strong>use_qt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, use the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">psy_simple.widgets.color.ColormapDialog.show_colormaps</span></code>, if
-False use a matplotlib implementation based on <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. If None, use
+False use a matplotlib implementation based on <a class="footnote-reference brackets" href="#id4" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. If None, use
 the Qt implementation if it is running in the psyplot GUI.</p></li>
 </ul>
 </dd>
@@ -506,8 +506,8 @@ the Qt implementation if it is running in the psyplot GUI.</p></li>
 </dl>
 <p class="rubric">References</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="id2" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<aside class="footnote brackets" id="id4" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">1</a><span class="fn-bracket">]</span></span>
 <p><a class="reference external" href="http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html">http://matplotlib.org/1.2.1/examples/pylab_examples/show_colormaps.html</a></p>
 </aside>
 </aside>
