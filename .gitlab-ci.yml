@@ -65,6 +65,8 @@ test:
         IMAGE: python:3.10
       - SCENARIO: mpl_37_py311
         IMAGE: python:3.11
+      - SCENARIO: mpl_39_py312
+        IMAGE: python:3.12
   artifacts:
     name: pipfile
     paths:

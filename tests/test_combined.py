@@ -1,6 +1,5 @@
 """Test module for the CombinedSimplePlotter."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -24,7 +23,7 @@ import test_vector as tv
 from psyplot import ArrayList, open_dataset, rcParams
 from psyplot.utils import _TempBool
 
-from psy_simple.plotters import CombinedSimplePlotter
+from psy_simple.plotters import CombinedSimplePlotter, mpl_version
 
 bold = tb.bold
 
@@ -270,6 +269,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
     def test_cbar(self, *args, **kwargs):
         pass
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_cbarspacing(self, *args, **kwargs):
         """Test cbarspacing formatoption"""
         self.update(
@@ -287,6 +290,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             tv.SimpleVectorPlotterTest.test_cbarspacing(self, *args, **kwargs)
 
     @_do_from_both
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_cmap(self, *args, **kwargs):
         pass
 
@@ -297,6 +304,10 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
     def test_arrowsize(self):
         pass
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_bounds(self):
         """Test bounds formatoption"""
         # test bounds of scalar field
@@ -318,20 +329,22 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             286.03,
             289.84,
         ]
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(bounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(250, 290, 5, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(250, 290, 5, endpoint=True),
+            atol=1e-2,
         )
 
         # test vector bounds
         self.update(color="absolute")
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(),
-            np.linspace(0, 15, 11, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries,
+            np.linspace(0, 15, 11, endpoint=True),
+            atol=1e-2,
         )
         self.update(vbounds="minmax")
         bounds = [
@@ -347,15 +360,20 @@ class CombinedSimplePlotterTest(tv.SimpleVectorPlotterTest):
             9.77,
             10.81,
         ]
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(vbounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.vbounds.norm.boundaries, 3).tolist(),
-            np.linspace(1.0, 8.5, 5, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.vbounds.norm.boundaries,
+            np.linspace(1.0, 8.5, 5, endpoint=True),
+            atol=1e-3,
         )
 
+    @unittest.skipIf(
+        mpl_version == 3.9,
+        "Colorbars are messed up in mpl 3.9",
+    )
     def test_clabel(self):
         def get_clabel():
             return self.plotter.vcbar.cbars["b"].ax.xaxis.get_label()

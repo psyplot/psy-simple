@@ -1,6 +1,5 @@
 """Test module for vector (quiver) plots."""
 
-
 # SPDX-FileCopyrightText: 2021-2024 Helmholtz-Zentrum Hereon
 # SPDX-FileCopyrightText: 2020-2021 Helmholtz-Zentrum Geesthacht
 # SPDX-FileCopyrightText: 2016-2024 University of Lausanne
@@ -149,9 +148,10 @@ class SimpleVectorPlotterTest(t2d.Simple2DPlotterTest):
     def test_bounds(self):
         """Test bounds formatoption"""
         self.update(color="absolute")
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(),
-            np.linspace(0, 15, 11, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(0, 15, 11, endpoint=True),
+            atol=1e-2,
         )
         self.update(bounds="minmax")
         bounds = [
@@ -168,11 +168,12 @@ class SimpleVectorPlotterTest(t2d.Simple2DPlotterTest):
             10.81,
         ]
 
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 2).tolist(), bounds
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries, bounds, atol=1e-2
         )
         self.update(bounds=["rounded", 5, 5, 95])
-        self.assertEqual(
-            np.round(self.plotter.bounds.norm.boundaries, 3).tolist(),
-            np.linspace(1.0, 8.5, 5, endpoint=True).tolist(),
+        self.assertAlmostArrayEqual(
+            self.plotter.bounds.norm.boundaries,
+            np.linspace(1.0, 8.5, 5, endpoint=True),
+            atol=1e-3,
         )

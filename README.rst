@@ -55,10 +55,10 @@ GNU LGPL-3.0 license for more details.
 You should have received a copy of the GNU LGPL-3.0 license
 along with this program.  If not, see https://www.gnu.org/licenses/.
 
-.. |CI| image:: https://codebase.helmholtz.cloud/psyplot/psy-simple/badges/main/pipeline.svg
-   :target: https://codebase.helmholtz.cloud/psyplot/psy-simple/-/pipelines?page=1&scope=all&ref=main
-.. |Code coverage| image:: https://codebase.helmholtz.cloud/psyplot/psy-simple/badges/main/coverage.svg
-   :target: https://codebase.helmholtz.cloud/psyplot/psy-simple/-/graphs/main/charts
+.. |CI| image:: https://codebase.helmholtz.cloud/psyplot/psy-simple/badges/master/pipeline.svg
+   :target: https://codebase.helmholtz.cloud/psyplot/psy-simple/-/pipelines?page=1&scope=all&ref=master
+.. |Code coverage| image:: https://codebase.helmholtz.cloud/psyplot/psy-simple/badges/master/coverage.svg
+   :target: https://codebase.helmholtz.cloud/psyplot/psy-simple/-/graphs/master/charts
 .. |Latest Release| image:: https://codebase.helmholtz.cloud/psyplot/psy-simple/-/badges/release.svg
    :target: https://codebase.helmholtz.cloud/psyplot/psy-simple
 .. |PyPI version| image:: https://img.shields.io/pypi/v/psy-simple.svg
